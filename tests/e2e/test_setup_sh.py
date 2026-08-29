@@ -147,9 +147,7 @@ def test_sync_invokes_uv_sync_without_all_extras(tmp_path: Path) -> None:
     log = tmp_path / "uv-args.txt"
     uv = bin_dir / "uv"
     uv.write_text(
-        "#!/bin/sh\n"
-        f'printf "%s\\n" "$@" > "{log}"\n'
-        "exit 0\n",
+        f'#!/bin/sh\nprintf "%s\\n" "$@" > "{log}"\nexit 0\n',
         encoding="utf-8",
     )
     uv.chmod(uv.stat().st_mode | stat.S_IXUSR)
