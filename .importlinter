@@ -47,3 +47,12 @@ source_modules =
 forbidden_modules =
     vhecfsck.core
     vhecfsck.adapters
+
+[importlinter:contract:synthetic-independent]
+name = synthetic never imports core or adapters
+type = forbidden
+source_modules =
+    vhecfsck.synthetic
+forbidden_modules =
+    vhecfsck.core
+    vhecfsck.adapters
