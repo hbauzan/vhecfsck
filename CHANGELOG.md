@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Verdict engine in `vhecfsck/core/verdict.py` (`evaluate`, `aggregate`,
+  `verdict_to_exit_code`) with exhaustive §6 truth table. Ticket: P2-09.
 - IVF partition-size CV in `vhecfsck/core/partitions.py` (population `ddof=0`,
   Fixture C, companion diagnostics). Ticket: P2-08.
 - Deletion fragmentation index in `vhecfsck/core/fragmentation.py` (`dfi`,
