@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- IVF partition-size CV in `vhecfsck/core/partitions.py` (population `ddof=0`,
+  Fixture C, companion diagnostics). Ticket: P2-08.
 - Deletion fragmentation index in `vhecfsck/core/fragmentation.py` (`dfi`,
   CORRECTION 1 UNAVAILABLE path, fragment breakdown, entrypoint escalation).
   Ticket: P2-07.
