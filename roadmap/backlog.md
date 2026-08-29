@@ -25,7 +25,7 @@ atomically.
 | P0-04 | `make verify` as the single quality gate | S | P0-02, P0-03 | done |
 | P0-05 | Error taxonomy and exit-code contract | M | P0-01 | done |
 | P0-06 | Structured logging with credential redaction | M | P0-05 | todo |
-| P0-07 | Configuration and default threshold profile | M | P0-01 | todo |
+| P0-07 | Configuration and default threshold profile | M | P0-01 | done |
 | P0-08 | Import-layering enforcement | S | P0-04 | todo |
 | P0-09 | Read-only static guard | M | P0-04 | todo |
 | P0-10 | Continuous integration | M | P0-04 | todo |

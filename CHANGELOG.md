@@ -30,3 +30,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error taxonomy: `ExitCode` and `VhecfsckError` hierarchy (`UsageError`,
   `TargetConnectionError`, `CapabilityError`, `InconclusiveError`, `InternalError`)
   with a single uncaught-exception handler. Ticket: P0-05.
+- `AuditConfig` with metrics-spec default thresholds, file/env/CLI precedence, and
+  unknown-key rejection. Ticket: P0-07.
