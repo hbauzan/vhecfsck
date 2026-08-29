@@ -16,11 +16,14 @@ not a SaaS control plane.
 
 ```bash
 uv sync
+uv run pre-commit install   # once per clone
 make verify
 ```
 
 Or run `./setup.sh` and choose the sync / verify options. `make verify` must be
-green before you open a PR.
+green before you open a PR. Pre-commit runs fast hygiene + the read-only guard on
+commit; mypy and the full test suite stay in `make verify` / CI (slow hooks get
+bypassed).
 
 ## Licence headers
 
