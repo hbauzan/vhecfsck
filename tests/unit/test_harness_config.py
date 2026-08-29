@@ -56,6 +56,7 @@ _COVERAGE_TARGETS = (
     "tests/oracle/test_ground_truth.py",
     "tests/oracle/test_canary.py",
     "tests/unit/test_fragmentation.py",
+    "tests/unit/test_partitions.py",
 )
 
 
@@ -232,6 +233,7 @@ def test_core_coverage_gate_passes() -> None:
             "tests/oracle/test_ground_truth.py",
             "tests/oracle/test_canary.py",
             "tests/unit/test_fragmentation.py",
+            "tests/unit/test_partitions.py",
         ],
         cwd=ROOT,
         check=False,
