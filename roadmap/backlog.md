@@ -52,7 +52,7 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| P2-01 | Metric result types and verdict model | M | P1-01 | todo |
+| P2-01 | Metric result types and verdict model | M | P1-01 | done |
 | P2-02 | Deterministic sampling | S | P0-07 | todo |
 | P2-03 | Naive reference implementations (oracle) | M | P1-01 | done |
 | P2-04 | Blocked BLAS ground truth | L | P2-03 | done |
