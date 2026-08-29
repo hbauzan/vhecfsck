@@ -41,6 +41,7 @@ REQUIRED_TEST_DIRS = (
 _COVERAGE_TARGETS = (
     "tests/unit/test_package.py",
     "tests/unit/test_cli_stub.py",
+    "tests/unit/test_errors.py",
 )
 
 
