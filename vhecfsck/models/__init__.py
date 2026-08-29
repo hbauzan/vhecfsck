@@ -11,6 +11,12 @@ from vhecfsck.models.corpus import (
     SearchResult,
     VectorBatch,
 )
+from vhecfsck.models.metrics import (
+    EvidenceStrength,
+    MetricResult,
+    MetricState,
+    ThresholdSpec,
+)
 from vhecfsck.models.target import (
     Capabilities,
     IndexKind,
@@ -20,12 +26,16 @@ from vhecfsck.models.target import (
 
 __all__ = [
     "Capabilities",
+    "EvidenceStrength",
     "GraphStats",
     "IndexCounts",
     "IndexKind",
+    "MetricResult",
     "MetricSpace",
+    "MetricState",
     "PartitionStats",
     "SearchResult",
     "TargetDescriptor",
+    "ThresholdSpec",
     "VectorBatch",
 ]
