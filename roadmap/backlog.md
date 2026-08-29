@@ -71,11 +71,12 @@ atomically.
 | P3-01 | Report schema | M | P2-01 | todo |
 | P3-02 | JSON renderer and published schema | M | P3-01 | todo |
 | P3-03 | Terminal renderer | M | P3-01 | todo |
-| P3-04 | `vhecfsck audit` | M | P3-02, P3-03, P2-10 | todo |
+| P3-04 | `vhecfsck audit` | M | P3-02, P3-03, P2-10, P3-09 | todo |
 | P3-05 | `vhecfsck demo` | S | P3-04, P1-08 | todo |
 | P3-06 | Prometheus exporter | M | P3-01 | todo |
 | P3-07 | `vhecfsck export` | S | P3-02 | todo |
 | P3-08 | Exit-code contract test suite | S | P3-04, P3-05 | todo |
+| P3-09 | `LanceDbAdapter` with official SDK | M | P1-02 | todo |
 
 ## P4 — Projection and 3D slice · [phase file](phases/phase-4-projection-and-3d-slice.md)
 
