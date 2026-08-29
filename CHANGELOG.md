@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Hubness metrics in `vhecfsck/core/hubness.py` (`hub_share_top1pct`,
+  `antihub_fraction`, independent subsample per ADR-0006 / CORRECTION 3,
+  §3.5 diagnostics, truth and engine counting paths). Ticket: P2-06.
 - Verdict engine in `vhecfsck/core/verdict.py` (`evaluate`, `aggregate`,
   `verdict_to_exit_code`) with exhaustive §6 truth table. Ticket: P2-09.
 - IVF partition-size CV in `vhecfsck/core/partitions.py` (population `ddof=0`,
