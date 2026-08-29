@@ -12,10 +12,14 @@ from vhecfsck.models.corpus import (
     VectorBatch,
 )
 from vhecfsck.models.metrics import (
+    Direction,
     EvidenceStrength,
     MetricResult,
     MetricState,
     ThresholdSpec,
+    Verdict,
+    metric_result_from_dict,
+    metric_result_to_dict,
 )
 from vhecfsck.models.target import (
     Capabilities,
@@ -26,6 +30,7 @@ from vhecfsck.models.target import (
 
 __all__ = [
     "Capabilities",
+    "Direction",
     "EvidenceStrength",
     "GraphStats",
     "IndexCounts",
@@ -38,4 +43,7 @@ __all__ = [
     "TargetDescriptor",
     "ThresholdSpec",
     "VectorBatch",
+    "Verdict",
+    "metric_result_from_dict",
+    "metric_result_to_dict",
 ]
