@@ -21,7 +21,7 @@ atomically.
 | :--- | :--- | :--- | :--- | :--- |
 | P0-01 | Bootstrap package and packaging | M | — | done |
 | P0-02 | Lint, format and strict typing configuration | S | P0-01 | done |
-| P0-03 | Test harness and coverage gates | S | P0-01 | todo |
+| P0-03 | Test harness and coverage gates | S | P0-01 | done |
 | P0-04 | `make verify` as the single quality gate | S | P0-02, P0-03 | todo |
 | P0-05 | Error taxonomy and exit-code contract | M | P0-01 | todo |
 | P0-06 | Structured logging with credential redaction | M | P0-05 | todo |
