@@ -52,6 +52,7 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_registry.py",
     "tests/contract/test_adapter_contract.py",
     "tests/unit/test_scenarios.py",
+    "tests/oracle/test_ground_truth.py",
 )
 
 
@@ -225,7 +226,7 @@ def test_core_coverage_gate_passes() -> None:
             "--cov-fail-under=90",
             "--override-ini=addopts=",
             "-q",
-            "tests/unit/test_lint_typing_config.py::test_typed_packages_are_importable",
+            "tests/oracle/test_ground_truth.py",
         ],
         cwd=ROOT,
         check=False,
