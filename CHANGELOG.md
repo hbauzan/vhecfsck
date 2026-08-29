@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Adapter registry (`register` / `resolve_class` / `open_target`) for
+  `synthetic://`, `lance://` (and bare `*.lance` paths), `qdrant://`,
+  `postgres://`. Lazy SDK import with install hints; credentials redacted in
+  errors. Ticket: P1-06.
 - `SyntheticAdapter` (`exact` / `ivf` / `ivf_tombstoned`) with private seeded
   k-means, tombstone post-filter (`ef_search` as ef_budget), honest
   capabilities (`report_graph_stats=False`), counts from pathology
