@@ -32,6 +32,7 @@ REQUIRED_LABELS = (
     "The mice would like a word",
     "Forty-two",
     "Heart of Gold",
+    "Point-of-View Gun",
     EXIT_LINE,
 )
 
@@ -92,12 +93,19 @@ def test_help_puts_actions_before_hitchhiker_quotes() -> None:
         ("make verify", "The mice would like a word"),
         ("uv run vhecfsck demo", "Forty-two"),
         ("uv run vhecfsck serve", "Heart of Gold"),
+        ("kill orphaned pytest processes", "Point-of-View Gun"),
         ("Exit the panel", EXIT_LINE),
     )
     for action, quote in pairs:
         action_at = plain.index(action)
         quote_at = plain.index(quote)
         assert action_at < quote_at, (action, quote)
+
+
+def test_clean_verb_exits_ok() -> None:
+    result = run_setup("clean")
+    assert result.returncode == EXIT_OK, result.stderr + result.stdout
+    assert "Point-of-View Gun" in result.stdout
 
 
 def test_help_does_not_advertise_saas_daemon_or_vite() -> None:
