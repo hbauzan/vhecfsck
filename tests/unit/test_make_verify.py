@@ -19,6 +19,7 @@ def test_makefile_declares_required_targets() -> None:
         "test:",
         "coverage:",
         "layers:",
+        "readonly:",
         "fmt:",
         "test-fast:",
         "clean:",
