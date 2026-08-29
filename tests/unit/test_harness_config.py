@@ -60,6 +60,7 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_fragmentation.py",
     "tests/unit/test_partitions.py",
     "tests/unit/test_verdict.py",
+    "tests/unit/test_pipeline.py",
 )
 
 
@@ -240,6 +241,7 @@ def test_core_coverage_gate_passes() -> None:
             "tests/unit/test_fragmentation.py",
             "tests/unit/test_partitions.py",
             "tests/unit/test_verdict.py",
+            "tests/unit/test_pipeline.py",
         ],
         cwd=ROOT,
         check=False,
