@@ -5,7 +5,7 @@ description = "Topological audit and health diagnostics for vector indexes."
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
-authors = [{ name = "vhecfsck contributors" }]
+authors = [{ name = "hbauzan" }]
 keywords = ["vector", "hnsw", "ivf", "audit", "fsck", "embeddings"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
