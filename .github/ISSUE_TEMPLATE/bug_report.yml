@@ -1,0 +1,68 @@
+name: Bug report
+description: Something broke or behaved incorrectly (not a threshold disagreement).
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for incorrect behaviour. Threshold / verdict disagreements that look
+        like “false alarms” belong in the **False positive** template.
+
+        If you suspect a **write** to an audited target, stop and use the private
+        channel in [SECURITY.md](../SECURITY.md) instead.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps. Include the exact CLI invocation when possible.
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: report_json
+    attributes:
+      label: Report JSON
+      description: |
+        Paste the full audit report JSON when you have one. Reports are designed to be
+        safe to attach (no credentials, raw vectors, or document text). Still skim for
+        secrets before pasting.
+      render: json
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      description: Package version (`vhecfsck --version`) or git SHA.
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, engine (if any), install method (`uvx`, checkout, …).
+    validations:
+      required: false
