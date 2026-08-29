@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Blocked BLAS exact k-NN in `vhecfsck/core/ground_truth.py` (`exact_knn`,
+  `KnnResult`, float64 cross-check): working-set-derived blocks, L2
+  clamp-before-sqrt, float16 upcast, block-size invariance vs naive oracle.
+  Ticket: P2-04.
 - Naive oracle under `tests/oracle/` (`naive_knn`, `naive_recall`, `naive_nk`,
   `naive_cv`) with Fixture A/B/C self-checks; deliberately unoptimised;
   import-linter forbids `vhecfsck` → `tests.oracle`. Ticket: P2-03.
