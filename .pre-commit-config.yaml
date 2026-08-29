@@ -1,0 +1,45 @@
+# Pre-commit hooks for vhecfsck (P0-14).
+# Install once:  uv run pre-commit install
+# Smoke-test:    uv run pre-commit run --all-files
+# Deliberately excluded: mypy and pytest (belong in make verify / CI).
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(roadmap/|\.agents/|\.claude/)
+      - id: end-of-file-fixer
+        exclude: ^(roadmap/|\.agents/|\.claude/)
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.7
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: block-dotenv
+        name: block committing .env files
+        entry: >-
+          Refusing to commit a .env file. Keep secrets out of git;
+          commit .env.example instead.
+        language: fail
+        files: '(^|/)\.env(\..+)?$'
+        exclude: '(^|/)\.env\.example$'
+
+      - id: readonly-guard
+        name: read-only AST guard (adapters/ + core/)
+        entry: uv run python scripts/check_readonly.py
+        language: system
+        pass_filenames: false
+        types: [python]
