@@ -154,6 +154,8 @@ command in the README.
 - `--serve` hands off to the P4 server so the same run can be inspected in 3D.
 - Exit code follows the scenario's verdict like any other audit, so `demo` doubles as the
   smoke test for the exit-code contract.
+- The contributor `setup.sh` Forty-two action becomes live when this command exists. Do
+  not edit `setup.sh` unless the probe (`vhecfsck demo --help`) breaks.
 
 **Tests first**
 - Runs with only the base install — asserted by an environment that has no engine SDK

@@ -12,3 +12,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Package bootstrap: installable `vhecfsck` with hatchling, version single-sourced
   from `pyproject.toml`, console script entry point, and empty optional extras
   (`lancedb`, `qdrant`, `postgres`, `server`, `dev`, `all`). Ticket: P0-01.
+- Contributor `setup.sh` (macOS): Hitchhiker menu, `uv sync`, adaptive
+  `verify` / `demo` / `serve`. Not a daemon and not a SaaS panel. Ticket: P0-15.

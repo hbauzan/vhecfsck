@@ -174,6 +174,8 @@ exactly the rare points the tool exists to show.
 - Opens a browser by default; `--no-browser` for tests and headless use.
 - `serve` requires the `[server]` extra and says so clearly if it is missing.
 - Ctrl-C shuts down cleanly, closing the adapter.
+- The contributor `setup.sh` Heart of Gold action runs this command in the **foreground**.
+  Do not turn `setup.sh` into a process supervisor when this lands.
 
 **Tests first**
 - Starts, serves, and shuts down in a subprocess without leaking a port.

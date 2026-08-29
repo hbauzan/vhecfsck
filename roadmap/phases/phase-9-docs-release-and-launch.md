@@ -219,6 +219,29 @@ pipeline, or it gets run once and forgotten.
 
 ---
 
+## P9-09 — Linux port of `setup.sh`
+
+**Depends on:** P0-15, owner "ready to publish" · **Size:** S · **Touches:** `setup.sh`, `tests/e2e/test_setup_sh.py`
+
+**Do not start this ticket until the owner says the project is ready to publish and the
+script has been run on a real Linux machine.** A "should work" port from memory is out of
+scope. macOS is the only supported console until then.
+
+**Contract**
+- Remove the Darwin-only hard stop after a measured Linux run (Ubuntu or Fedora, bash).
+- Keep the same menu, exit codes, and Hitchhiker copy. Do not add a daemon, Vite, or a
+  hosted-demo publish path.
+- `uv` install on Linux uses the official installer, still `[y/N]` on a TTY.
+- Tests: the `SETUP_SH_UNAME=Linux` case flips from exit `3` to the same behaviour as
+  Darwin. Add a fixture that records the distro and bash version actually used. Do not
+  invent a matrix.
+
+**Acceptance criteria**
+- [ ] `./setup.sh help` and `./setup.sh sync` succeed on the recorded Linux host.
+- [ ] `uv run pytest tests/e2e/test_setup_sh.py` is green on that host and on macOS.
+
+---
+
 ## Phase exit checklist
 
 - [ ] `uvx vhecfsck@0.1.0 demo` works on a clean machine, verified in a fresh container.
@@ -228,3 +251,5 @@ pipeline, or it gets run once and forgotten.
 - [ ] CI recipes tested; composite action published.
 - [ ] Every README claim traceable to a measurement.
 - [ ] Post-launch triage window observed and its findings recorded.
+- [ ] Linux `setup.sh` port (`P9-09`) only if the owner has given a publish go-ahead
+      and the script was run on a real Linux host.
