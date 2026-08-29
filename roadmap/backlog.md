@@ -57,7 +57,7 @@ atomically.
 | P2-03 | Naive reference implementations (oracle) | M | P1-01 | done |
 | P2-04 | Blocked BLAS ground truth | L | P2-03 | done |
 | P2-05 | Canary recall | M | P2-04 | done |
-| P2-06 | Hubness | L | P2-04 | todo |
+| P2-06 | Hubness | L | P2-04 | done |
 | P2-07 | Deletion fragmentation index | S | P2-01 | done |
 | P2-08 | Partition size CV | S | P2-01 | done |
 | P2-09 | Verdict engine | S | P2-01, P0-07 | done |
