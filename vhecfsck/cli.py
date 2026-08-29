@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import typer
 
+from vhecfsck.errors import VhecfsckError, abort, handle_uncaught
+
 app = typer.Typer(
     name="vhecfsck",
     help="Topological audit and health diagnostics for vector indexes.",
@@ -19,4 +21,9 @@ def _root() -> None:
 
 def main() -> None:
     """Console-script and ``python -m vhecfsck`` entry point."""
-    app()
+    try:
+        app()
+    except VhecfsckError as exc:
+        abort(handle_uncaught(exc))
+    except Exception as exc:
+        abort(handle_uncaught(exc))

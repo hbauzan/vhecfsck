@@ -27,3 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Single quality gate: root `Makefile` with `make verify` (lint, format-check,
   typecheck, test, coverage, layers stub) plus `verify-full`, `fmt`, `test-fast`,
   `clean`, `web-build`, `demo`. Ticket: P0-04.
+- Error taxonomy: `ExitCode` and `VhecfsckError` hierarchy (`UsageError`,
+  `TargetConnectionError`, `CapabilityError`, `InconclusiveError`, `InternalError`)
+  with a single uncaught-exception handler. Ticket: P0-05.
