@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Shared domain types in `vhecfsck/models/` (`MetricSpace`, `IndexKind`,
+  `TargetDescriptor`, `Capabilities`, `IndexCounts`, `VectorBatch`,
+  `SearchResult`, `PartitionStats`, `GraphStats`). Leaf package: validation
+  only, no I/O or metric logic; `TargetDescriptor.location` expects a string
+  already passed through `redact_secrets`. Ticket: P1-01.
 - Package bootstrap: installable `vhecfsck` with hatchling, version single-sourced
   from `pyproject.toml`, console script entry point, and empty optional extras
   (`lancedb`, `qdrant`, `postgres`, `server`, `dev`, `all`). Ticket: P0-01.

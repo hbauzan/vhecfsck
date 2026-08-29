@@ -44,6 +44,7 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_errors.py",
     "tests/unit/test_config.py",
     "tests/unit/test_logging_redaction.py",
+    "tests/unit/test_models.py",
 )
 
 
