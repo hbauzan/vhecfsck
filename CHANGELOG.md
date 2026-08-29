@@ -43,3 +43,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   wired into `make verify`. Ticket: P0-09.
 - GitHub Actions CI (`ci.yml` matrix + advisory 3.14) and `nightly.yml`
   (`make verify-full` + engine-SDK drift placeholder). Ticket: P0-10.
+- Root `AGENTS.md` distilled from the agent playbook (gate, hard guardrails,
+  delivery). Ticket: P0-12.
