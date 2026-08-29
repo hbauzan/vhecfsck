@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import importlib
 import re
+import subprocess
 import sys
 from importlib.metadata import version
 
@@ -30,13 +30,27 @@ def test_version_is_pep440_and_matches_metadata() -> None:
 
 
 def test_importing_package_does_not_import_numpy() -> None:
-    for name in list(sys.modules):
-        if name == "numpy" or name.startswith("numpy."):
-            del sys.modules[name]
-        if name == "vhecfsck" or name.startswith("vhecfsck."):
-            del sys.modules[name]
+    """Fresh interpreter: importing vhecfsck must not pull numpy.
 
-    importlib.invalidate_caches()
-    import vhecfsck  # noqa: F401
-
-    assert "numpy" not in sys.modules
+    Runs in a subprocess so purging ``sys.modules`` cannot break later
+    tests that need the already-loaded numpy C extension.
+    """
+    script = """
+import sys
+import importlib
+for name in list(sys.modules):
+    if name == "numpy" or name.startswith("numpy."):
+        del sys.modules[name]
+    if name == "vhecfsck" or name.startswith("vhecfsck."):
+        del sys.modules[name]
+importlib.invalidate_caches()
+import vhecfsck  # noqa: F401
+assert "numpy" not in sys.modules, sorted(sys.modules)
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
