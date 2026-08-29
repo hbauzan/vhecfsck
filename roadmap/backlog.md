@@ -60,7 +60,7 @@ atomically.
 | P2-06 | Hubness | L | P2-04 | todo |
 | P2-07 | Deletion fragmentation index | S | P2-01 | done |
 | P2-08 | Partition size CV | S | P2-01 | done |
-| P2-09 | Verdict engine | S | P2-01, P0-07 | todo |
+| P2-09 | Verdict engine | S | P2-01, P0-07 | done |
 | P2-10 | Audit pipeline orchestration | M | P2-05 … P2-09 | todo |
 | P2-11 | Determinism harness | S | P2-10 | todo |
 
