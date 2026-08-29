@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Naive oracle under `tests/oracle/` (`naive_knn`, `naive_recall`, `naive_nk`,
+  `naive_cv`) with Fixture A/B/C self-checks; deliberately unoptimised;
+  import-linter forbids `vhecfsck` → `tests.oracle`. Ticket: P2-03.
 - Named synthetic scenarios (`healthy`, `drifted`, `tombstoned`, `hubby`,
   `capability_limited`, `tiny`) with frozen exit-code expectations; `open_scenario`
   in adapters (layering: synthetic returns ``ScenarioSpec`` only). Ticket: P1-08.

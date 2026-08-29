@@ -43,3 +43,20 @@ def test_core_importing_adapters_fails_the_gate() -> None:
         assert result.returncode != 0, result.stdout + result.stderr
     finally:
         probe.unlink(missing_ok=True)
+
+
+def test_core_importing_oracle_fails_the_gate() -> None:
+    """P2-03: production must never import the naive oracle under tests/."""
+    probe = ROOT / "vhecfsck" / "core" / "_p2_03_oracle_probe.py"
+    probe.write_text("import tests.oracle.reference  # noqa: F401\n", encoding="utf-8")
+    try:
+        result = subprocess.run(
+            ["uv", "run", "lint-imports"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode != 0, result.stdout + result.stderr
+    finally:
+        probe.unlink(missing_ok=True)
