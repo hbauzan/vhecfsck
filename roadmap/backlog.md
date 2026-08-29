@@ -41,7 +41,7 @@ atomically.
 | :--- | :--- | :--- | :--- | :--- |
 | P1-01 | Shared domain types | M | P0-07 | done |
 | P1-02 | `IndexAdapter` protocol | L | P1-01 | done |
-| P1-03 | Synthetic corpus generator | M | P1-01 | todo |
+| P1-03 | Synthetic corpus generator | M | P1-01 | done |
 | P1-04 | Injectable pathologies | M | P1-03 | todo |
 | P1-05 | `SyntheticAdapter` with a real approximate-search model | L | P1-02, P1-04 | todo |
 | P1-06 | Adapter registry and target URI resolution | S | P1-05 | todo |
