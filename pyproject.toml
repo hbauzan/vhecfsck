@@ -3,6 +3,7 @@ name = "vhecfsck"
 version = "0.1.0.dev0"
 description = "Topological audit and health diagnostics for vector indexes."
 license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 authors = [{ name = "vhecfsck contributors" }]
 keywords = ["vector", "hnsw", "ivf", "audit", "fsck", "embeddings"]
@@ -50,6 +51,8 @@ only-include = [
     "vhecfsck",
     "tests",
     "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE",
     "pyproject.toml",
 ]
 
