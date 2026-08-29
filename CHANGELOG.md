@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   helpers (`l2_normalize`, `StringIdMapper`, `iter_vector_batches`) in
   `vhecfsck/adapters/base.py`. No write methods; optional reads return `None`.
   Ticket: P1-02.
+- Seeded synthetic corpus generator (`generate_corpus`) with controllable
+  cluster-size skew, cosine unit norms, DOT norm distribution, float32-only
+  blocked generation, and recorded `CorpusSpec`. Ticket: P1-03.
 - Package bootstrap: installable `vhecfsck` with hatchling, version single-sourced
   from `pyproject.toml`, console script entry point, and empty optional extras
   (`lancedb`, `qdrant`, `postgres`, `server`, `dev`, `all`). Ticket: P0-01.
