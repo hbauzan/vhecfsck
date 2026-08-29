@@ -55,6 +55,7 @@ def run_setup(
 ) -> subprocess.CompletedProcess[str]:
     merged = os.environ.copy()
     merged.setdefault("SETUP_SH_UNAME", "Darwin")
+    merged.setdefault("SETUP_SH_IN_TEST", "1")
     if env:
         merged.update(env)
     return subprocess.run(

@@ -205,6 +205,10 @@ cmd_serve() {
 
 cmd_clean() {
     log_info "${LABEL_CLEAN}: searching for orphaned pytest processes"
+    if [ "${SETUP_SH_IN_TEST:-}" = "1" ]; then
+        log_ok "Running inside test harness — skipping pkill — ${MOSTLY_HARMLESS}"
+        return "${EXIT_OK}"
+    fi
     local pids
     pids="$(pgrep -f pytest 2>/dev/null)" || true
     if [ -z "${pids}" ]; then
@@ -212,7 +216,7 @@ cmd_clean() {
         return "${EXIT_OK}"
     fi
     log_warn "Terminating orphaned pytest processes (PIDs: ${pids})"
-    pkill -9 -f pytest 2>/dev/null || true
+    echo "${pids}" | xargs kill -9 2>/dev/null || true
     log_ok "All orphaned pytest processes terminated — ${MOSTLY_HARMLESS}"
     return "${EXIT_OK}"
 }
