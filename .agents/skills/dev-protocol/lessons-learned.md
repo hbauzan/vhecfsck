@@ -8,7 +8,57 @@ De ahí salen sus dos reglas, que están en el §5 del final y son las mismas qu
 
 ## 0. Estado
 
-Sin invariantes de producto todavía. Este repo arranca limpio: las lecciones del proyecto anterior **no** aplican acá. Cuando el usuario pida un handoff, agregá secciones numeradas debajo de este bloque (problema → solución → invariante).
+Invariantes de la sesión P0-01 + P0-15. Las lecciones de `vhectorlab` **no** se copian: este producto es un auditor CLI offline, no un stack web con daemon.
+
+---
+
+## 1. `setup.sh` is a contributor console, not the product
+
+**Problem:** A port of `vhectorlab/setup.sh` assumed two long-lived services (`uvicorn` + Vite), pid files, log dirs, port killing, and Hugging Face Spaces publish. That contradicts `vhecfsck` scope (no daemon, no SaaS, CLI-first, `uvx vhecfsck` is the hero).
+
+**Solution:** Root `setup.sh` is a macOS contributor panel only. It runs `uv sync`, and when they exist, `make verify` / `vhecfsck demo` / `vhecfsck serve` in the **foreground**. No `nohup`, no `.pids/`, no `logs/`, no Vite `:5173`, no HF Spaces. Linux is deferred to `P9-09` after a real publish-readiness test.
+
+**Invariant:** Never turn `setup.sh` into a process supervisor. When `demo` (P3-05) or `serve` (P4-06) land, wire them as foreground CLI calls — do not add background lifecycle.
+
+## 2. Menu hierarchy: technical action primary, Hitchhiker secondary
+
+**Problem:** Putting Guide quotes as the bold menu title made the panel hard to scan; operators need the real command first.
+
+**Solution:** Each row is `[n] <bold white technical action>  (dim grey Hitchhiker quote)`. Banner stays `DON'T PANIC — Vector Index`. Exit primary text is `Exit the panel`; quote remains `So long, and thanks for all the fish`.
+
+**Invariant:** Never let a Hitchhiker quote replace or outrank the technical action in the menu. Quotes stay in the dim parenthetical slot.
+
+## 3. Missing capability is `INCONCLUSIVE` (exit 3), never fake-healthy
+
+**Problem:** A menu that pretends `make verify` / `demo` / `serve` work before those tickets exist teaches false confidence and breaks CI later.
+
+**Solution:** Probe the real artifact (`Makefile`, `vhecfsck <cmd> --help`). If absent, print the Thursday line and exit `3`. Gate failure / sync failure → `2`. Unknown verb → `4`. Taxonomy matches code-design exit codes.
+
+**Invariant:** Never fake a green health or a successful run for a feature that is not built yet.
+
+## 4. Do not prepend Homebrew/`~/.local` over an explicit `PATH`
+
+**Problem:** Prepending `/opt/homebrew/bin` to `PATH` shadow-hijacked a test-injected fake `uv` (and would hijack a contributor-pinned version).
+
+**Solution:** Prefer `uv` already on `PATH`. Only append known install locations when `uv` is still missing.
+
+**Invariant:** Tool discovery must not reorder an intentional `PATH`.
+
+## 5. Never `uv sync --all-extras` from the contributor console
+
+**Problem:** `--all-extras` would pull every engine SDK and break the lean-base / `uvx vhecfsck demo` constraint (ADR-0002).
+
+**Solution:** `setup.sh` runs plain `uv sync`. Engine extras are opt-in when an adapter ticket needs them.
+
+**Invariant:** Default sync stays base (+ declared dependency groups). No `--all-extras` in `setup.sh`.
+
+## 6. vhectorlab assets map to tickets, not to setup
+
+**Problem:** Architect suggestions bundled Three.js / HUD / `.npz` / HF deploy into "reuse for setup".
+
+**Solution:** Three.js + HUD colour semantics belong in P4/P6. Tensor/float32 corpus handling belongs in core/adapters. HF Spaces stays out of scope (no hosted SaaS).
+
+**Invariant:** Do not grow `setup.sh` to host visualizer or deploy concerns. Follow the phase tickets.
 
 ---
 

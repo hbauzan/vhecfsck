@@ -3,3 +3,57 @@
 
 # Claude Code local discovery (symlink recreated per clone — see USAGE.md §2)
 .claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.cache/
+*.cover
+.python-version.bak
+
+# uv
+uv.lock.bak
+
+# Node / front end (P4+)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+dist-web/
+*.tsbuildinfo
+.vite/
+
+# Editors / local
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS
+Thumbs.db

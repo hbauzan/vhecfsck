@@ -178,6 +178,7 @@ Each of these has already happened somewhere, in some project, and each is easy 
 ## 6. Useful commands
 
 ```bash
+./setup.sh help          # contributor console (macOS); ./setup.sh verify when the gate exists
 make verify              # the gate — must be green before every commit
 make verify-full         # adds slow, integration, perf, mutation testing
 make fmt                 # auto-fix formatting and lint
