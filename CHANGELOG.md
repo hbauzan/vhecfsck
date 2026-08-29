@@ -7,8 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- P1-08 scenario exit-code expectations calibrated to full-pipeline audit
+  output (`drifted` → OK, `hubby` → INCONCLUSIVE, `tiny` canary → OK).
+  Hubby hubness FAIL thresholds remain for P8 calibration.
+
 ### Added
 
+- Audit pipeline in `vhecfsck/pipeline.py` (`run_audit`: validate → metrics →
+  verdict → `Report`) with per-stage timings, metric isolation, corpus
+  materialisation once, and injectable ground-truth backend. Ticket: P2-10.
+- Report types in `vhecfsck/models/report.py` (P3-01 precursor dataclasses).
 - Hubness metrics in `vhecfsck/core/hubness.py` (`hub_share_top1pct`,
   `antihub_fraction`, independent subsample per ADR-0006 / CORRECTION 3,
   §3.5 diagnostics, truth and engine counting paths). Ticket: P2-06.
