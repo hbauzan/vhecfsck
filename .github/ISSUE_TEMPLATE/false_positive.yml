@@ -1,0 +1,66 @@
+name: False positive
+description: Tool WARN/FAIL that you believe is wrong given the index state.
+title: "false-positive: "
+labels: ["false-positive"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thresholds and sample sizes are the likeliest source of disagreement. Help us
+        calibrate — include the metric name, observed value, and why you believe the
+        index is healthy.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Which verdict or metric looks wrong, and why.
+    validations:
+      required: true
+  - type: dropdown
+    id: verdict
+    attributes:
+      label: Reported overall verdict
+      options:
+        - WARN
+        - FAIL
+        - INCONCLUSIVE
+        - Other / unknown
+    validations:
+      required: true
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Metrics involved
+      description: Metric name(s), reported value(s), and the threshold you disagree with.
+      placeholder: |
+        e.g. recall_id = 0.82 (WARN below 0.90) — collection is freshly rebuilt and …
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Why this is a false positive
+      description: Ground truth checks, recent rebuild, engine docs, or other evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: report_json
+    attributes:
+      label: Report JSON
+      description: Paste the report JSON if available (redacted connection details are fine).
+      render: json
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+    validations:
+      required: false
+  - type: textarea
+    id: target
+    attributes:
+      label: Target context (no secrets)
+      description: Engine, index type (HNSW/IVF/…), approximate size, churn pattern — no credentials.
+    validations:
+      required: false

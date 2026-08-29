@@ -1,0 +1,54 @@
+name: New adapter
+description: Request support for another vector engine or storage backend.
+title: "adapter: "
+labels: ["adapter", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Adapters are **read-only** windows onto an index (see ADR-0001). Requests that
+        require writes, compaction triggers, or repair APIs will be declined.
+  - type: input
+    id: engine
+    attributes:
+      label: Engine / product name
+      placeholder: e.g. Weaviate, Milvus, …
+    validations:
+      required: true
+  - type: input
+    id: uri_scheme
+    attributes:
+      label: Suggested URI scheme (if any)
+      placeholder: e.g. weaviate://…
+    validations:
+      required: false
+  - type: textarea
+    id: access
+    attributes:
+      label: How would a read-only client talk to it?
+      description: Official client, HTTP API, on-disk format, etc. Link docs if possible.
+    validations:
+      required: true
+  - type: textarea
+    id: capabilities
+    attributes:
+      label: Needed capabilities
+      description: |
+        What must the adapter expose for useful metrics? (approximate search, ID listing,
+        tombstone/delete visibility, partition metadata, …)
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why this engine
+      description: Deployment context and how common it is in your stack.
+    validations:
+      required: false
+  - type: checkboxes
+    id: readonly
+    attributes:
+      label: Read-only acknowledgement
+      options:
+        - label: I understand the adapter must not write, compact, or remediate the target.
+          required: true

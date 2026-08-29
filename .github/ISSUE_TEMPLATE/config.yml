@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security / write-path report
+    url: https://github.com/hbauzan/vhecfsck/security/advisories/new
+    about: Suspected write path or other security issue — private channel only (see SECURITY.md).

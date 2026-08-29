@@ -1,0 +1,37 @@
+name: Feature request
+description: New behaviour that is not a new engine adapter.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a new vector engine / URI scheme, use the **New adapter** template instead.
+        Features that would write to an audited target are out of scope — see SECURITY.md.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What gap are you hitting today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: What should the CLI / report / docs do?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links to roadmap tickets, ADRs, or related issues.
+    validations:
+      required: false
