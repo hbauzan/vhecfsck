@@ -8,7 +8,14 @@ De ahí salen sus dos reglas, que están en el §5 del final y son las mismas qu
 
 ## 0. Estado
 
-Invariantes de la sesión P0-01 + P0-15. Las lecciones de `vhectorlab` **no** se copian: este producto es un auditor CLI offline, no un stack web con daemon.
+Invariantes post P0-01 + P0-02 + P0-15 (+ licencia/remote). Las lecciones de `vhectorlab`
+**no** se copian: este producto es un auditor CLI offline, no un stack web con daemon.
+
+**Hecho en main:** P0-01, P0-02, P0-15. **Próximo critical path:** P0-03 → P0-04.
+**Remote:** `origin` = `https://github.com/hbauzan/vhecfsck` (**PRIVATE** por ahora).
+**Licencia:** Apache-2.0; copyright / NOTICE credit = **hbauzan** (no “vhecfsck contributors”).
+**Gate:** `make verify` **aún no existe** (P0-04). Hasta entonces: `uv run ruff check .`,
+`uv run ruff format --check .`, `uv run mypy vhecfsck`, `uv run pytest`.
 
 ---
 
@@ -59,6 +66,30 @@ Invariantes de la sesión P0-01 + P0-15. Las lecciones de `vhectorlab` **no** se
 **Solution:** Three.js + HUD colour semantics belong in P4/P6. Tensor/float32 corpus handling belongs in core/adapters. HF Spaces stays out of scope (no hosted SaaS).
 
 **Invariant:** Do not grow `setup.sh` to host visualizer or deploy concerns. Follow the phase tickets.
+
+## 7. Ruff has no path `lint.overrides` — scope ANN+D with per-file-ignores
+
+**Problem:** Ticket P0-02 asks for ANN+D only on `core/` and `models/`. Current ruff rejects `[[tool.ruff.lint.overrides]]`.
+
+**Solution:** Put `ANN` and `D` in global `lint.select`; suppress them via `per-file-ignores` on `tests/**`, package root modules, `adapters/**`, and `scripts/**`. Extend-exclude `.agents`, `.claude`, `.cursor`, and `roadmap` so skill templates and markdown code fences are not lint/format targets.
+
+**Invariant:** Do not reintroduce nonexistent ruff override tables. Keep product trees clean; do not “fix” roadmap prose or skill templates to satisfy format-check.
+
+## 8. Until P0-04, do not invent a parallel quality gate
+
+**Problem:** Agents tend to add a Makefile early or invent `make verify` before the ticket.
+
+**Solution:** P0-02 landed ruff/mypy config only. P0-03 lands pytest harness + coverage. **P0-04** is the sole owner of `Makefile` / `make verify`. Until then verify with the four commands in §0. P0-04 will make `setup.sh` verify stop returning INCONCLUSIVE.
+
+**Invariant:** One ticket owns the gate. No shadow Makefile in P0-03.
+
+## 9. Copyright credit is `hbauzan`; GitHub repo stays private until the owner says otherwise
+
+**Problem:** Attribution and visibility were clarified after the first LICENSE pass.
+
+**Solution:** `LICENSE` + `NOTICE` + `pyproject.toml` `authors` credit **hbauzan**. Repo `hbauzan/vhecfsck` is **PRIVATE**. P0-11 still owns README/SECURITY/CONTRIBUTING/templates — LICENSE/NOTICE already exist; do not rewrite attribution without an explicit ask. Do not flip visibility public without an explicit ask.
+
+**Invariant:** Attribution string = `hbauzan`. Visibility changes are owner-gated.
 
 ---
 
