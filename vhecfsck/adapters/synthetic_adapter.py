@@ -63,6 +63,7 @@ class SyntheticAdapter:
         index_name: str = "default",
         location: str = "synthetic://memory",
         persist_path: Path | str | None = None,
+        capabilities: Capabilities | None = None,
     ) -> None:
         if mode not in ("exact", "ivf", "ivf_tombstoned"):
             msg = f"unknown search mode: {mode!r}"
@@ -117,16 +118,20 @@ class SyntheticAdapter:
             dimension=dim,
             metric_space=self._metric,
         )
-        self._capabilities = Capabilities(
-            enumerate_vectors=True,
-            random_access_by_id=True,
-            report_deleted_counts=True,
-            deleted_counts_exact=True,
-            report_partitions=report_partitions,
-            partition_live_counts=report_partitions,
-            report_graph_stats=False,
-            search_params_settable=True,
-            filtered_search=False,
+        self._capabilities = (
+            capabilities
+            if capabilities is not None
+            else Capabilities(
+                enumerate_vectors=True,
+                random_access_by_id=True,
+                report_deleted_counts=True,
+                deleted_counts_exact=True,
+                report_partitions=report_partitions,
+                partition_live_counts=report_partitions,
+                report_graph_stats=False,
+                search_params_settable=True,
+                filtered_search=False,
+            )
         )
 
         if persist_path is not None:
