@@ -8,14 +8,20 @@ De ahí salen sus dos reglas, que están en el §5 del final y son las mismas qu
 
 ## 0. Estado
 
-Invariantes post P0-01 + P0-02 + P0-15 (+ licencia/remote). Las lecciones de `vhectorlab`
-**no** se copian: este producto es un auditor CLI offline, no un stack web con daemon.
+**P0 Foundation completo en `main`.** Los quince tickets P0-01…P0-15 están `done`.
+**Próximo critical path:** **P1-01** (shared domain types) → P1-02 / P1-03 en paralelo tras P1-01.
+**HEAD de referencia al handoff:** merge de P0-14 (`make verify` verde; `./setup.sh verify` OK).
+**Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
+**Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
+**Gate único:** `make verify` (lint + format-check + typecheck + test + coverage + layers + readonly).
+**CI:** `.github/workflows/ci.yml` + `nightly.yml`. Sync en CI = `uv sync --group dev` (**nunca** `--all-extras`).
 
-**Hecho en main:** P0-01, P0-02, P0-15. **Próximo critical path:** P0-03 → P0-04.
-**Remote:** `origin` = `https://github.com/hbauzan/vhecfsck` (**PRIVATE** por ahora).
-**Licencia:** Apache-2.0; copyright / NOTICE credit = **hbauzan** (no “vhecfsck contributors”).
-**Gate:** `make verify` **aún no existe** (P0-04). Hasta entonces: `uv run ruff check .`,
-`uv run ruff format --check .`, `uv run mypy vhecfsck`, `uv run pytest`.
+Residual dueño (no lo “arregles” vos solo):
+- PyPI `vhecfsck` sigue libre (`404`); falta publicar placeholder con Trusted Publishing / token.
+- Visibilidad del repo: sigue private hasta OK explícito.
+- ADR-0012: la expansión de la `H` en copy público sigue abierta (no inventar gloss).
+
+Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, no stack web/daemon.
 
 ---
 
@@ -39,7 +45,7 @@ Invariantes post P0-01 + P0-02 + P0-15 (+ licencia/remote). Las lecciones de `vh
 
 **Problem:** A menu that pretends `make verify` / `demo` / `serve` work before those tickets exist teaches false confidence and breaks CI later.
 
-**Solution:** Probe the real artifact (`Makefile`, `vhecfsck <cmd> --help`). If absent, print the Thursday line and exit `3`. Gate failure / sync failure → `2`. Unknown verb → `4`. Taxonomy matches code-design exit codes.
+**Solution:** Probe the real artifact (`Makefile`, `vhecfsck <cmd> --help`). If absent, print the Thursday line and exit `3`. Gate failure / sync failure → `2`. Unknown verb → `4`. Taxonomy matches code-design exit codes. After P0-04, `./setup.sh verify` runs the real gate.
 
 **Invariant:** Never fake a green health or a successful run for a feature that is not built yet.
 
@@ -51,13 +57,13 @@ Invariantes post P0-01 + P0-02 + P0-15 (+ licencia/remote). Las lecciones de `vh
 
 **Invariant:** Tool discovery must not reorder an intentional `PATH`.
 
-## 5. Never `uv sync --all-extras` from the contributor console
+## 5. Never `uv sync --all-extras` (setup.sh, CI, or “convenience”)
 
-**Problem:** `--all-extras` would pull every engine SDK and break the lean-base / `uvx vhecfsck demo` constraint (ADR-0002).
+**Problem:** `--all-extras` would pull every engine SDK and break the lean-base / `uvx vhecfsck demo` constraint (ADR-0002). Template CI often copies `--all-extras`.
 
-**Solution:** `setup.sh` runs plain `uv sync`. Engine extras are opt-in when an adapter ticket needs them.
+**Solution:** `setup.sh` and GitHub Actions use plain `uv sync` / `uv sync --group dev`. Engine extras opt-in per adapter ticket.
 
-**Invariant:** Default sync stays base (+ declared dependency groups). No `--all-extras` in `setup.sh`.
+**Invariant:** Default sync stays base (+ declared dependency groups). No `--all-extras` in setup or CI.
 
 ## 6. vhectorlab assets map to tickets, not to setup
 
@@ -71,25 +77,81 @@ Invariantes post P0-01 + P0-02 + P0-15 (+ licencia/remote). Las lecciones de `vh
 
 **Problem:** Ticket P0-02 asks for ANN+D only on `core/` and `models/`. Current ruff rejects `[[tool.ruff.lint.overrides]]`.
 
-**Solution:** Put `ANN` and `D` in global `lint.select`; suppress them via `per-file-ignores` on `tests/**`, package root modules, `adapters/**`, and `scripts/**`. Extend-exclude `.agents`, `.claude`, `.cursor`, and `roadmap` so skill templates and markdown code fences are not lint/format targets.
+**Solution:** Put `ANN` and `D` in global `lint.select`; suppress them via `per-file-ignores` on `tests/**`, package root modules (`cli`, `config`, `errors`, `logging`, …), `adapters/**`, `report/**`, `server/**`, and `scripts/**`. Extend-exclude `.agents`, `.claude`, `.cursor`, and `roadmap`.
 
 **Invariant:** Do not reintroduce nonexistent ruff override tables. Keep product trees clean; do not “fix” roadmap prose or skill templates to satisfy format-check.
 
-## 8. Until P0-04, do not invent a parallel quality gate
+## 8. `make verify` is the only gate — do not invent a parallel one
 
-**Problem:** Agents tend to add a Makefile early or invent `make verify` before the ticket.
+**Problem:** Agents invent ad-hoc verify command lists or skip steps.
 
-**Solution:** P0-02 landed ruff/mypy config only. P0-03 lands pytest harness + coverage. **P0-04** is the sole owner of `Makefile` / `make verify`. Until then verify with the four commands in §0. P0-04 will make `setup.sh` verify stop returning INCONCLUSIVE.
+**Solution:** P0-04 owns `Makefile` / `make verify` = lint + format-check + typecheck + test + coverage (80 overall / 90 `core/`) + `layers` (import-linter) + `readonly` (AST guard). `verify-full` adds slow marks + mutation stub.
 
-**Invariant:** One ticket owns the gate. No shadow Makefile in P0-03.
+**Invariant:** Leave every ticket with `make verify` green. No shadow gate. No “green except …”.
 
-## 9. Copyright credit is `hbauzan`; GitHub repo stays private until the owner says otherwise
+## 9. Copyright credit is `hbauzan`; GitHub stays private; PyPI claim is owner-gated
 
-**Problem:** Attribution and visibility were clarified after the first LICENSE pass.
+**Problem:** Attribution, visibility, and PyPI publish were clarified after first passes.
 
-**Solution:** `LICENSE` + `NOTICE` + `pyproject.toml` `authors` credit **hbauzan**. Repo `hbauzan/vhecfsck` is **PRIVATE**. P0-11 still owns README/SECURITY/CONTRIBUTING/templates — LICENSE/NOTICE already exist; do not rewrite attribution without an explicit ask. Do not flip visibility public without an explicit ask.
+**Solution:** `LICENSE` / `NOTICE` / authors = **hbauzan**. Repo PRIVATE until explicit OK. P0-13 filled `project.urls` and recorded in ADR-0012 that PyPI `0.0.0` publish needs a token / Trusted Publishing (not present in agent env).
 
-**Invariant:** Attribution string = `hbauzan`. Visibility changes are owner-gated.
+**Invariant:** Attribution = `hbauzan`. Visibility and PyPI publish are owner-gated. Do not invent the `H` expansion in ADR-0012.
+
+## 10. One ticket = one branch = one commit; never parallelize overlapping trees
+
+**Problem:** Launching a background agent on P0-11 while the parent worked P0-07 caused a mixed commit on the wrong branch and a failed merge (“Already up to date”).
+
+**Solution:** Serialise tickets that share `CHANGELOG` / `backlog` / `main`. Parallel only when filesets are disjoint **and** each agent owns a dedicated branch from a known `main` SHA.
+
+**Invariant:** No concurrent writers on the same branch or on shared paperwork files.
+
+## 11. Never merge a red gate; clean probe leftovers before commit
+
+**Problem:** AST/typing probes (`_p0_02_*`, `_p0_08_*`, `_p0_09_*`) left on disk, or a failing suite, got merged when the agent raced ahead.
+
+**Solution:** Probes live only inside a test’s `try/finally`. `make verify` must be green **before** `git commit`. If you discover main is red, fix on a `fix/…` branch immediately — do not start the next feature on a red base.
+
+**Invariant:** No probe files in the tree at commit time. No knowingly-red merges to `main`.
+
+## 12. Read-only SQL guard matches statement shapes, not prose
+
+**Problem:** Substring `DELETE ` matched `client.delete on …` and docstring “mention delete without…”, failing the suite and briefly landing red on main.
+
+**Solution:** `scripts/check_readonly.py` uses statement-shaped regex (`DELETE FROM`, `DROP TABLE`, `INSERT INTO`, `UPDATE … SET`, `ALTER TABLE`, `VACUUM`/`REINDEX`/`TRUNCATE`) with `(?<![.\w])`. Attribute calls and aliases still caught via AST.
+
+**Invariant:** Do not loosen the denylist of write attrs. Do not return to naive substring SQL matching.
+
+## 13. `vhecfsck/logging.py` is intentional — suppress A005, do not rename
+
+**Problem:** Ruff `A005` flags shadowing stdlib `logging`.
+
+**Solution:** Ticket P0-06 names the module `logging.py`. Keep the name; `per-file-ignores` includes `A005` for that file. Redaction has **no disable flag**.
+
+**Invariant:** Do not rename to “avoid the lint”. Do not add a redaction bypass.
+
+## 14. Coverage floor tests must track the growing package
+
+**Problem:** `tests/unit/test_harness_config.py` subprocess coverage ran only `test_package` + `test_cli_stub`; after `errors.py` / `config.py` landed, overall coverage dipped under 80% inside that meta-test.
+
+**Solution:** Keep `_COVERAGE_TARGETS` updated when new high-line-count modules ship, or measure coverage only via `make verify`’s coverage recipe and stop duplicating a brittle subset. Prefer extending targets over lowering `fail_under`.
+
+**Invariant:** Never lower coverage floors to make a meta-test pass. Never weaken product tests.
+
+## 15. Layering contracts need real packages; `models` stays a leaf
+
+**Problem:** import-linter fails if contracted modules do not exist.
+
+**Solution:** P0-08 added empty `vhecfsck/report/` and `vhecfsck/server/` scaffolds. Contracts: models imports nothing internal; core ⊬ adapters/server/cli/report; adapters ⊬ core; report ⊬ core/adapters.
+
+**Invariant:** Metric logic stays in `core/`. Domain types in `models/` import no internal package modules. New packages must extend `.importlinter` in the same ticket that introduces them.
+
+## 16. `AGENTS.md` is the playbook distill — hand-maintained
+
+**Problem:** Skill template assumed `sync_agents_md.py --check` ownership; P0-12 requires a short playbook distill (<~80 lines) with “never write to an audited target”, etc.
+
+**Solution:** Root `AGENTS.md` is hand-written from `roadmap/agent-playbook.md`. Do not regenerate it from the skill in a way that drops those guardrails. Pre-commit deliberately omits agents-md-sync.
+
+**Invariant:** Keep `AGENTS.md` short, linked to playbook + metrics spec, with the hard guardrails verbatim in spirit.
 
 ---
 
