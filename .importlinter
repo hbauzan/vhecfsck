@@ -2,7 +2,9 @@
 # Enforced by `uv run lint-imports` via `make verify` → layers.
 
 [importlinter]
-root_package = vhecfsck
+root_packages =
+    vhecfsck
+    tests
 include_external_packages = True
 
 [importlinter:contract:models-are-standalone]
@@ -56,3 +58,12 @@ source_modules =
 forbidden_modules =
     vhecfsck.core
     vhecfsck.adapters
+
+[importlinter:contract:production-never-imports-oracle]
+name = production never imports the test oracle
+type = forbidden
+source_modules =
+    vhecfsck
+forbidden_modules =
+    tests.oracle
+    tests
