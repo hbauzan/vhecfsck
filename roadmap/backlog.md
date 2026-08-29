@@ -19,7 +19,7 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| P0-01 | Bootstrap package and packaging | M | — | todo |
+| P0-01 | Bootstrap package and packaging | M | — | done |
 | P0-02 | Lint, format and strict typing configuration | S | P0-01 | todo |
 | P0-03 | Test harness and coverage gates | S | P0-01 | todo |
 | P0-04 | `make verify` as the single quality gate | S | P0-02, P0-03 | todo |
