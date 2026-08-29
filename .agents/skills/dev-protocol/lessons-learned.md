@@ -10,24 +10,26 @@ De ahí salen sus dos reglas, que están en el §5 del final y son las mismas qu
 
 **P0 Foundation completo** (P0-01…P0-15 `done`).
 **P1 completo** en `main` (P1-01…P1-08 `done`).
-**P2 parcial:** P2-03 (naive oracle) + P2-04 (blocked BLAS `exact_knn`) `done`.
-**Próximo critical path:** **P2-05** (canary recall) → P2-10 → P3-01 → …
-**HEAD de referencia al handoff:** `f5438c0` merge P2-04 (`make verify` verde; ~3–5 min por escenarios IVF).
+**P2 parcial:** P2-01, P2-03, P2-04, P2-05, P2-07, P2-08, P2-09 `done`. Falta **P2-06** (hubness) para desbloquear **P2-10**.
+**Próximo critical path:** **P2-06** (hubness) → **P2-10** (pipeline) → P3-01 → …
+**HEAD de referencia al handoff:** `4f99f04` merge P2-09 (`make verify` verde; ~2 min suite default, ~2 min extra core cov).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + test + coverage + layers + readonly).
 **CI:** `.github/workflows/ci.yml` + `nightly.yml`. Sync en CI = `uv sync --group dev` (**nunca** `--all-extras`).
 
-Stack listo para P2-05+:
-- `vhecfsck/models/` — domain types (`dataclass(frozen=True)`; **sin pydantic** — ADR-0002)
-- `vhecfsck/adapters/` — `IndexAdapter`, `SyntheticAdapter`, registry, `open_scenario`
-- `vhecfsck/synthetic/` — generator, pathologies, `ScenarioSpec`
-- `vhecfsck/core/ground_truth.py` — `exact_knn` / `KnnResult` (producción)
-- `tests/oracle/` — `naive_*` + differential / block-size invariance
-- `tests/contract/` — suite parametrizada; nuevo engine = solo `ADAPTER_REGISTRY`
+Stack en `main`:
+- `vhecfsck/models/metrics.py` — `MetricResult`, `MetricState`, `Verdict`, `ThresholdSpec`, `Direction`, JSON round-trip (P2-01)
+- `vhecfsck/core/ground_truth.py` — `exact_knn` / `KnnResult` (P2-04)
+- `vhecfsck/core/canary.py` — tie-tolerant recall, bootstrap CI95 (P2-05)
+- `vhecfsck/core/fragmentation.py` — DFI (P2-07)
+- `vhecfsck/core/partitions.py` — IVF partition CV, ddof=0 (P2-08)
+- `vhecfsck/core/verdict.py` — `evaluate` / `aggregate` / `verdict_to_exit_code` (P2-09)
+- `vhecfsck/adapters/` + `vhecfsck/synthetic/` — sin cambios de contrato en esta tanda
+- `tests/oracle/` — naive + canary; `tests/property/` — canary + partitions props
 
-Paralelos desbloqueados (otra sesión si compartís foco): P2-01, P2-02, P2-07, P2-08, P2-09.
-**No** saltees a P2-06/P2-10 sin P2-05. No P3/P4/P5 en la sesión de P2-05.
+Paralelos desbloqueados (otra sesión si compartís foco): **P2-02** (sampling), P2-11 (post P2-10).
+**No** P2-10 sin P2-06. **No** P3/P4/P5 hasta cerrar P2-10 (salvo paralelos explícitos).
 
 Residual dueño (no lo “arregles” vos solo):
 - PyPI `vhecfsck` sigue libre (`404`); falta publicar placeholder con Trusted Publishing / token.
@@ -278,6 +280,46 @@ Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, 
 **Solution:** Perf tests may exercise scale / opt-in 1M (`VHECFSCK_PERF_1M=1`) and assert completion + shape. Absolute wall/RSS thresholds wait for measured P8-04 values.
 
 **Invariant:** Never write a performance number into docs or asserts that nobody measured on a named reference machine.
+
+## 31. Canary self-exclusion: strip query id from GT **and** returns
+
+**Problem:** With corpus-drawn queries and `self_exclude=True`, excluding the query id from ground truth only still leaves self in `R_K` at distance 0 — `recall_dist` inflates (~1/k) even under exact search.
+
+**Solution:** When `query_source_ids` + `self_exclude`, request `k+1` neighbours from `exact_knn`, drop the query id from GT, **and** replace matching ids in the engine return row with `-1` before scoring.
+
+**Invariant:** Self-exclusion is symmetric: GT and returns must both omit the query's own id.
+
+## 32. Oracle single-query fixtures vs Q<5 guard
+
+**Problem:** Fixture A and most §2.5 edge-case tests use `Q=1`. The production guard `Q < 5 → UNAVAILABLE` blocks them.
+
+**Solution:** `compute_canary_recall(..., enforce_min_queries=False)` for hand-verified oracle tests only. Default remains `True` for pipeline/CLI paths.
+
+**Invariant:** Never weaken the guard globally; opt out explicitly in named oracle tests.
+
+## 33. Tombstoned `returned_invalid` when adapter filters dead ids
+
+**Problem:** `SyntheticAdapter` ivf_tombstoned post-filter drops dead ids from returns — `returned_invalid` stays 0 on real search even when path blocking exists.
+
+**Solution:** Acceptance test splices a known-deleted id from the scenario into the return matrix. That encodes the diagnostic field for engines that leak tombstones; short_returns covers path blocking separately.
+
+**Invariant:** Do not weaken the adapter to pass the metric test; inject the failure mode the metric is meant to detect.
+
+## 34. `verdict.py` is table-tested; 100% branch coverage is mandatory
+
+**Problem:** Verdict aggregation has many branches (UNAVAILABLE floor, strict mode, LOW-evidence FAIL cap, all-DISABLED).
+
+**Solution:** P2-09 ships an exhaustive `_AGGREGATE_CASES` parametrized table plus `evaluate` direction pairs. Ticket requires **100% branch coverage** on `vhecfsck/core/verdict.py` — verify with `coverage run --branch`.
+
+**Invariant:** Do not simplify aggregation logic to reduce branches; extend the table when adding rules.
+
+## 35. New `core/` modules → extend `_COVERAGE_TARGETS` **and** `test_core_coverage_gate_passes`
+
+**Problem:** After P2-05…P2-09, five new core modules landed; meta-tests only ran ground_truth until targets were extended per ticket.
+
+**Solution:** Each core ticket added its test file to `_COVERAGE_TARGETS` in `tests/unit/test_harness_config.py` **and** to the `test_core_coverage_gate_passes` subprocess list.
+
+**Invariant:** Same as §29 — both lists stay in sync when `vhecfsck/core/` grows.
 
 ---
 
