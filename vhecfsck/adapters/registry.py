@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from hashlib import blake2b
 from pathlib import Path
 from typing import cast
 from urllib.parse import urlparse
@@ -20,9 +19,6 @@ from vhecfsck.adapters.qdrant_adapter import QdrantAdapter
 from vhecfsck.adapters.synthetic_adapter import SyntheticAdapter
 from vhecfsck.errors import UsageError
 from vhecfsck.logging import redact_secrets
-from vhecfsck.models import MetricSpace
-from vhecfsck.synthetic.generator import generate_corpus
-from vhecfsck.synthetic.pathologies import corpus_state_from_generated
 
 Opener = Callable[[str], IndexAdapter]
 
@@ -121,30 +117,19 @@ def _split_target(target: str) -> tuple[str, str]:
 
 
 def _open_synthetic(target: str) -> IndexAdapter:
+    from vhecfsck.adapters.scenarios import open_scenario
+    from vhecfsck.synthetic.scenarios import SCENARIO_NAMES
+
     parsed = urlparse(target if "://" in target else f"synthetic://{target}")
-    name = (parsed.netloc or parsed.path or "default").strip("/")
+    name = (parsed.netloc or parsed.path or "").strip("/")
     if not name:
-        name = "default"
-    # Deterministic tiny corpus until named scenarios land (P1-08).
-    digest = blake2b(name.encode("utf-8"), digest_size=4).digest()
-    seed = int.from_bytes(digest, "big") % (2**31 - 1)
-    gen = generate_corpus(
-        64,
-        8,
-        n_clusters=4,
-        cluster_std=0.2,
-        cluster_size_skew=0.0,
-        seed=seed,
-        metric_space=MetricSpace.L2,
-    )
-    state = corpus_state_from_generated(gen)
-    location = redact_secrets(target)
-    return SyntheticAdapter(
-        state,
-        mode="exact",
-        index_name=name,
-        location=location,
-    )
+        raise UsageError(
+            "synthetic target requires a scenario name",
+            hint=(
+                f"example: synthetic://healthy; scenarios: {', '.join(SCENARIO_NAMES)}"
+            ),
+        )
+    return open_scenario(name, size="small", location=target).adapter
 
 
 def _open_lance(target: str) -> IndexAdapter:

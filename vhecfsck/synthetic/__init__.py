@@ -10,16 +10,30 @@ from vhecfsck.synthetic.pathologies import (
     inject_hubs,
     skew_partitions,
 )
+from vhecfsck.synthetic.scenarios import (
+    SCENARIO_NAMES,
+    ScenarioExpectation,
+    ScenarioSize,
+    ScenarioSpec,
+    build_scenario,
+    list_scenarios,
+)
 
 __all__ = [
+    "SCENARIO_NAMES",
     "CorpusSpec",
     "CorpusState",
     "GeneratedCorpus",
     "GroundTruthAnnotation",
+    "ScenarioExpectation",
+    "ScenarioSize",
+    "ScenarioSpec",
     "apply_churn",
+    "build_scenario",
     "corpus_state_from_generated",
     "generate_corpus",
     "inject_antihubs",
     "inject_hubs",
+    "list_scenarios",
     "skew_partitions",
 ]

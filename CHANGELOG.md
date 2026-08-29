@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Named synthetic scenarios (`healthy`, `drifted`, `tombstoned`, `hubby`,
+  `capability_limited`, `tiny`) with frozen exit-code expectations; `open_scenario`
+  in adapters (layering: synthetic returns ``ScenarioSpec`` only). Ticket: P1-08.
 - Shared adapter contract suite (`tests/contract/`) parametrised over
   SyntheticAdapter modes; capability honesty (None → UNAVAILABLE) tested, not
   skipped. Documented in CONTRIBUTING as the definition of a working adapter.

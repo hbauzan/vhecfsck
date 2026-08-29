@@ -51,6 +51,7 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_synthetic_adapter.py",
     "tests/unit/test_registry.py",
     "tests/contract/test_adapter_contract.py",
+    "tests/unit/test_scenarios.py",
 )
 
 
@@ -127,7 +128,8 @@ def test_rng_is_seeded_reproducibly(rng) -> None:
     assert (got == expected).all()
 
 
-def test_slow_marker_is_valid_and_collects_nothing() -> None:
+def test_slow_marker_is_registered_and_selectable() -> None:
+    """``slow`` is a registered marker; suite may collect zero or more slow tests."""
     result = subprocess.run(
         [
             sys.executable,
@@ -144,15 +146,9 @@ def test_slow_marker_is_valid_and_collects_nothing() -> None:
         text=True,
     )
     combined = result.stdout + result.stderr
-    # pytest exits 5 when the selection is empty; that is success for this check.
+    # pytest exits 5 when the selection is empty; 0 when at least one matches.
     assert result.returncode in {0, 5}, combined
     assert "unknown marker" not in combined.lower()
-    collected_nothing = (
-        "no tests collected" in combined.lower()
-        or "0 selected" in combined.lower()
-        or "0 tests collected" in combined.lower()
-    )
-    assert collected_nothing, combined
 
 
 def test_unregistered_marker_fails_collection(tmp_path: Path) -> None:

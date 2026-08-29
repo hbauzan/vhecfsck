@@ -20,6 +20,7 @@ from vhecfsck.adapters.registry import (
     registered_schemes,
     resolve_class,
 )
+from vhecfsck.adapters.scenarios import OpenedScenario, open_scenario
 from vhecfsck.adapters.synthetic_adapter import (
     RECALL_COLLAPSE_DELETE_FRACTION,
     RECALL_COLLAPSE_EF_BUDGET,
@@ -38,6 +39,7 @@ __all__ = [
     "IdArray",
     "IndexAdapter",
     "LanceDBAdapter",
+    "OpenedScenario",
     "PostgresAdapter",
     "QdrantAdapter",
     "SearchMode",
@@ -46,6 +48,7 @@ __all__ = [
     "SyntheticAdapter",
     "iter_vector_batches",
     "l2_normalize",
+    "open_scenario",
     "open_target",
     "register",
     "registered_schemes",
