@@ -34,3 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   unknown-key rejection. Ticket: P0-07.
 - Structured logging with mandatory `RedactionFilter` (stderr diagnostics;
   `--log-format human|json`, `-v`/`-vv`/`--quiet`). Ticket: P0-06.
+- Community docs: README placeholder (with `TODO(P9-01)` GIF slot), CONTRIBUTING
+  (licence-header policy), CODE_OF_CONDUCT, SECURITY (read-only + private
+  reporting), GitHub issue/PR templates. Ticket: P0-11.
