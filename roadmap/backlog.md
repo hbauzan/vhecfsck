@@ -39,7 +39,7 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| P1-01 | Shared domain types | M | P0-07 | todo |
+| P1-01 | Shared domain types | M | P0-07 | done |
 | P1-02 | `IndexAdapter` protocol | L | P1-01 | todo |
 | P1-03 | Synthetic corpus generator | M | P1-01 | todo |
 | P1-04 | Injectable pathologies | M | P1-03 | todo |
