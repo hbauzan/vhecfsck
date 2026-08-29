@@ -19,3 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `adapters`, lenient on tests). Ticket: P0-02.
 - Apache-2.0 `LICENSE` and `NOTICE` attributing copyright to `hbauzan`
   (redistribution must retain attribution).
+- Test harness: pytest `--strict-markers` / `--strict-config` / `-ra`, registered
+  markers (`slow`, `integration`, `perf`, `requires_*`), default exclusion of
+  slow/integration/perf, `pytest-cov` with overall `fail_under=80` (core-scoped
+  `fail_under=90` via separate invocation), `tests/conftest.py` seeded `rng` +
+  `deterministic_env`, and the architecture test directory skeleton. Ticket: P0-03.
