@@ -22,6 +22,7 @@ LABEL_BOOTSTRAP="Infinite Improbability Drive"
 LABEL_VERIFY="The mice would like a word"
 LABEL_DEMO="Forty-two"
 LABEL_SERVE="Heart of Gold"
+LABEL_CLEAN="Point-of-View Gun"
 LABEL_EXIT="So long, and thanks for all the fish"
 LABEL_INVALID="I think you ought to know I'm feeling very depressed."
 THURSDAY="This must be Thursday. I never could get the hang of Thursdays."
@@ -78,6 +79,8 @@ print_options() {
         "uv run vhecfsck demo — inconclusive until P3-05" "${LABEL_DEMO}"
     printf "  ${C_CYAN}[4]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
         "uv run vhecfsck serve — inconclusive until P4-06; foreground" "${LABEL_SERVE}"
+    printf "  ${C_CYAN}[5]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
+        "kill orphaned pytest processes" "${LABEL_CLEAN}"
     printf "  ${C_WHITE}[0]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
         "Exit the panel" "${LABEL_EXIT}"
 }
@@ -86,7 +89,7 @@ print_help() {
     print_banner
     printf "\n"
     print_options
-    printf "\n${C_DIM}Non-interactive verbs: help | sync | verify | demo | serve${C_RESET}\n"
+    printf "\n${C_DIM}Non-interactive verbs: help | sync | verify | demo | serve | clean${C_RESET}\n"
     printf "${C_DIM}The product is the CLI. This panel does not supervise processes.${C_RESET}\n"
 }
 
@@ -200,6 +203,20 @@ cmd_serve() {
     return $?
 }
 
+cmd_clean() {
+    log_info "${LABEL_CLEAN}: searching for orphaned pytest processes"
+    local pids
+    pids="$(pgrep -f pytest 2>/dev/null)" || true
+    if [ -z "${pids}" ]; then
+        log_ok "No orphaned pytest processes found — ${MOSTLY_HARMLESS}"
+        return "${EXIT_OK}"
+    fi
+    log_warn "Terminating orphaned pytest processes (PIDs: ${pids})"
+    pkill -9 -f pytest 2>/dev/null || true
+    log_ok "All orphaned pytest processes terminated — ${MOSTLY_HARMLESS}"
+    return "${EXIT_OK}"
+}
+
 pause_if_tty() {
     if [ -t 0 ]; then
         printf "\n${C_DIM}Press Enter to return to the panel.${C_RESET}"
@@ -215,7 +232,7 @@ show_menu() {
         print_banner
         printf "\n"
         print_options
-        printf "\n${C_BOLD}Select [0-4]: ${C_RESET}"
+        printf "\n${C_BOLD}Select [0-5]: ${C_RESET}"
         read -r option || exit "${EXIT_OK}"
         case "${option}" in
             1)
@@ -232,6 +249,10 @@ show_menu() {
                 ;;
             4)
                 cmd_serve
+                pause_if_tty
+                ;;
+            5)
+                cmd_clean
                 pause_if_tty
                 ;;
             0)
@@ -273,9 +294,13 @@ case "${1:-}" in
         cmd_serve
         exit $?
         ;;
+    clean|kill)
+        cmd_clean
+        exit $?
+        ;;
     *)
         printf '%s\n' "${LABEL_INVALID}" >&2
-        printf 'Usage: ./setup.sh [help|sync|verify|demo|serve]\n' >&2
+        printf 'Usage: ./setup.sh [help|sync|verify|demo|serve|clean]\n' >&2
         exit "${EXIT_USAGE}"
         ;;
 esac
