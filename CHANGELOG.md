@@ -37,3 +37,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Community docs: README placeholder (with `TODO(P9-01)` GIF slot), CONTRIBUTING
   (licence-header policy), CODE_OF_CONDUCT, SECURITY (read-only + private
   reporting), GitHub issue/PR templates. Ticket: P0-11.
+- Import-layering via `import-linter` (`.importlinter`) wired into `make verify`
+  `layers` target; `report/` and `server/` package scaffolds. Ticket: P0-08.

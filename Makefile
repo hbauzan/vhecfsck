@@ -56,8 +56,8 @@ coverage:  ## two floors: whole tree (≥80), then core/ (≥90)
 	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(PKG) --cov-fail-under=$(COV_ALL) -q
 	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(CORE) --cov-fail-under=$(COV_CORE) -q
 
-layers:  ## import-layering contracts (wired in P0-08; stub until then)
-	@echo "layers: deferred to P0-08 (stub ok)"
+layers:  ## import-layering contracts (P0-08)
+	uv run lint-imports
 
 mutation:  ## mutation testing (stub until a later phase owns it)
 	@echo "mutation: deferred (stub ok)"

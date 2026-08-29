@@ -1,0 +1,49 @@
+# Import-layering contracts — roadmap/01-architecture.md §4 (P0-08).
+# Enforced by `uv run lint-imports` via `make verify` → layers.
+
+[importlinter]
+root_package = vhecfsck
+include_external_packages = True
+
+[importlinter:contract:models-are-standalone]
+name = models imports nothing internal
+type = forbidden
+source_modules =
+    vhecfsck.models
+forbidden_modules =
+    vhecfsck.core
+    vhecfsck.adapters
+    vhecfsck.report
+    vhecfsck.server
+    vhecfsck.cli
+    vhecfsck.config
+    vhecfsck.errors
+    vhecfsck.logging
+
+[importlinter:contract:core-independent]
+name = core never imports adapters, server, cli, or report
+type = forbidden
+source_modules =
+    vhecfsck.core
+forbidden_modules =
+    vhecfsck.adapters
+    vhecfsck.server
+    vhecfsck.cli
+    vhecfsck.report
+
+[importlinter:contract:adapters-independent-of-core]
+name = adapters never import core
+type = forbidden
+source_modules =
+    vhecfsck.adapters
+forbidden_modules =
+    vhecfsck.core
+
+[importlinter:contract:report-independent]
+name = report never imports core or adapters
+type = forbidden
+source_modules =
+    vhecfsck.report
+forbidden_modules =
+    vhecfsck.core
+    vhecfsck.adapters
