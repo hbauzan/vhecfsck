@@ -47,3 +47,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   delivery). Ticket: P0-12.
 - Canonical package URLs in `pyproject.toml`; naming tests; ADR-0012 reservation
   notes (GitHub private; PyPI claim pending owner token). Ticket: P0-13.
+- Pre-commit hooks (ruff, hygiene, private-key detection, read-only guard).
+  Ticket: P0-14.
