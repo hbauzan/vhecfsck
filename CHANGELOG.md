@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Deletion fragmentation index in `vhecfsck/core/fragmentation.py` (`dfi`,
+  CORRECTION 1 UNAVAILABLE path, fragment breakdown, entrypoint escalation).
+  Ticket: P2-07.
 - Metric result model in `vhecfsck/models/metrics.py`: `MetricState` (severity
   ordered OK < WARN < FAIL), `Verdict`, `EvidenceStrength`, `Direction`,
   `ThresholdSpec` (inverted-pair rejection), `MetricResult` with ADR-0004
