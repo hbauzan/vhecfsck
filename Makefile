@@ -15,7 +15,7 @@ SLOW_MARKS ?= slow or integration or perf
 
 .DEFAULT_GOAL := help
 .PHONY: help verify verify-full lint format-check fmt typecheck test test-fast \
-        coverage layers mutation web-build demo clean
+        coverage layers readonly mutation web-build demo clean
 
 help:  ## show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -23,7 +23,7 @@ help:  ## show available targets
 
 # --- The gate ----------------------------------------------------------------
 
-verify: lint format-check typecheck test coverage layers  ## THE GATE — green before every commit
+verify: lint format-check typecheck test coverage layers readonly  ## THE GATE — green before every commit
 
 verify-full: verify  ## the gate plus slow suites and mutation (stubs OK until owned)
 	@ec=0; \
@@ -58,6 +58,9 @@ coverage:  ## two floors: whole tree (≥80), then core/ (≥90)
 
 layers:  ## import-layering contracts (P0-08)
 	uv run lint-imports
+
+readonly:  ## AST read-only guard (P0-09 / ADR-0001)
+	uv run python scripts/check_readonly.py
 
 mutation:  ## mutation testing (stub until a later phase owns it)
 	@echo "mutation: deferred (stub ok)"

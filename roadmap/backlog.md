@@ -27,7 +27,7 @@ atomically.
 | P0-06 | Structured logging with credential redaction | M | P0-05 | done |
 | P0-07 | Configuration and default threshold profile | M | P0-01 | done |
 | P0-08 | Import-layering enforcement | S | P0-04 | done |
-| P0-09 | Read-only static guard | M | P0-04 | todo |
+| P0-09 | Read-only static guard | M | P0-04 | done |
 | P0-10 | Continuous integration | M | P0-04 | todo |
 | P0-11 | Community, security and licence files | S | P0-01 | done |
 | P0-12 | Agent operating rules at the repository root | S | P0-11 | todo |
