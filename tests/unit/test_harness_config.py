@@ -50,6 +50,7 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_pathologies.py",
     "tests/unit/test_synthetic_adapter.py",
     "tests/unit/test_registry.py",
+    "tests/contract/test_adapter_contract.py",
 )
 
 
