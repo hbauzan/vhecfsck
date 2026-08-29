@@ -38,6 +38,8 @@ STRICT_MYPY_MODULES = {
     "vhecfsck.models.*",
     "vhecfsck.adapters",
     "vhecfsck.adapters.*",
+    "vhecfsck.synthetic",
+    "vhecfsck.synthetic.*",
 }
 
 
