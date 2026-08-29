@@ -60,12 +60,38 @@ only-include = [
 dev = [
     "mypy>=2.3.1",
     "pytest>=8",
+    "pytest-cov>=7.1.0",
     "ruff>=0.16.5",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "-m",
+    "not slow and not integration and not perf",
+]
+markers = [
+    "slow: long-running tests excluded from the default run",
+    "integration: real engines via testcontainers; excluded from the default run",
+    "perf: benchmark budgets (nightly); excluded from the default run",
+    "requires_docker: needs a working Docker daemon",
+    "requires_lancedb: needs the lancedb optional extra",
+    "requires_qdrant: needs the qdrant optional extra",
+    "requires_postgres: needs Postgres / pgvector",
+]
+
+[tool.coverage.run]
+source = ["vhecfsck"]
+branch = false
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_empty = true
 
 [tool.ruff]
 target-version = "py311"
