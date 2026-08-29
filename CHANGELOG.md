@@ -17,3 +17,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lint/format/typing toolchain: `ruff` (select E,F,W,I,N,UP,B,A,C4,SIM,ARG,PTH,RUF;
   ANN+D on `core/` and `models/`) and `mypy` (`strict` on `core`/`models`/
   `adapters`, lenient on tests). Ticket: P0-02.
+- Apache-2.0 `LICENSE` and `NOTICE` attributing copyright to
+  `vhecfsck contributors` (redistribution must retain attribution).
