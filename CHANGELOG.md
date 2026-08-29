@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Shared adapter contract suite (`tests/contract/`) parametrised over
+  SyntheticAdapter modes; capability honesty (None → UNAVAILABLE) tested, not
+  skipped. Documented in CONTRIBUTING as the definition of a working adapter.
+  Ticket: P1-07.
 - Adapter registry (`register` / `resolve_class` / `open_target`) for
   `synthetic://`, `lance://` (and bare `*.lance` paths), `qdrant://`,
   `postgres://`. Lazy SDK import with install hints; credentials redacted in
