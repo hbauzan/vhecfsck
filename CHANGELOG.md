@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `SyntheticAdapter` (`exact` / `ivf` / `ivf_tombstoned`) with private seeded
+  k-means, tombstone post-filter (`ef_search` as ef_budget), honest
+  capabilities (`report_graph_stats=False`), counts from pathology
+  annotations, and optional `.npz` session persistence. Documented recall
+  collapse triple: delete_fraction=0.35, ef_budget=8, nprobe=1. Ticket: P1-05.
 - Shared domain types in `vhecfsck/models/` (`MetricSpace`, `IndexKind`,
   `TargetDescriptor`, `Capabilities`, `IndexCounts`, `VectorBatch`,
   `SearchResult`, `PartitionStats`, `GraphStats`). Leaf package: validation

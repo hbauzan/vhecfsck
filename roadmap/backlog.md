@@ -43,7 +43,7 @@ atomically.
 | P1-02 | `IndexAdapter` protocol | L | P1-01 | done |
 | P1-03 | Synthetic corpus generator | M | P1-01 | done |
 | P1-04 | Injectable pathologies | M | P1-03 | done |
-| P1-05 | `SyntheticAdapter` with a real approximate-search model | L | P1-02, P1-04 | todo |
+| P1-05 | `SyntheticAdapter` with a real approximate-search model | L | P1-02, P1-04 | done |
 | P1-06 | Adapter registry and target URI resolution | S | P1-05 | todo |
 | P1-07 | Shared adapter contract suite | L | P1-02, P1-05 | todo |
 | P1-08 | Named scenarios | M | P1-04, P1-05 | todo |
