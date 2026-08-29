@@ -31,7 +31,7 @@ atomically.
 | P0-10 | Continuous integration | M | P0-04 | done |
 | P0-11 | Community, security and licence files | S | P0-01 | done |
 | P0-12 | Agent operating rules at the repository root | S | P0-11 | done |
-| P0-13 | Reserve the project namespace | S | P0-01 | todo |
+| P0-13 | Reserve the project namespace | S | P0-01 | done |
 | P0-14 | Pre-commit hooks | S | P0-04, P0-09 | todo |
 | P0-15 | Contributor console (`setup.sh`) | M | P0-01 | done |
 
