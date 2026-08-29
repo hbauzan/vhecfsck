@@ -9,18 +9,31 @@ De ahí salen sus dos reglas, que están en el §5 del final y son las mismas qu
 ## 0. Estado
 
 **P0 Foundation completo** (P0-01…P0-15 `done`).
-**P1 parcial en `main`:** P1-01…P1-04 `done` (models, IndexAdapter protocol, synthetic generator, pathologies).
-**Próximo critical path:** **P1-05** (`SyntheticAdapter` — IVF + tombstone post-filter; ADR-0014) → P1-06 / P1-07 / P1-08.
-**HEAD de referencia al handoff:** `68a4d55` merge P1-04 (`make verify` verde).
+**P1 completo** en `main` (P1-01…P1-08 `done`).
+**P2 parcial:** P2-03 (naive oracle) + P2-04 (blocked BLAS `exact_knn`) `done`.
+**Próximo critical path:** **P2-05** (canary recall) → P2-10 → P3-01 → …
+**HEAD de referencia al handoff:** `f5438c0` merge P2-04 (`make verify` verde; ~3–5 min por escenarios IVF).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + test + coverage + layers + readonly).
 **CI:** `.github/workflows/ci.yml` + `nightly.yml`. Sync en CI = `uv sync --group dev` (**nunca** `--all-extras`).
 
+Stack listo para P2-05+:
+- `vhecfsck/models/` — domain types (`dataclass(frozen=True)`; **sin pydantic** — ADR-0002)
+- `vhecfsck/adapters/` — `IndexAdapter`, `SyntheticAdapter`, registry, `open_scenario`
+- `vhecfsck/synthetic/` — generator, pathologies, `ScenarioSpec`
+- `vhecfsck/core/ground_truth.py` — `exact_knn` / `KnnResult` (producción)
+- `tests/oracle/` — `naive_*` + differential / block-size invariance
+- `tests/contract/` — suite parametrizada; nuevo engine = solo `ADAPTER_REGISTRY`
+
+Paralelos desbloqueados (otra sesión si compartís foco): P2-01, P2-02, P2-07, P2-08, P2-09.
+**No** saltees a P2-06/P2-10 sin P2-05. No P3/P4/P5 en la sesión de P2-05.
+
 Residual dueño (no lo “arregles” vos solo):
 - PyPI `vhecfsck` sigue libre (`404`); falta publicar placeholder con Trusted Publishing / token.
 - Visibilidad del repo: sigue private hasta OK explícito.
 - ADR-0012: la expansión de la `H` en copy público sigue abierta (no inventar gloss).
+- Wall/RSS budgets de `release-plan.md` §4: vacíos hasta **P8-04** — no inventar números.
 
 Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, no stack web/daemon.
 
@@ -193,6 +206,78 @@ Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, 
 **Solution:** `inject_hubs` places hubs at large-cluster centroids (light inter-cluster blend). Brute-force hub tests use tight/small clusters or probes from the hub’s home cluster.
 
 **Invariant:** Pathology operators must induce the claimed geometry; tests verify by brute force, not by trusting placement labels.
+
+## 22. Layering: `synthetic/` never imports `adapters/`
+
+**Problem:** Putting `SyntheticAdapter` construction inside `synthetic/` would couple scenario specs to engine I/O and break import-linter.
+
+**Solution:** `ScenarioSpec` lives in `synthetic/`; materialise `SyntheticAdapter` only in `adapters/` (`open_scenario` / registry).
+
+**Invariant:** synthetic ⊬ adapters (and ⊬ core). Do not weaken `.importlinter`.
+
+## 23. Tombstone empty ≠ live self-match query
+
+**Problem:** Querying with a live corpus vector at `ef_search=1` always self-matches at distance 0 — never proves empty/tombstone filtering.
+
+**Solution:** Query = coordinates of a tombstoned vector (or an external probe) with a tight `ef_search` / `ef_budget`.
+
+**Invariant:** Empty-result tests must not use live self-match queries.
+
+## 24. `DENIED_WRITE_NAMES` includes `add` — no `.add()` in adapters/core
+
+**Problem:** `set.add` / list-shaped `.add()` trips `scripts/check_readonly.py` the same as engine write APIs.
+
+**Solution:** Use `list.append`, dict literals, `|` on sets. Keep denylist attrs aligned with the AST script.
+
+**Invariant:** Do not call `.add()` under `adapters/` or `core/`. Do not loosen the denylist.
+
+## 25. IVF pure-Python k-means is expensive; first `@pytest.mark.slow` must stay selectable
+
+**Problem:** Small IVF scenarios ≈ 8k points; under `--cov` clocks blow past `<20s`. Also, a harness that requires “slow collects nothing” breaks once the first slow test exists.
+
+**Solution:** Mark heavy build/search `@pytest.mark.slow`. Keep smoke of build without wall-clock in the default suite. Default `addopts` excludes slow; `verify-full` must allow selecting slow tests.
+
+**Invariant:** Do not require empty slow collection. Do not put 8k IVF timing asserts in the default gate.
+
+## 26. Contract suite: zero skips; False capability → `None` → `UNAVAILABLE`
+
+**Problem:** Skipping unsupported capability paths hides regressions; inventing `0.0` for missing counts is the worst product bug.
+
+**Solution:** Parametrised `tests/contract/` over the registry. Unsupported → adapter returns `None` → metric `UNAVAILABLE`. New adapter = register only.
+
+**Invariant:** No skips for “unsupported”. Capabilities default False.
+
+## 27. Oracle never optimised; production never imports `tests.oracle`
+
+**Problem:** A fast “naive” reference stops being an independent check. Importing it from `vhecfsck/` couples product to test assets.
+
+**Solution:** `tests/oracle/reference.py` stays slow and obvious. If a test is slow, shrink the input. import-linter forbids `vhecfsck` → `tests` / `tests.oracle`.
+
+**Invariant:** Never speed up the oracle. Never import it from production.
+
+## 28. Blocked GT: clamp L2 before sqrt; block-size invariance is the highest-value test
+
+**Problem:** float32 cancellation yields ~`-1e-7` squared distances → `nan` poisons a whole GT row. Block-boundary merge bugs are invisible in aggregates.
+
+**Solution:** `exact_knn` clamps squared L2 to ≥0 before `sqrt`. Tests assert identical results at B ∈ {1, 7, 999, n}. float16 is upcast on read; accumulation is float32 minimum (ADR-0005).
+
+**Invariant:** Never skip the clamp test or the block-size invariance test. Do not hardcode B — derive from `working_set_mb`.
+
+## 29. Coverage meta-tests must track new `core/` modules
+
+**Problem:** `test_harness_config` subprocess coverage only ran a fixed target list; after `ground_truth.py` landed, overall dipped under 80% and core under 90% inside that meta-test (and pytest-cov can print FAIL at 89.89% while still exiting 0 — do not trust the banner alone).
+
+**Solution:** Extend `_COVERAGE_TARGETS` with `tests/oracle/test_ground_truth.py` (or equivalent that executes new core code). Core-scoped meta-test must run those tests, not only an import smoke.
+
+**Invariant:** When you add lines under `vhecfsck/core/`, update the coverage meta-targets in the same ticket. Never lower floors.
+
+## 30. Do not invent perf budgets; P8-04 owns measured numbers
+
+**Problem:** Ticket text cites `release-plan.md` budgets that are still empty cells (“metric to publish”).
+
+**Solution:** Perf tests may exercise scale / opt-in 1M (`VHECFSCK_PERF_1M=1`) and assert completion + shape. Absolute wall/RSS thresholds wait for measured P8-04 values.
+
+**Invariant:** Never write a performance number into docs or asserts that nobody measured on a named reference machine.
 
 ---
 
