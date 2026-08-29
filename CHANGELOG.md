@@ -39,3 +39,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reporting), GitHub issue/PR templates. Ticket: P0-11.
 - Import-layering via `import-linter` (`.importlinter`) wired into `make verify`
   `layers` target; `report/` and `server/` package scaffolds. Ticket: P0-08.
+- Read-only AST guard (`scripts/check_readonly.py`) for adapters/ and core/,
+  wired into `make verify`. Ticket: P0-09.
