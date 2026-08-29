@@ -1,0 +1,17 @@
+---
+description: Dev protocol — implementación, bugs, review y entrega
+globs:
+alwaysApply: true
+---
+
+# Protocolo de desarrollo
+
+Para CUALQUIER tarea de implementación, bug, review o entrega en este repo, seguí el protocolo en `.agents/skills/dev-protocol/SKILL.md`.
+
+- Leé `SKILL.md` primero (rol, CUSTOMIZACIÓN ELETOR, entorno, flujo idea→entrega con approval gate).
+- Leé los módulos SOLO cuando la tarea lo pida (índice en el skill).
+- Regla dura: dependencias Python con `uv` (nunca `pip` ni venv manual).
+- Regla dura: `make verify` verde antes de decir que algo está listo (cuando el gate exista en el repo). Sin `--no-verify`.
+- Regla dura: nunca debilites un test para que pase.
+- No hagas push/merge sin OK explícito del usuario.
+- Frase canónica: `Usando dev-protocol, <qué hacer / mejorar / arreglar>`.

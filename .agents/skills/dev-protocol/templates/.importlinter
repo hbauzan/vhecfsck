@@ -1,0 +1,85 @@
+# =============================================================================
+# DEV AGENT PROTOCOL — import layering contracts template
+# -----------------------------------------------------------------------------
+# Turns the module boundaries from dev-protocol/code-design.md §1 into a check
+# that fails the build, instead of a doctrine everyone agrees with and nobody
+# enforces. See dev-protocol/guardrails.md §5.
+#
+# Usage in a new app:
+#   1. uv add --dev import-linter
+#   2. Copy this file to the workspace ROOT as `.importlinter`.
+#   3. Replace `your_package` and the layer names with your real layout.
+#   4. Run it:  uv run lint-imports      (wired into `make verify` → guards)
+#   5. Break it once on purpose and confirm the gate fails (guardrails.md §5.3).
+# =============================================================================
+
+[importlinter]
+root_package = your_package
+include_external_packages = True
+
+
+# --- Layering ----------------------------------------------------------------
+# Listed HIGH to LOW. A layer may import the ones below it, never the ones above.
+# Deep modules sit low: lots of behaviour, small interface, no upward knowledge.
+
+[importlinter:contract:layers]
+name = Layered architecture
+type = layers
+layers =
+    cli
+    server
+    adapters
+    core
+    models
+
+
+# --- The provider seam -------------------------------------------------------
+# The declarative half of check_provider_seam.py. That script stops the SDK from
+# being imported outside the adapter layer; this stops your own business logic
+# from reaching into the adapter package at all, so local-vs-remote stays a
+# config change rather than a code change. See SKILL.md §3.2.
+
+[importlinter:contract:core-independent-of-adapters]
+name = Core does not know which provider it is talking to
+type = forbidden
+source_modules =
+    your_package.core
+forbidden_modules =
+    your_package.adapters
+
+
+# --- No SDKs below the seam --------------------------------------------------
+# Belt and braces with the AST guard: even a transitive re-export cannot drag a
+# provider SDK into the core. Extend the list to match PROVIDER_SDKS in
+# check_provider_seam.py.
+
+[importlinter:contract:no-sdk-in-core]
+name = No provider SDK reaches the core
+type = forbidden
+source_modules =
+    your_package.core
+    your_package.models
+forbidden_modules =
+    openai
+    anthropic
+    cohere
+    ollama
+    llama_cpp
+    transformers
+    litellm
+
+
+# --- Domain types stay pure --------------------------------------------------
+# If the shared type package imports anything internal, it stops being shared and
+# starts being a cycle waiting to happen.
+
+[importlinter:contract:models-are-standalone]
+name = Domain types import nothing internal
+type = forbidden
+source_modules =
+    your_package.models
+forbidden_modules =
+    your_package.core
+    your_package.adapters
+    your_package.server
+    your_package.cli
