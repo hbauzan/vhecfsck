@@ -131,6 +131,7 @@ select = [
 "vhecfsck/cli.py" = ["ANN", "D"]
 "vhecfsck/config.py" = ["ANN", "D"]
 "vhecfsck/errors.py" = ["ANN", "D"]
+"vhecfsck/logging.py" = ["ANN", "D", "A005"]
 "vhecfsck/adapters/**" = ["ANN", "D"]
 # Copied skill templates; product-owned polish lands with later guard tickets.
 "scripts/**" = ["ANN", "D", "E501"]

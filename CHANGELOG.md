@@ -32,3 +32,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with a single uncaught-exception handler. Ticket: P0-05.
 - `AuditConfig` with metrics-spec default thresholds, file/env/CLI precedence, and
   unknown-key rejection. Ticket: P0-07.
+- Structured logging with mandatory `RedactionFilter` (stderr diagnostics;
+  `--log-format human|json`, `-v`/`-vv`/`--quiet`). Ticket: P0-06.
