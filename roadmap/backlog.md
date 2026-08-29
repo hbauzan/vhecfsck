@@ -19,7 +19,7 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| P0-01 | Bootstrap package and packaging | M | — | todo |
+| P0-01 | Bootstrap package and packaging | M | — | done |
 | P0-02 | Lint, format and strict typing configuration | S | P0-01 | todo |
 | P0-03 | Test harness and coverage gates | S | P0-01 | todo |
 | P0-04 | `make verify` as the single quality gate | S | P0-02, P0-03 | todo |
@@ -33,6 +33,7 @@ atomically.
 | P0-12 | Agent operating rules at the repository root | S | P0-11 | todo |
 | P0-13 | Reserve the project namespace | S | P0-01 | todo |
 | P0-14 | Pre-commit hooks | S | P0-04, P0-09 | todo |
+| P0-15 | Contributor console (`setup.sh`) | M | P0-01 | done |
 
 ## P1 — Synthetic corpus and adapter protocol · [phase file](phases/phase-1-synthetic-and-adapter-protocol.md)
 
@@ -165,6 +166,7 @@ atomically.
 | P9-06 | Pre-launch review pass | M | P9-01, P9-02, P9-03 | todo |
 | P9-07 | Launch | M | P9-04, P9-05, P9-06 | todo |
 | P9-08 | Post-launch triage window | M | P9-07 | todo |
+| P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | todo |
 
 ---
 
@@ -193,7 +195,7 @@ correctness rather than merely on their existence:
 
 Independent of the critical path once their dependencies are met, and useful for filling capacity:
 
-- `P0-05`, `P0-06`, `P0-09`, `P0-11`, `P0-12`, `P0-13`, `P0-14`
+- `P0-05`, `P0-06`, `P0-09`, `P0-11`, `P0-12`, `P0-13`, `P0-14`, `P0-15`
 - `P1-03`, `P1-04`, `P1-06`, `P1-08`
 - `P2-02`, `P2-07`, `P2-08`, `P2-09`, `P2-11`
 - `P3-02`, `P3-03`, `P3-06`, `P3-07`, `P3-08`
@@ -204,7 +206,7 @@ Independent of the critical path once their dependencies are met, and useful for
 
 | Phase | Tickets | S | M | L |
 | :--- | ---: | ---: | ---: | ---: |
-| P0 | 14 | 8 | 6 | 0 |
+| P0 | 15 | 8 | 7 | 0 |
 | P1 | 8 | 1 | 4 | 3 |
 | P2 | 11 | 5 | 4 | 2 |
 | P3 | 8 | 3 | 5 | 0 |
@@ -213,8 +215,8 @@ Independent of the critical path once their dependencies are met, and useful for
 | P6 | 9 | 1 | 6 | 2 |
 | P7 | 8 | 0 | 4 | 4 |
 | P8 | 11 | 2 | 7 | 2 |
-| P9 | 8 | 0 | 8 | 0 |
-| **Total** | **98** | **25** | **59** | **14** |
+| P9 | 9 | 1 | 8 | 0 |
+| **Total** | **100** | **26** | **60** | **14** |
 
 The fourteen `L` tickets are the ones to watch. Each should be re-examined before starting: if it
 can be split into independently verifiable pieces, split it. The only legitimate reason for an `L`

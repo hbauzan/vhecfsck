@@ -358,6 +358,62 @@ invariant ([ADR-0001](../adr/0001-read-only-by-default.md)).
 
 ---
 
+## P0-15 — Contributor console (`setup.sh`)
+
+**Depends on:** P0-01 · **Size:** M · **Touches:** `setup.sh`, `tests/e2e/test_setup_sh.py`
+
+**Goal:** a Hitchhiker-themed contributor panel for a git checkout on macOS. This is not
+the product. The product is `uvx vhecfsck`. The panel must not grow a daemon, a SaaS
+publish path, or a second long-lived UI process.
+
+**Contract**
+- Root `setup.sh`, executable, `#!/usr/bin/env bash`, Bash 3.2-safe (stock macOS bash).
+- Banner exactly: `DON'T PANIC — Vector Index`.
+- Menu language: English. Visual hierarchy: the technical action is primary
+  (bold white); the Hitchhiker quote is secondary (dim grey, in parentheses).
+  Every visible option still carries these labels, unchanged:
+  - `[1]` Infinite Improbability Drive → detect `uv`, then `uv sync` (never `--all-extras`).
+  - `[2]` The mice would like a word → `make verify` when a Makefile exists.
+  - `[3]` Forty-two → `uv run vhecfsck demo` when that command exists (P3-05).
+  - `[4]` Heart of Gold → `uv run vhecfsck serve` when that command exists (P4-06),
+    **foreground**. Ctrl+C stops the process. No pid files, no `nohup`, no port killing.
+  - `[0]` So long, and thanks for all the fish → leave the panel.
+  - Invalid input: `I think you ought to know I'm feeling very depressed.`
+- Missing capabilities (`make verify`, `demo`, `serve`) are **inconclusive** (exit `3`),
+  never faked as healthy. Copy may use *This must be Thursday. I never could get the hang
+  of Thursdays.*
+- macOS (`uname -s` = `Darwin`) only. Any other OS exits `3` and points at `P9-09`.
+  Linux is not "best effort" here — it is absent until that ticket is executed after a
+  real Linux test.
+- `uv` missing: ask `[y/N]` and use the official installer only on a TTY. Non-interactive
+  or `SETUP_SH_SKIP_PREREQ_PROMPT=1` prints the docs URL and exits `3`. No Node, no
+  Homebrew auto-install.
+- Non-interactive verbs (they add value for agents; start/stop/status do not — no daemon):
+  `help`, `sync`, `verify`, `demo`, `serve`. Unknown verb → exit `4`.
+- Exit codes follow the skill taxonomy: `0` OK, `2` FAIL (gate or sync failed), `3`
+  INCONCLUSIVE, `4` USAGE.
+- Forbidden in this script: Hugging Face / Spaces, Vite / `:5173`, background supervisors,
+  log directories, raw `uvicorn`. Three.js, HUD, and `.npz` reuse stay in P4/P6.
+
+**Tests first**
+- `tests/e2e/test_setup_sh.py`: help copy (banner + labels, no SaaS/daemon/Vite), menu
+  exit line, usage `4`, Linux `3`, `uv sync` without `--all-extras` (PATH-injected fake
+  `uv`), `verify` inconclusive without Makefile and `2` when the gate fails, `demo` /
+  `serve` inconclusive until those commands exist, source-level ban on daemon/SaaS
+  mechanics. Each test failed before `setup.sh` existed.
+
+**Acceptance criteria**
+- [ ] `./setup.sh help` exits `0` and prints `DON'T PANIC — Vector Index`.
+- [ ] `echo 0 | ./setup.sh` prints `So long, and thanks for all the fish` and exits `0`.
+- [ ] `SETUP_SH_UNAME=Linux ./setup.sh help` exits `3`.
+- [ ] Running help creates neither `.pids/` nor `logs/`.
+- [ ] `uv run pytest tests/e2e/test_setup_sh.py` is green.
+
+**Guardrails:** do not add Node, a second process model, or a Python dependency. Do not
+implement Linux. Do not open a browser. Do not write an ADR — no new package is added.
+
+---
+
 ## Phase exit checklist
 
 - [ ] `make verify` green locally and in CI on three Python versions.
@@ -368,4 +424,5 @@ invariant ([ADR-0001](../adr/0001-read-only-by-default.md)).
       breaking things is free.
 - [ ] `vhecfsck` reserved on GitHub and PyPI.
 - [ ] `AGENTS.md` present at the root.
+- [ ] `./setup.sh help` exits `0` and prints `DON'T PANIC — Vector Index`.
 - [ ] Zero `# readonly-ok` exemptions and zero `# type: ignore` without a reason comment.
