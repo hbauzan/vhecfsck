@@ -24,3 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   slow/integration/perf, `pytest-cov` with overall `fail_under=80` (core-scoped
   `fail_under=90` via separate invocation), `tests/conftest.py` seeded `rng` +
   `deterministic_env`, and the architecture test directory skeleton. Ticket: P0-03.
+- Single quality gate: root `Makefile` with `make verify` (lint, format-check,
+  typecheck, test, coverage, layers stub) plus `verify-full`, `fmt`, `test-fast`,
+  `clean`, `web-build`, `demo`. Ticket: P0-04.
