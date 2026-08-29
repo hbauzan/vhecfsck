@@ -8,9 +8,10 @@ De ahí salen sus dos reglas, que están en el §5 del final y son las mismas qu
 
 ## 0. Estado
 
-**P0 Foundation completo en `main`.** Los quince tickets P0-01…P0-15 están `done`.
-**Próximo critical path:** **P1-01** (shared domain types) → P1-02 / P1-03 en paralelo tras P1-01.
-**HEAD de referencia al handoff:** merge de P0-14 (`make verify` verde; `./setup.sh verify` OK).
+**P0 Foundation completo** (P0-01…P0-15 `done`).
+**P1 parcial en `main`:** P1-01…P1-04 `done` (models, IndexAdapter protocol, synthetic generator, pathologies).
+**Próximo critical path:** **P1-05** (`SyntheticAdapter` — IVF + tombstone post-filter; ADR-0014) → P1-06 / P1-07 / P1-08.
+**HEAD de referencia al handoff:** `68a4d55` merge P1-04 (`make verify` verde).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + test + coverage + layers + readonly).
@@ -152,6 +153,46 @@ Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, 
 **Solution:** Root `AGENTS.md` is hand-written from `roadmap/agent-playbook.md`. Do not regenerate it from the skill in a way that drops those guardrails. Pre-commit deliberately omits agents-md-sync.
 
 **Invariant:** Keep `AGENTS.md` short, linked to playbook + metrics spec, with the hard guardrails verbatim in spirit.
+
+## 17. Adapter / models prose must not trip the SQL readonly guard
+
+**Problem:** Docstrings saying “vacuum” / “reindex” failed `scripts/check_readonly.py` because the guard matches statement-shaped `VACUUM\b` / `REINDEX\b` in string literals too.
+
+**Solution:** Protocol and adapter module docs use synonyms (`rebuild`, `maintenance`, `remove`). Do not loosen the guard.
+
+**Invariant:** Read-only prose in `adapters/` and `core/` must avoid denied SQL keyword tokens as whole words.
+
+## 18. `TargetDescriptor.location` is pre-redacted; models stay a leaf
+
+**Problem:** P0-06 requires redaction on descriptor locations, but import-linter forbids `models` → `logging`.
+
+**Solution:** Callers pass `redact_secrets(raw)` into `TargetDescriptor.location`. No redaction import inside `models/`. Domain types are frozen dataclasses (no pydantic in base — ADR-0002 / P3-01).
+
+**Invariant:** Redact at the boundary that builds the descriptor. Do not pull `logging` or pydantic into `models/` without an ADR.
+
+## 19. Coverage + numpy: avoid reduction asserts that re-enter `numpy/__init__`
+
+**Problem:** Under `pytest-cov`, `np.array_equal` / `.all()` / `np.allclose` can re-enter lazy numpy imports and raise `ImportError: cannot load module more than once per process`.
+
+**Solution:** Prefer `.tobytes()`, Python loops, or scalar floats in tests. In synthetic code, eager-import `default_rng` from `numpy.random` (not lazy `np.random`).
+
+**Invariant:** Do not rely on numpy reduction helpers in coverage-sensitive asserts when a byte/scalar check suffices.
+
+## 20. Never purge `numpy` from `sys.modules` in the parent pytest process
+
+**Problem:** `test_importing_package_does_not_import_numpy` deleted numpy from `sys.modules` after conftest had loaded it; later tests then hit an unrecoverable C-extension reload error.
+
+**Solution:** Run that isolation check in a **subprocess**. Parent suite keeps its loaded numpy.
+
+**Invariant:** Module-purge import discipline tests belong in a fresh interpreter, not in-process.
+
+## 21. Synthetic hub placement: cluster centroids, not empty midpoints
+
+**Problem:** Hubs at geometric midpoints between clusters sat in empty L2 space and never entered top-10 of in-cluster probes.
+
+**Solution:** `inject_hubs` places hubs at large-cluster centroids (light inter-cluster blend). Brute-force hub tests use tight/small clusters or probes from the hub’s home cluster.
+
+**Invariant:** Pathology operators must induce the claimed geometry; tests verify by brute force, not by trusting placement labels.
 
 ---
 
