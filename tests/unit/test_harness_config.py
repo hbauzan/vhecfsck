@@ -53,6 +53,7 @@ _COVERAGE_TARGETS = (
     "tests/contract/test_adapter_contract.py",
     "tests/unit/test_scenarios.py",
     "tests/oracle/test_ground_truth.py",
+    "tests/oracle/test_canary.py",
 )
 
 
@@ -227,6 +228,7 @@ def test_core_coverage_gate_passes() -> None:
             "--override-ini=addopts=",
             "-q",
             "tests/oracle/test_ground_truth.py",
+            "tests/oracle/test_canary.py",
         ],
         cwd=ROOT,
         check=False,

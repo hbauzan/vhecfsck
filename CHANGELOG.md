@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Canary recall in `vhecfsck/core/canary.py` (`recall_id` / tie-tolerant
+  `recall_dist`, bootstrap CI95, §2.5 edge diagnostics) plus minimal
+  `MetricResult` types in `vhecfsck/models/metrics.py`. Fixture A locked;
+  true distances recomputed from corpus (ADR-0007). Ticket: P2-05.
 - Blocked BLAS exact k-NN in `vhecfsck/core/ground_truth.py` (`exact_knn`,
   `KnnResult`, float64 cross-check): working-set-derived blocks, L2
   clamp-before-sqrt, float16 upcast, block-size invariance vs naive oracle.
