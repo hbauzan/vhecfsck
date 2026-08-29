@@ -45,3 +45,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`make verify-full` + engine-SDK drift placeholder). Ticket: P0-10.
 - Root `AGENTS.md` distilled from the agent playbook (gate, hard guardrails,
   delivery). Ticket: P0-12.
+- Canonical package URLs in `pyproject.toml`; naming tests; ADR-0012 reservation
+  notes (GitHub private; PyPI claim pending owner token). Ticket: P0-13.

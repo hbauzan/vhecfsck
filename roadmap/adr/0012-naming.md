@@ -1,7 +1,18 @@
 # ADR-0012 — Canonical name `vhecfsck`
 
-**Status:** Accepted, with one open question for the owner
+**Status:** Accepted, with one open question for the owner; namespace reservation in progress
 **Affects:** everything user-facing
+
+## Reservation status (P0-13)
+
+| Surface | Status |
+| :--- | :--- |
+| GitHub `hbauzan/vhecfsck` | Reserved. Remains **PRIVATE** until the owner explicitly flips visibility. |
+| PyPI `vhecfsck` | Name still free (`404` from `pypi.org/pypi/vhecfsck/json` at execution). Publishing a `0.0.0` placeholder requires Trusted Publishing / an API token — **not present in this environment**; owner must run the claim. |
+| `pyproject.toml` URLs | Homepage / Repository / Issues / Changelog filled pointing at the GitHub repo. |
+
+**Do not** change GitHub visibility or publish to PyPI from an agent session without an
+explicit owner go-ahead (credentials + visibility are owner-gated).
 
 ## Context
 
