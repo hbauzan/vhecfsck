@@ -55,9 +55,90 @@ only-include = [
 
 [dependency-groups]
 dev = [
+    "mypy>=2.3.1",
     "pytest>=8",
+    "ruff>=0.16.5",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+src = ["vhecfsck", "tests"]
+extend-exclude = [
+    ".agents",
+    ".claude",
+    ".cursor",
+    "roadmap",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "N",
+    "UP",
+    "B",
+    "A",
+    "C4",
+    "SIM",
+    "ARG",
+    "PTH",
+    "RUF",
+    "ANN",
+    "D",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# ANN + D are required only in core/ and models/ (ticket P0-02).
+"tests/**" = ["ANN", "D"]
+"vhecfsck/__init__.py" = ["ANN", "D"]
+"vhecfsck/__main__.py" = ["ANN", "D"]
+"vhecfsck/cli.py" = ["ANN", "D"]
+"vhecfsck/adapters/**" = ["ANN", "D"]
+# Copied skill templates; product-owned polish lands with later guard tickets.
+"scripts/**" = ["ANN", "D", "E501"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.11"
+files = ["vhecfsck"]
+pretty = true
+show_error_codes = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_optional = true
+disallow_any_generics = true
+# Package default is non-strict; core/models/adapters opt into strict below.
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "vhecfsck.core",
+    "vhecfsck.core.*",
+    "vhecfsck.models",
+    "vhecfsck.models.*",
+    "vhecfsck.adapters",
+    "vhecfsck.adapters.*",
+]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+# Tests are checked leniently: allow untyped defs and incomplete annotations.
+allow_untyped_defs = true
+allow_incomplete_defs = true
+disallow_untyped_defs = false
+check_untyped_defs = false
