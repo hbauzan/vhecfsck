@@ -41,3 +41,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `layers` target; `report/` and `server/` package scaffolds. Ticket: P0-08.
 - Read-only AST guard (`scripts/check_readonly.py`) for adapters/ and core/,
   wired into `make verify`. Ticket: P0-09.
+- GitHub Actions CI (`ci.yml` matrix + advisory 3.14) and `nightly.yml`
+  (`make verify-full` + engine-SDK drift placeholder). Ticket: P0-10.
