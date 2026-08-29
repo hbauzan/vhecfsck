@@ -45,7 +45,7 @@ atomically.
 | P1-04 | Injectable pathologies | M | P1-03 | done |
 | P1-05 | `SyntheticAdapter` with a real approximate-search model | L | P1-02, P1-04 | done |
 | P1-06 | Adapter registry and target URI resolution | S | P1-05 | done |
-| P1-07 | Shared adapter contract suite | L | P1-02, P1-05 | todo |
+| P1-07 | Shared adapter contract suite | L | P1-02, P1-05 | done |
 | P1-08 | Named scenarios | M | P1-04, P1-05 | todo |
 
 ## P2 — Metrics engine · [phase file](phases/phase-2-metrics-engine.md)

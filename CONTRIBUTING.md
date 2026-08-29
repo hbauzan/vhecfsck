@@ -51,6 +51,21 @@ generic “contributors” string.
 
 Markdown docs, roadmap prose, and generated files do not require licence headers.
 
+## Working adapters
+
+The definition of a working adapter is the shared contract suite:
+
+```bash
+uv run pytest tests/contract -q
+```
+
+`tests/contract/test_adapter_contract.py` is parametrised over every registered
+adapter and must pass with **zero skips**. Unsupported capabilities are
+asserted as `None` (→ `UNAVAILABLE` in the metric layer), never skipped.
+
+To add an engine, register a factory in `tests/contract/conftest.py`
+(`ADAPTER_REGISTRY`) only — do not edit the suite module.
+
 ## Pull requests
 
 - One logical change per PR; conventional commit messages
