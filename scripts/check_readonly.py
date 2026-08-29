@@ -9,6 +9,7 @@ See ADR-0001 and roadmap ticket P0-09. Exemptions require an inline comment:
 from __future__ import annotations
 
 import ast
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -34,15 +35,18 @@ DENIED_ATTRS = frozenset(
     }
 )
 
-DENIED_SQL = (
-    "VACUUM",
-    "REINDEX",
-    "DROP ",
-    "DELETE ",
-    "UPDATE ",
-    "INSERT ",
-    "TRUNCATE",
-    "ALTER ",
+# SQL keywords as statements — not attribute names like ``client.delete``.
+# SQL statement shapes (not prose mentioning "delete" / attribute names).
+_DENIED_SQL_RE = re.compile(
+    r"(?<![.\w])(?:"
+    r"VACUUM\b|REINDEX\b|TRUNCATE\b|"
+    r"DELETE\s+FROM\b|"
+    r"DROP\s+(?:TABLE|INDEX|DATABASE|SCHEMA|VIEW)\b|"
+    r"INSERT\s+INTO\b|"
+    r"UPDATE\s+\S+\s+SET\b|"
+    r"ALTER\s+TABLE\b"
+    r")",
+    re.IGNORECASE,
 )
 
 EXEMPT_MARKER = "readonly-ok:"
@@ -66,11 +70,8 @@ def _is_exempt(comments: dict[int, str], lineno: int) -> str | None:
 
 
 def _sql_hit(value: str) -> str | None:
-    upper = value.upper()
-    for token in DENIED_SQL:
-        if token in upper:
-            return token.strip()
-    return None
+    match = _DENIED_SQL_RE.search(value)
+    return match.group(0).strip().upper() if match else None
 
 
 def check_file(path: Path) -> tuple[list[str], list[str]]:
