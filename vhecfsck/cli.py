@@ -1,4 +1,4 @@
-"""CLI entry point for vhecfsck commands (P3-04)."""
+"""CLI entry point for vhecfsck commands (P3-04 / P3-05)."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import os
 import sys
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, cast
 
 import click
 import click.exceptions
@@ -60,6 +60,14 @@ class FormatChoice(str, Enum):
     TEXT = "text"
     JSON = "json"
     PROMETHEUS = "prometheus"
+
+
+class DemoSizeChoice(str, Enum):
+    """Corpus scale size choice for demo command."""
+
+    SMALL = "small"
+    LARGE = "large"
+    TINY = "tiny"
 
 
 @app.callback()
@@ -408,6 +416,153 @@ def _audit_impl(
         sys.stdout.flush()
 
     # 9. Process exit code
+    exit_code = verdict_to_exit_code(report.verdict)
+    abort(exit_code)
+
+
+@app.command(name="demo")
+def demo(
+    scenario: Annotated[
+        str,
+        typer.Option(
+            "--scenario",
+            help="Synthetic scenario name (e.g. tombstoned, healthy, drifted).",
+        ),
+    ] = "tombstoned",
+    size: Annotated[
+        DemoSizeChoice,
+        typer.Option(
+            "--size",
+            help="Corpus scale size (small, large, or tiny).",
+        ),
+    ] = DemoSizeChoice.SMALL,
+    serve: Annotated[
+        bool,
+        typer.Option(
+            "--serve",
+            help="Hand off run to 3D scene visualizer server.",
+        ),
+    ] = False,
+    format: Annotated[
+        FormatChoice,
+        typer.Option(
+            "--format",
+            help="Report output format: text, json, or prometheus.",
+        ),
+    ] = FormatChoice.TEXT,
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Output file path (defaults to stdout).",
+        ),
+    ] = None,
+    no_progress: Annotated[
+        bool,
+        typer.Option(
+            "--no-progress",
+            help="Disable progress reporting to stderr.",
+        ),
+    ] = False,
+) -> None:
+    """Run a 60-second zero-dependency synthetic index demonstration audit."""
+    try:
+        _demo_impl(
+            scenario=scenario,
+            size=size.value,
+            serve=serve,
+            format=format,
+            output=output,
+            no_progress=no_progress,
+        )
+    except VhecfsckError as exc:
+        abort(handle_uncaught(exc, debug=_DEBUG))
+
+
+def _demo_impl(
+    scenario: str,
+    size: str,
+    serve: bool,
+    format: FormatChoice,
+    output: Path | None,
+    no_progress: bool,
+) -> None:
+    from vhecfsck.adapters.scenarios import open_scenario
+    from vhecfsck.synthetic.scenarios import SCENARIO_NAMES
+
+    raw_scenario = scenario.strip().lower()
+    if raw_scenario not in SCENARIO_NAMES:
+        raise UsageError(
+            f"unknown synthetic scenario {scenario!r}",
+            hint=f"Supported scenarios: {', '.join(SCENARIO_NAMES)}",
+        )
+
+    opened = open_scenario(raw_scenario, size=size)  # type: ignore[arg-type]
+    adapter = opened.adapter
+    spec = opened.spec
+
+    if format != FormatChoice.JSON and not _QUIET:
+        sys.stderr.write(f"[demo] Reproducing real-world issue: {spec.issue}\n")
+        sys.stderr.flush()
+
+    effective_config = load_config(cli_overrides={"seed": spec.build_seed})
+    search_params = cast(
+        "SearchParams | None",
+        dict(spec.default_search_params) if spec.default_search_params else None,
+    )
+
+    on_progress: ProgressCallback | None = None
+    if (
+        not no_progress
+        and not _QUIET
+        and format != FormatChoice.JSON
+        and sys.stderr.isatty()
+    ):
+
+        def _on_progress(stage: str, fraction: float) -> None:
+            pct = int(fraction * 100)
+            sys.stderr.write(f"\r[audit] {stage}: {pct}%")
+            if fraction >= 1.0 or stage == "done":
+                sys.stderr.write("\n")
+            sys.stderr.flush()
+
+        on_progress = _on_progress
+
+    try:
+        report = run_audit(
+            adapter,
+            effective_config,
+            search_params=search_params if search_params else None,
+            on_progress=on_progress,
+        )
+    finally:
+        adapter.close()
+
+    if format == FormatChoice.JSON:
+        rendered = render_json(report)
+    elif format == FormatChoice.PROMETHEUS:
+        rendered = render_prometheus(report)
+    else:
+        use_color = (
+            sys.stdout.isatty()
+            and not os.environ.get("NO_COLOR")
+            and os.environ.get("TERM") != "dumb"
+        )
+        rendered = render_terminal(report, color=use_color)
+
+    if output is not None:
+        output.write_text(rendered, encoding="utf-8")
+    else:
+        sys.stdout.write(rendered)
+        sys.stdout.flush()
+
+    if serve and not _QUIET:
+        sys.stderr.write(
+            "[demo] Note: --serve 3D visualizer server requires P4 (vhecfsck serve).\n"
+        )
+        sys.stderr.flush()
+
     exit_code = verdict_to_exit_code(report.verdict)
     abort(exit_code)
 
