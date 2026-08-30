@@ -53,7 +53,7 @@ atomically.
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | P2-01 | Metric result types and verdict model | M | P1-01 | done |
-| P2-02 | Deterministic sampling | S | P0-07 | todo |
+| P2-02 | Deterministic sampling | S | P0-07 | done |
 | P2-03 | Naive reference implementations (oracle) | M | P1-01 | done |
 | P2-04 | Blocked BLAS ground truth | L | P2-03 | done |
 | P2-05 | Canary recall | M | P2-04 | done |
@@ -62,7 +62,7 @@ atomically.
 | P2-08 | Partition size CV | S | P2-01 | done |
 | P2-09 | Verdict engine | S | P2-01, P0-07 | done |
 | P2-10 | Audit pipeline orchestration | M | P2-05 … P2-09 | done |
-| P2-11 | Determinism harness | S | P2-10 | todo |
+| P2-11 | Determinism harness | S | P2-10 | done |
 
 ## P3 — Report and CLI · [phase file](phases/phase-3-report-and-cli.md)
 
