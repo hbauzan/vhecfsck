@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Default `make verify` no longer re-enters pytest-cov from unit meta-tests
+  (those stay `@slow` / `verify-full`). Coverage floors (80 overall / 90
+  `core/`) are measured from a single instrumented run. `./setup.sh clean`
+  only signals pytest processes whose command line includes this checkout.
 - P1-08 scenario exit-code expectations calibrated to full-pipeline audit
   output (`drifted` → OK, `hubby` → INCONCLUSIVE, `tiny` canary → OK).
   Hubby hubness FAIL thresholds remain for P8 calibration.
