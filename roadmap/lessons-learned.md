@@ -1,8 +1,17 @@
 # LESSONS LEARNED & ARCHITECTURAL INVARIANTS
 
-**Este archivo es la memoria de handoff entre agentes.** Registra lo que una IA aprendió y que la siguiente necesita saber sin haber estado ahí: invariantes de arquitectura, patrones de rendimiento y decisiones que ya se probaron y no hay que volver a probar. Sobrevive a la sesión, a la compactación de contexto y al cambio de modelo — es lo único del proyecto que lo hace.
+**Este archivo es la memoria de handoff entre agentes de `vhecfsck`.** Vive en
+`roadmap/`, no dentro del pack `dev-protocol`. Registra lo que una IA aprendió
+y que la siguiente necesita saber sin haber estado ahí: invariantes de
+arquitectura, patrones de rendimiento y decisiones que ya se probaron y no hay
+que volver a probar. Sobrevive a la sesión, a la compactación de contexto y al
+cambio de modelo — es lo único del proyecto que lo hace.
 
-De ahí salen sus dos reglas, que están en el §5 del final y son las mismas que en [SKILL.md](./SKILL.md): se **lee** cuando entrás en frío o cuando una decisión concreta depende de una invariante, y se **escribe** cuando el usuario pide un handoff. Ninguna de las dos por reflejo.
+El pack solo trae el template y el protocolo de lectura/escritura:
+[`.agents/skills/dev-protocol/lessons-learned.template.md`](../.agents/skills/dev-protocol/lessons-learned.template.md)
+§5. Se **lee** cuando entrás en frío o cuando una decisión concreta depende de
+una invariante, y se **escribe** cuando el usuario pide un handoff. Ninguna de
+las dos por reflejo.
 
 ---
 
@@ -157,13 +166,13 @@ Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, 
 
 **Invariant:** Metric logic stays in `core/`. Domain types in `models/` import no internal package modules. New packages must extend `.importlinter` in the same ticket that introduces them.
 
-## 16. `AGENTS.md` is the playbook distill — hand-maintained
+## 16. `AGENTS.md` is the playbook distill — opt-out is first-class
 
 **Problem:** Skill template assumed `sync_agents_md.py --check` ownership; P0-12 requires a short playbook distill (<~80 lines) with “never write to an audited target”, etc.
 
-**Solution:** Root `AGENTS.md` is hand-written from `roadmap/agent-playbook.md`. Do not regenerate it from the skill in a way that drops those guardrails. Pre-commit deliberately omits agents-md-sync.
+**Solution:** This repo is **opt-out** ([guardrails.md](../.agents/skills/dev-protocol/guardrails.md) §6): root `AGENTS.md` is hand-written from `roadmap/agent-playbook.md`. `scripts/sync_agents_md.py` has `MODE=opt-out` — `--check` is a no-op, a write is refused. Pre-commit omits agents-md-sync. Do not regenerate.
 
-**Invariant:** Keep `AGENTS.md` short, linked to playbook + metrics spec, with the hard guardrails verbatim in spirit.
+**Invariant:** Keep `AGENTS.md` short, linked to playbook + metrics spec, with the hard guardrails verbatim in spirit. Never run the generator in a way that drops product rules.
 
 ## 17. Adapter / models prose must not trip the SQL readonly guard
 

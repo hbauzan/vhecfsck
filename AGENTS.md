@@ -38,9 +38,10 @@ Violating one means the work is wrong **regardless of whether the tests pass**.
 
 ## Delivery
 
-- One ticket, one branch, one conventional commit.
+- One ticket, one branch, one conventional commit (squash on delivery).
 - Branch/commit freely while working. **Never push or merge to `main` without an explicit
   OK** from the human ("ok", "dale", "mergealo"). Silence is not approval.
+- On OK: squash to one conventional commit, then merge to `main`.
 - Report how to test, then wait.
 
 ## Tooling
