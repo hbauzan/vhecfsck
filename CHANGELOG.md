@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Demo CLI command `vhecfsck demo [--scenario NAME] [--size small|large] [--serve]` in
+  `vhecfsck/cli.py`, running zero-dependency synthetic audits (default scenario `tombstoned`
+  reproducing `pgvector#244` with FAIL verdict exit code 2). Unlocks `./setup.sh demo` Forty-two
+  contributor action and includes end-to-end tests in `tests/e2e/test_cli_demo.py`. Ticket: P3-05.
 - Primary CLI command `vhecfsck audit --target <uri> [options]` in `vhecfsck/cli.py`,
   supporting options `--format text|json|prometheus`, `--output PATH`, `--queries`, `--k`,
   `--hubness-sample`, `--k-hub`, `--hubness-source`, `--seed`, `--nprobe`, `--ef-search`,

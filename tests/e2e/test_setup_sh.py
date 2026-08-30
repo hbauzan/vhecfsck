@@ -209,11 +209,12 @@ def test_verify_propagates_gate_failure(tmp_path: Path) -> None:
     assert result.returncode == EXIT_FAIL
 
 
-def test_demo_is_inconclusive_until_the_command_exists() -> None:
+def test_demo_runs_demo_command_when_it_exists() -> None:
     result = run_setup("demo")
-    assert result.returncode == EXIT_INCONCLUSIVE
+    assert result.returncode == EXIT_FAIL
     blob = result.stdout + result.stderr
-    assert "Forty-two" in blob or "demo" in blob
+    assert "Forty-two" in blob
+    assert "pgvector#244" in blob
 
 
 def test_serve_is_inconclusive_until_the_command_exists() -> None:
