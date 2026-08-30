@@ -82,12 +82,12 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| P4-01 | Deterministic 3D projection | M | P2-04 | todo |
-| P4-02 | Scene payload model | M | P3-01, P4-01 | todo |
-| P4-03 | Level-of-detail decimation | M | P4-02 | todo |
-| P4-04 | Binary scene transport | M | P4-02 | todo |
-| P4-05 | FastAPI server | M | P4-04, P2-10 | todo |
-| P4-06 | `vhecfsck serve` | S | P4-05 | todo |
+| P4-01 | Deterministic 3D projection | M | P2-04 | done |
+| P4-02 | Scene payload model | M | P3-01, P4-01 | done |
+| P4-03 | Level-of-detail decimation | M | P4-02 | done |
+| P4-04 | Binary scene transport | M | P4-02 | done |
+| P4-05 | FastAPI server | M | P4-04, P2-10 | done |
+| P4-06 | `vhecfsck serve` | S | P4-05 | done |
 | P4-07 | Front-end scaffold | M | P0-10 | todo |
 | P4-08 | Point-cloud renderer | L | P4-07, P4-04 | todo |
 | P4-09 | Report HUD | M | P4-08 | todo |
