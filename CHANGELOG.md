@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Exit-code contract test suite in `tests/e2e/test_exit_codes.py` exercising real CLI subprocesses for all documented exit codes (0, 1, 2, 3, 4, 70 via `_VHECFSCK_FAULT_INJECT=1`), non-interactive behavior, and quiet mode. Ticket: P3-08.
+- Export CLI command `vhecfsck export --report PATH [--format text|json|prometheus|markdown]` in `vhecfsck/cli.py` and GitHub Flavored Markdown renderer in `vhecfsck/report/markdown.py` (`render_markdown`) for PR comments and job summaries, with major schema version rejection and end-to-end tests in `tests/e2e/test_cli_export.py`. Ticket: P3-07.
+- Prometheus exporter test suite in `tests/e2e/test_prometheus.py` for `vhecfsck/report/prometheus.py` (`render_prometheus`), validating textfile-collector series, metric state/unavailable gauges, bounded label cardinality, and `promtool check metrics` compliance. Ticket: P3-06.
 - Demo CLI command `vhecfsck demo [--scenario NAME] [--size small|large] [--serve]` in
   `vhecfsck/cli.py`, running zero-dependency synthetic audits (default scenario `tombstoned`
   reproducing `pgvector#244` with FAIL verdict exit code 2). Unlocks `./setup.sh demo` Forty-two
