@@ -1,0 +1,242 @@
+{
+  "config": {
+    "block_working_set_mb": 256,
+    "hubness_sample_size": 20000,
+    "hubness_source": "truth",
+    "k": 10,
+    "k_hub": 10,
+    "max_memory_mb": null,
+    "max_seconds": null,
+    "metrics_enabled": {
+      "antihub_fraction": true,
+      "canary_recall": true,
+      "dfi": true,
+      "hub_share_top1pct": true,
+      "partition_size_cv": true
+    },
+    "queries": 20,
+    "seed": 1337,
+    "strict_unavailable": false,
+    "thresholds": {
+      "antihub_fraction": {
+        "direction": "higher_is_worse",
+        "fail": 0.4,
+        "warn": 0.25
+      },
+      "canary_recall": {
+        "direction": "lower_is_worse",
+        "fail": 0.7,
+        "warn": 0.85
+      },
+      "dfi": {
+        "direction": "higher_is_worse",
+        "fail": 0.3,
+        "warn": 0.15
+      },
+      "hub_share_top1pct": {
+        "direction": "higher_is_worse",
+        "fail": 0.35,
+        "warn": 0.2
+      },
+      "partition_size_cv": {
+        "direction": "higher_is_worse",
+        "fail": 2.0,
+        "warn": 1.2
+      }
+    }
+  },
+  "counts": {
+    "degenerate": 0,
+    "deleted": 0,
+    "exact": true,
+    "indexed": 50,
+    "live": 50,
+    "read_at": "2026-08-30T10:00:00+00:00",
+    "total": 50
+  },
+  "degenerate": 0,
+  "metrics": [
+    {
+      "detail": {
+        "boundary_ties": 0,
+        "ci95": [
+          0.9,
+          0.9
+        ],
+        "duplicate_returns": 0,
+        "recall_dist": 0.9,
+        "recall_id": 0.9,
+        "returned_invalid": 0,
+        "short_returns": 20,
+        "snapshot_inconsistent": false,
+        "truncated": false
+      },
+      "evidence_strength": "low",
+      "explanation": "Tie-tolerant canary recall (recall_dist gates; recall_id reported).",
+      "id": "canary_recall",
+      "remediation_hint": "",
+      "sampling": {
+        "k": 10,
+        "queries": 20,
+        "query_source": "corpus",
+        "search_params": {
+          "exact": true
+        },
+        "self_excluded": true
+      },
+      "state": "OK",
+      "thresholds": {
+        "direction": "lower_is_worse",
+        "fail": 0.7,
+        "warn": 0.85
+      },
+      "unavailable_reason": null,
+      "unit": "ratio",
+      "value": 0.9
+    },
+    {
+      "detail": {
+        "antihub_fraction": null,
+        "hub_share_top1pct": null
+      },
+      "evidence_strength": "low",
+      "explanation": "",
+      "id": "hub_share_top1pct",
+      "remediation_hint": "",
+      "sampling": {
+        "S": 50,
+        "decoupled_from_canary": true,
+        "hubness_source": "truth",
+        "k_hub": 10,
+        "requested_sample_size": 20000,
+        "sample_seed": 11344
+      },
+      "state": "UNAVAILABLE",
+      "thresholds": {
+        "direction": "higher_is_worse",
+        "fail": 0.35,
+        "warn": 0.2
+      },
+      "unavailable_reason": "|S|=50 < 1000 (hubness sample too small)",
+      "unit": "ratio",
+      "value": null
+    },
+    {
+      "detail": {
+        "antihub_fraction": null,
+        "hub_share_top1pct": null
+      },
+      "evidence_strength": "low",
+      "explanation": "",
+      "id": "antihub_fraction",
+      "remediation_hint": "",
+      "sampling": {
+        "S": 50,
+        "decoupled_from_canary": true,
+        "hubness_source": "truth",
+        "k_hub": 10,
+        "requested_sample_size": 20000,
+        "sample_seed": 11344
+      },
+      "state": "UNAVAILABLE",
+      "thresholds": {
+        "direction": "higher_is_worse",
+        "fail": 0.4,
+        "warn": 0.25
+      },
+      "unavailable_reason": "|S|=50 < 1000 (hubness sample too small)",
+      "unit": "ratio",
+      "value": null
+    },
+    {
+      "detail": {
+        "dfi": 0.0,
+        "entrypoint_tombstoned": null,
+        "estimated": false,
+        "fragments": [],
+        "inconsistent_counts": false,
+        "proxy": false,
+        "read_at": "2026-08-30T10:00:00Z"
+      },
+      "evidence_strength": "high",
+      "explanation": "Deletion fragmentation index: dead / (live + dead).",
+      "id": "dfi",
+      "remediation_hint": "",
+      "sampling": {
+        "deleted": 0,
+        "estimated": false,
+        "exact": true,
+        "live": 50,
+        "proxy": false,
+        "report_deleted_counts": true,
+        "total": 50
+      },
+      "state": "OK",
+      "thresholds": {
+        "direction": "higher_is_worse",
+        "fail": 0.3,
+        "warn": 0.15
+      },
+      "unavailable_reason": null,
+      "unit": "ratio",
+      "value": 0.0
+    },
+    {
+      "detail": {
+        "empty_index": false,
+        "empty_partition_fraction": null,
+        "gini": null,
+        "includes_deleted": null,
+        "max_over_mean": null,
+        "n_partitions": null,
+        "p99_over_mean": null,
+        "top_partitions": []
+      },
+      "evidence_strength": "low",
+      "explanation": "",
+      "id": "partition_size_cv",
+      "remediation_hint": "",
+      "sampling": {
+        "index_name": "tiny"
+      },
+      "state": "UNAVAILABLE",
+      "thresholds": {
+        "direction": "higher_is_worse",
+        "fail": 2.0,
+        "warn": 1.2
+      },
+      "unavailable_reason": "not_applicable",
+      "unit": "coefficient_of_variation",
+      "value": null
+    }
+  ],
+  "offending_vector_ids": [],
+  "run": {
+    "deterministic": true,
+    "duration_seconds": 0.5,
+    "host": {
+      "cpu_count": 10,
+      "platform": "macOS-26.5.1-arm64-arm-64bit"
+    },
+    "seed": 1337,
+    "stage_timings": {
+      "corpus": 0.1,
+      "counts": 0.1,
+      "ground_truth": 0.1
+    },
+    "started_at": "2026-08-30T10:00:00Z"
+  },
+  "schema_version": "1.0",
+  "target": {
+    "dimension": 8,
+    "engine": "synthetic",
+    "engine_version": "0.1.0",
+    "index_kind": "FLAT",
+    "index_name": "tiny",
+    "location": "synthetic://tiny",
+    "metric_space": "L2"
+  },
+  "tool_version": "0.1.0.dev0",
+  "verdict": "INCONCLUSIVE",
+  "warnings": []
+}

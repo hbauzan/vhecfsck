@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Deterministic JSON renderer in `vhecfsck/report/json_report.py` (`render_json`,
+  `generate_report_schema`), published schema `schema/report-1.0.json`, golden reference
+  fixtures in `tests/fixtures/golden/`, and schema drift prevention tests in
+  `tests/e2e/test_json_golden.py`. Ticket: P3-02.
 - Pydantic v2 Report schema in `vhecfsck/models/report.py` (`Report`, `RunContext`
   BaseModels with `extra="forbid"`, `SCHEMA_VERSION = "1.0"` per ADR-0008, secret
   leak prevention validator, and `Report.compare` structured diff for baseline mode).
