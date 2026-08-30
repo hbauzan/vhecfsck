@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Rich terminal renderer in `vhecfsck/report/text_report.py` (`render_terminal`),
+  featuring target identity header, overall verdict banner, index cardinalities,
+  metrics table, metric explanations/hints, offending vector details, and warnings.
+  Supports clean plain-text output when `color=False` (piped stdout/NO_COLOR) and
+  end-to-end tests in `tests/e2e/test_text_output.py`. Ticket: P3-03.
 - Deterministic JSON renderer in `vhecfsck/report/json_report.py` (`render_json`,
   `generate_report_schema`), published schema `schema/report-1.0.json`, golden reference
   fixtures in `tests/fixtures/golden/`, and schema drift prevention tests in
