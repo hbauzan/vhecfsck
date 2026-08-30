@@ -68,6 +68,7 @@ _COVERAGE_TARGETS = (
     "tests/property/test_canary_props.py",
     "tests/property/test_partitions_props.py",
     "tests/property/test_determinism.py",
+    "tests/e2e/test_cli_audit.py",
 )
 
 # Nightly core-floor subprocess (P0-04 / lesson 35). Keep in sync with
