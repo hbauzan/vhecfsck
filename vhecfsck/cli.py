@@ -1,4 +1,4 @@
-"""CLI entry point for vhecfsck commands (P3-04 / P3-05)."""
+"""CLI entry point for vhecfsck commands (P3-04 / P3-05 / P3-07)."""
 
 from __future__ import annotations
 
@@ -19,7 +19,12 @@ from vhecfsck.core.verdict import verdict_to_exit_code
 from vhecfsck.errors import ExitCode, UsageError, VhecfsckError, abort, handle_uncaught
 from vhecfsck.logging import configure_logging
 from vhecfsck.pipeline import ProgressCallback, run_audit
-from vhecfsck.report import render_json, render_prometheus, render_terminal
+from vhecfsck.report import (
+    render_json,
+    render_markdown,
+    render_prometheus,
+    render_terminal,
+)
 
 
 # Ensure all Click UsageErrors (invalid flags, missing options) exit with exit code 4.
@@ -62,6 +67,15 @@ class FormatChoice(str, Enum):
     PROMETHEUS = "prometheus"
 
 
+class ExportFormatChoice(str, Enum):
+    """Output format choices for export report command."""
+
+    TEXT = "text"
+    JSON = "json"
+    PROMETHEUS = "prometheus"
+    MARKDOWN = "markdown"
+
+
 class DemoSizeChoice(str, Enum):
     """Corpus scale size choice for demo command."""
 
@@ -95,6 +109,8 @@ def _root(
     _QUIET = quiet
     verbosity = -1 if quiet else min(verbose, 2)
     configure_logging(verbosity=verbosity, log_format=log_format)
+    if os.environ.get("_VHECFSCK_FAULT_INJECT") == "1":
+        raise RuntimeError("Fault injected for exit code 70 test")
 
 
 @app.command(name="audit")
@@ -411,7 +427,7 @@ def _audit_impl(
     # 8. Output report
     if output is not None:
         output.write_text(rendered, encoding="utf-8")
-    else:
+    elif not _QUIET:
         sys.stdout.write(rendered)
         sys.stdout.flush()
 
@@ -533,7 +549,7 @@ def _demo_impl(
         report = run_audit(
             adapter,
             effective_config,
-            search_params=search_params if search_params else None,
+            search_params=search_params,
             on_progress=on_progress,
         )
     finally:
@@ -553,7 +569,7 @@ def _demo_impl(
 
     if output is not None:
         output.write_text(rendered, encoding="utf-8")
-    else:
+    elif not _QUIET:
         sys.stdout.write(rendered)
         sys.stdout.flush()
 
@@ -562,6 +578,111 @@ def _demo_impl(
             "[demo] Note: --serve 3D visualizer server requires P4 (vhecfsck serve).\n"
         )
         sys.stderr.flush()
+
+    exit_code = verdict_to_exit_code(report.verdict)
+    abort(exit_code)
+
+
+@app.command(name="export")
+def export(
+    report_path: Annotated[
+        Path,
+        typer.Option(
+            "--report",
+            "-r",
+            help="Path to input JSON report file.",
+        ),
+    ],
+    format: Annotated[
+        ExportFormatChoice,
+        typer.Option(
+            "--format",
+            help="Report output format: text, json, prometheus, or markdown.",
+        ),
+    ] = ExportFormatChoice.TEXT,
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Output file path (defaults to stdout).",
+        ),
+    ] = None,
+) -> None:
+    """Re-render a stored audit report JSON in another format."""
+    try:
+        _export_impl(
+            report_path=report_path,
+            format=format,
+            output=output,
+        )
+    except VhecfsckError as exc:
+        abort(handle_uncaught(exc, debug=_DEBUG))
+
+
+def _export_impl(
+    report_path: Path,
+    format: ExportFormatChoice,
+    output: Path | None,
+) -> None:
+    import json
+
+    from vhecfsck.models.report import Report
+
+    if not report_path.exists():
+        raise UsageError(
+            f"report file not found: {report_path}",
+            hint="Specify a valid path to an existing JSON report file.",
+        )
+
+    try:
+        raw_text = report_path.read_text(encoding="utf-8")
+        data = json.loads(raw_text)
+    except Exception as exc:
+        raise UsageError(
+            f"failed to parse JSON from {report_path}: {exc}",
+            hint="Ensure file is valid UTF-8 JSON.",
+        ) from exc
+
+    version_str = str(data.get("schema_version", "1.0"))
+    try:
+        major = int(version_str.split(".")[0])
+    except ValueError:
+        major = 1
+
+    if major > 1:
+        raise UsageError(
+            f"unsupported report schema_version {version_str!r}",
+            hint="This version of vhecfsck supports schema_version 1.x",
+        )
+
+    try:
+        report = Report.model_validate(data)
+    except Exception as exc:
+        raise UsageError(
+            f"invalid report structure in {report_path}: {exc}",
+            hint="Ensure report conforms to vhecfsck Report schema.",
+        ) from exc
+
+    if format == ExportFormatChoice.JSON:
+        rendered = render_json(report)
+    elif format == ExportFormatChoice.PROMETHEUS:
+        rendered = render_prometheus(report)
+    elif format == ExportFormatChoice.MARKDOWN:
+        rendered = render_markdown(report)
+    else:
+        use_color = (
+            sys.stdout.isatty()
+            and not os.environ.get("NO_COLOR")
+            and os.environ.get("TERM") != "dumb"
+        )
+        rendered = render_terminal(report, color=use_color)
+
+    if output is not None:
+        output.write_text(rendered, encoding="utf-8")
+    elif not _QUIET:
+        sys.stdout.write(rendered)
+        sys.stdout.flush()
 
     exit_code = verdict_to_exit_code(report.verdict)
     abort(exit_code)

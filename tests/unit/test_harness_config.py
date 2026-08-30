@@ -70,6 +70,9 @@ _COVERAGE_TARGETS = (
     "tests/property/test_determinism.py",
     "tests/e2e/test_cli_audit.py",
     "tests/e2e/test_cli_demo.py",
+    "tests/e2e/test_prometheus.py",
+    "tests/e2e/test_cli_export.py",
+    "tests/e2e/test_exit_codes.py",
 )
 
 # Nightly core-floor subprocess (P0-04 / lesson 35). Keep in sync with
