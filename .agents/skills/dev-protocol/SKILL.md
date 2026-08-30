@@ -30,8 +30,8 @@ Este SKILL.md es el **router liviano**: contiene lo que se necesita siempre (rol
 | [guardrails.md](./guardrails.md) | vas a verificar (`make verify`), cerrar una tarea (definition of done) o instalar un guard estático |
 | [qa-review.md](./qa-review.md) | revisás un diff (dos ejes) o convertís problemas en issues |
 | [git-workflow.md](./git-workflow.md) | vas a commitear, configurar pre-commit o entregar (push/merge) |
-| [documentation.md](./documentation.md) | cambió un contrato/docs → sync **condicional** (manifest/CHANGELOG/spec/README/CONTEXT) |
-| [lessons-learned.md](./lessons-learned.md) | **memoria de handoff entre agentes.** Leelo si entrás en frío (sesión nueva, post-handoff, post-compactación), si vas a diseñar algo desde cero, o en la Fase 3 de un debug. Se **escribe** solo cuando el usuario pide un handoff — ver su §5 |
+| [documentation.md](./documentation.md) | cambió un contrato/docs → sync **condicional** (manifest/CHANGELOG/spec/README/CONTEXT, o el equivalente del repo) |
+| [lessons-learned.template.md](./lessons-learned.template.md) | **protocolo** de la memoria de handoff (cuándo leer/escribir). La memoria del **producto** vive fuera del pack — path por defecto `roadmap/lessons-learned.md`. Se lee al entrar en frío, al diseñar desde cero, o en la Fase 3 de un debug; se escribe solo cuando el usuario pide un handoff |
 | [templates/](./templates/) | base copy-to-root: `Makefile`, `.pre-commit-config.yaml`, `.env.example`, `.importlinter`, `ci.yml`, `check_provider_seam.py`, `sync_agents_md.py` |
 
 > **Cómo instalar/usar esta skill** (Claude Code y otros IDEs/IAs como Cursor, Gemini, OpenCode) → [USAGE.md](./USAGE.md).
@@ -47,14 +47,14 @@ La frase canónica que dispara todo el ciclo desde cero:
 
 Invocada así, el agente corre el **ciclo estándar** end-to-end por su cuenta, parando solo en el gate de aprobación humana (paso 7):
 
-1. **Cargar y orientar**: leé este SKILL.md primero y después los módulos relevantes. Si **entrás en frío** (sesión nueva sobre trabajo que no hiciste vos, o retomás después de un handoff) leé [lessons-learned.md](./lessons-learned.md) ahora: es la memoria de lo que aprendió el agente anterior. Si ya venís en contexto, se lee más tarde y solo si la tarea lo pide — al diseñar desde cero, o en la Fase 3 de un debug.
+1. **Cargar y orientar**: leé este SKILL.md primero y después los módulos relevantes. Si **entrás en frío** (sesión nueva sobre trabajo que no hiciste vos, o retomás después de un handoff) leé el lessons-learned del **producto** ahora (path por defecto `roadmap/lessons-learned.md`; el pack solo trae [lessons-learned.template.md](./lessons-learned.template.md)). Si ya venís en contexto, se lee más tarde y solo si la tarea lo pide — al diseñar desde cero, o en la Fase 3 de un debug.
 2. **Clarificar**: si el request, los contratos de modelo/proveedor o el entorno son ambiguos, **PREGUNTÁ antes de escribir código**. Ante la duda, preguntá — nunca adivines.
 3. **Branch**: creá una rama `<type>/<short-name>` desde la base antes de tocar código.
 4. **Implementar**: vertical slices, TDD donde aplique ([code-design.md](./code-design.md)); para bugs, el loop de 6 fases ([debugging.md](./debugging.md)).
 5. **Auto-verificar**: corré **`make verify`**, el gate único ([guardrails.md](./guardrails.md) §1). Verde — no "verde salvo un fallo preexistente". Después confirmá a mano que la app hace lo que pediste: el gate prueba que no rompiste nada, no que construiste lo correcto.
 6. **Sync docs**: actualizá **solo** los assets de documentación que el cambio realmente toca ([documentation.md](./documentation.md)).
-7. **Hand off — APPROVAL GATE**: chequeá la definition of done ([guardrails.md](./guardrails.md) §3), reportá qué cambió y cómo se verificó, decile al usuario exactamente cómo probarlo, y **ESPERÁ**. No hagas push ni merge todavía. Si descubriste una invariante técnica durable, **proponéla en este reporte** y dejá que el usuario decida si entra a [lessons-learned.md](./lessons-learned.md); ese archivo se escribe cuando se prepara un handoff, no al cerrar cada tarea.
-8. **Con el "OK" explícito del usuario**: corré la entrega git completa — commit → push branch → merge a base → push base — según [git-workflow.md](./git-workflow.md) §3.
+7. **Hand off — APPROVAL GATE**: chequeá la definition of done ([guardrails.md](./guardrails.md) §3), reportá qué cambió y cómo se verificó, decile al usuario exactamente cómo probarlo, y **ESPERÁ**. No hagas push ni merge todavía. Si descubriste una invariante técnica durable, **proponéla en este reporte** y dejá que el usuario decida si entra al lessons-learned del producto; ese archivo se escribe cuando se prepara un handoff, no al cerrar cada tarea.
+8. **Con el "OK" explícito del usuario**: squash de la rama a **un** conventional commit, push de la rama, merge a `main` (o la base del repo) y push de la base — según [git-workflow.md](./git-workflow.md) §3. Commits locales durante el trabajo: libres.
 9. **Pará y preguntá si se complica**: si algo del paso 8 no es trivial (conflicto de merge, hook/CI rojo, rama divergida o protegida, scope ambiguo), **DETENTE y preguntá** ([git-workflow.md](./git-workflow.md) §3.3).
 
 ***
@@ -153,13 +153,13 @@ Aplicá esta sección **solo cuando la app realmente tiene interfaz**. Elegí el
 # 4. Higiene de contexto
 
 - **Disclosure progresiva**: leé un módulo **solo cuando la tarea lo pide**. Una corrección de bug carga este SKILL.md + [debugging.md](./debugging.md), no los otros módulos. Esto es lo que ahorra tokens.
-- **El módulo caro es [lessons-learned.md](./lessons-learned.md)**: pesa más que todo el resto del pack junto, así que se abre cuando paga y no por reflejo. Paga al **entrar en frío**, al **diseñar algo desde cero** y en la **Fase 3 de un debug**. No paga en reviews, commits, docs ni ediciones triviales. Reglas completas en su §5.
+- **El archivo caro es el lessons-learned del producto** (default `roadmap/lessons-learned.md`), no un módulo del pack. Pesa más que todo el resto junto, así que se abre cuando paga y no por reflejo. Paga al **entrar en frío**, al **diseñar algo desde cero** y en la **Fase 3 de un debug**. No paga en reviews, commits, docs ni ediciones triviales. Protocolo en [lessons-learned.template.md](./lessons-learned.template.md) §5.
 - **Smart-zone**: el modelo razona nítido dentro de una ventana acotada (~120k tokens en modelos SOTA). Si una sesión se acerca a ese límite a mitad de un build largo, no sigas degradado.
 - **Compactar vs handoff**: compactá solo en cortes intencionales entre fases (no a mitad de fase, el agente se pierde). Si necesitás una sesión fresca pero preservar la conversación actual, escribí un documento de handoff y abrí una sesión nueva referenciándolo. Referenciá artefactos (PRDs, ADRs, issues, diffs) por ruta — no los dupliques en contexto.
-- **Dos memorias, distinta vida útil**: ese documento de handoff es **efímero** y muere con el hilo de trabajo. [lessons-learned.md](./lessons-learned.md) es la mitad **durable** — lo que tiene que sobrevivir a la sesión, a la compactación y al cambio de modelo. Cuando el usuario pide un handoff se escriben los dos: el efímero lleva el estado, el durable lleva las invariantes.
+- **Dos memorias, distinta vida útil**: ese documento de handoff es **efímero** y muere con el hilo de trabajo. El lessons-learned del producto es la mitad **durable** — lo que tiene que sobrevivir a la sesión, a la compactación y al cambio de modelo. Cuando el usuario pide un handoff se escriben los dos: el efímero lleva el estado, el durable lleva las invariantes.
 
 # 5. Precondición / bootstrap
 
 - **Bootstrap**: si `manifest.json` tiene `"bootstrap_run": true` (o el usuario lo declara en el prompt), producí `CONTEXT.blueprint.md` en la raíz del workspace; si no, mantené el glosario de dominio `CONTEXT.md` con lenguaje ubicuo. Sync de docs es **condicional** — ver [documentation.md](./documentation.md).
 - **Templates copy-to-root**: para un repo nuevo, copiá a la raíz [`Makefile`](./templates/Makefile), [`.pre-commit-config.yaml`](./templates/.pre-commit-config.yaml), [`.env.example`](./templates/.env.example) y [`.importlinter`](./templates/.importlinter); los scripts [`check_provider_seam.py`](./templates/check_provider_seam.py) y [`sync_agents_md.py`](./templates/sync_agents_md.py) van a `scripts/`, y [`ci.yml`](./templates/ci.yml) a `.github/workflows/`. Ajustá los `rev:`, las variables y el bloque `CONFIG` de cada script.
-- **Instalación por clon**: `uv run pre-commit install` (ver [git-workflow.md](./git-workflow.md) §2) y `uv run python scripts/sync_agents_md.py` para generar el `AGENTS.md` de la raíz ([guardrails.md](./guardrails.md) §6). Después, `make verify` tiene que dar verde antes del primer commit real.
+- **Instalación por clon**: `uv run pre-commit install` (ver [git-workflow.md](./git-workflow.md) §2). Si el repo usa `AGENTS.md` **generado**, corré `uv run python scripts/sync_agents_md.py` ([guardrails.md](./guardrails.md) §6). Si el repo **optó out** (overlay / playbook a mano), no regeneres `AGENTS.md`. Después, `make verify` tiene que dar verde antes del primer commit real.

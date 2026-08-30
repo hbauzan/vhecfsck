@@ -4,15 +4,17 @@ Update documentation **only when the change actually affects that asset**. Do no
 
 These documents are the recovery core of the codebase. Keep them accurate; do not keep them busy.
 
-| File | Update when… | Do **not** update when… |
+Names below are **defaults**. If the repo already has an equivalent, update **that** file — do not create the default name by reflex.
+
+| File (or the repo's equivalent) | Update when… | Do **not** update when… |
 | :--- | :--- | :--- |
 | **`manifest.json`** | Version bumps, or `state_schema` / `constraints` change (new config field, default, range, or vector dim). | Pure refactors, bug fixes that leave the config contract unchanged. |
 | **`CHANGELOG.md`** | Releases or **notable** capability changes (new provider, new surface, security posture change). Append a short section. | Every PR, typo fix, or internal cleanup. |
-| **`architecture_spec.md`** | Contracts change: API shapes, provider interface, data schemas, security/scalability policies, prompt/templating contracts, token/latency expectations. | Implementation details that stay within an existing contract. |
+| **`architecture_spec.md`** *or* `roadmap/` + ADRs | Contracts change: API shapes, provider interface, data schemas, security/scalability policies, prompt/templating contracts, token/latency expectations. | Implementation details that stay within an existing contract. Do not invent `architecture_spec.md` if the repo already keeps contracts in `roadmap/` / `adr/`. |
 | **`README.md`** | How to install, configure, or run the system changes (tooling, scripts, prerequisites). | Internal code changes that do not affect first-time setup. |
-| **`CONTEXT.md`** | Domain language changes (new term, renamed concept, retired alias). | Code-only changes that use existing terms. |
-| **`current-research/`** (si el repo lo usa) | Descubrimientos empíricos que no entran en una lección de una línea (mediciones, estudios, “por qué X se comporta así”). | Bug fixes rutinarios: destilá la invariante en `lessons-learned.md` y linkeá acá la evidencia. |
-| **`lessons-learned.md`** | **Preparing a handoff**, or when the user explicitly asks. This file is the durable memory a fresh agent inherits, so the bar is an **invariant a future agent must not re-break** — short, and pointing at `current-research/` for the evidence when that folder exists. | Closing an ordinary task. Propose the lesson in your hand-off report and let the user decide: written by reflex, the file fills with noise and stops working as a handoff, which is the one job it has. Also: no measurement tables, no open science threads. See its §5. |
+| **`CONTEXT.md`** *or* `roadmap/glossary.md` | Domain language changes (new term, renamed concept, retired alias). | Code-only changes that use existing terms. |
+| **`current-research/`** (si el repo lo usa) | Descubrimientos empíricos que no entran en una lección de una línea (mediciones, estudios, “por qué X se comporta así”). | Bug fixes rutinarios: destilá la invariante en el lessons-learned del producto y linkeá acá la evidencia. |
+| **Product `lessons-learned.md`** (default `roadmap/lessons-learned.md`; never inside the skill pack) | **Preparing a handoff**, or when the user explicitly asks. This file is the durable memory a fresh agent inherits, so the bar is an **invariant a future agent must not re-break** — short, and pointing at `current-research/` for the evidence when that folder exists. | Closing an ordinary task. Propose the lesson in your hand-off report and let the user decide: written by reflex, the file fills with noise and stops working as a handoff, which is the one job it has. Also: no measurement tables, no open science threads. See [lessons-learned.template.md](./lessons-learned.template.md) §5. |
 
 ### Manifest shape (slim)
 

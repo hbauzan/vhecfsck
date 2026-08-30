@@ -20,10 +20,11 @@ dev-protocol/
 │                        guards estáticos, y de dónde sale el AGENTS.md de la raíz
 ├─ qa-review.md        ← review de dos ejes + issues
 ├─ git-workflow.md     ← commits, pre-commit, entrega
-├─ documentation.md    ← doc-sync manifest/spec
-├─ lessons-learned.md  ← memoria de handoff entre agentes: invariantes que la próxima
-│                        IA necesita. Se lee al entrar en frío, al diseñar desde cero
-│                        y en Fase 3 de un debug; se escribe al preparar un handoff
+├─ documentation.md    ← doc-sync manifest/spec (o el equivalente del repo)
+├─ lessons-learned.template.md
+│                      ← protocolo de la memoria de handoff (cuándo leer/escribir).
+│                        La memoria del producto vive FUERA del pack
+│                        (default: roadmap/lessons-learned.md)
 │
 ├─ templates/          ← copy-to-root (destino de cada uno abajo)
 ├─ Por acá va la bocha.md  ← puntero a SKILL.md §2 (CUSTOMIZACIÓN ELETOR)
@@ -46,7 +47,7 @@ Destino de cada template al adoptar la skill en un repo:
 - **Los módulos son auto-contenidos** y se cruzan entre sí con rutas relativas (`./debugging.md`, etc.). No usan rutas absolutas → la carpeta funciona en cualquier repo.
 - **Archivos de referencia en la raíz del repo** (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) son **punteros versionados** a esta skill. Sobreviven a `git clone` y garantizan que cada agente aplique el protocolo apuntando a `.agents/skills/dev-protocol/SKILL.md`.
 - **Excepción deliberada: las prohibiciones van inline en `AGENTS.md`.** Un puntero solo funciona si el agente lo sigue, y seguirlo es una decisión suya, no un mecanismo — fuera de Claude Code no hay disclosure progresiva. Un *procedimiento* lo consultás cuando sabés que lo necesitás; una *prohibición* te hace falta justo cuando no sabés que te hace falta. Y el costo de fallar es asimétrico: saltear `code-design.md` es diseñar peor, saltear "nunca debilites un test" es un assert borrado y un reporte en verde.
-- **La duplicación es generada, no escrita a mano**, así que la fuente de verdad sigue siendo una: `guardrails.md`. `scripts/sync_agents_md.py` proyecta los bloques marcados con `agents-md:` al `AGENTS.md` de la raíz, y su modo `--check` corre en `make verify` y en pre-commit, fallando apenas la copia driftea. Duplicación generada no driftea; la escrita a mano sí. Ver [guardrails.md](./guardrails.md) §6.
+- **`AGENTS.md` tiene dos modos** ([guardrails.md](./guardrails.md) §6). **Generado:** `scripts/sync_agents_md.py` proyecta los bloques `agents-md:` más un overlay de producto opcional (`AGENTS.overlay.md`) que el generador no pisa. **Opt-out:** el repo mantiene `AGENTS.md` a mano (playbook / reglas de producto) y **no** cablea `--check`. Este workspace es opt-out. No regeneres `AGENTS.md` acá.
 
 ---
 
@@ -101,14 +102,15 @@ seguí el protocolo en `.agents/skills/dev-protocol/SKILL.md`.
   diseño/TDD/errores → code-design.md · bug → debugging.md · verificar y cerrar →
   guardrails.md · review → qa-review.md · git/entrega → git-workflow.md ·
   docs → documentation.md · entrar en frío, diseñar desde cero o Fase 3 de un
-  debug → lessons-learned.md (memoria de handoff; se escribe solo al hacer handoff).
+  debug → lessons-learned del producto (default `roadmap/lessons-learned.md`;
+  se escribe solo al hacer handoff).
 - Regla dura: dependencias Python con `uv` (nunca `pip` ni venv manual).
 - Regla dura: `make verify` verde antes de decir que algo está listo. Sin `--no-verify`.
 - Regla dura: nunca debilites un test para que pase (ni tolerancia, ni skip, ni xfail).
 - No hagas push/merge sin OK explícito del usuario (approval gate de git-workflow.md §3).
 ```
 
-> Si el repo ya tiene el `AGENTS.md` generado por `scripts/sync_agents_md.py`, esta plantilla es redundante para las herramientas que leen `AGENTS.md`. Usala para las que no lo leen — `.windsurfrules`, `.github/copilot-instructions.md` — o para repos donde todavía no instalaste el generador.
+> Si el repo ya tiene un `AGENTS.md` (generado **o** opt-out), esta plantilla es redundante para las herramientas que lo leen. Usala para las que no lo leen — `.windsurfrules`, `.github/copilot-instructions.md`.
 
 > **Nota de fidelidad**: como estas herramientas no tienen disclosure progresiva, el agente puede cargar todos los módulos que referencies de una. Si te importa el ahorro de tokens ahí, referenciá en el archivo de reglas **solo** `SKILL.md` y dejá que el agente abra los módulos cuando los necesite.
 
@@ -118,7 +120,7 @@ seguí el protocolo en `.agents/skills/dev-protocol/SKILL.md`.
 
 Mantené **una** copia de `dev-protocol/` por repo y que todos los archivos de reglas (`.cursor/rules`, `GEMINI.md`, `AGENTS.md`, etc.) **la referencien** en vez de copiar el contenido a mano. Así actualizás el protocolo en un solo lugar y todas las herramientas lo ven.
 
-La única copia permitida es la **generada**: el bloque de prohibiciones dentro de `AGENTS.md`, que produce `scripts/sync_agents_md.py` a partir de `guardrails.md` y que el gate verifica en cada corrida. Si te encontrás editando ese bloque a mano, el guard te va a frenar — editá `guardrails.md` y regenerá.
+En modo **generado**, la única copia permitida del bloque de prohibiciones es la que produce `scripts/sync_agents_md.py` a partir de `guardrails.md` (+ overlay). En modo **opt-out**, `AGENTS.md` es a mano y el `--check` no corre — no lo regeneres.
 
 > Los nombres de archivo de reglas de cada herramienta evolucionan rápido — si alguno no funciona, verificá la doc oficial vigente de esa herramienta. El patrón ("apuntá su archivo de contexto a `SKILL.md`") se mantiene.
 
@@ -128,7 +130,9 @@ La única copia permitida es la **generada**: el bloque de prohibiciones dentro 
 
 La skill vive versionada en **`.agents/skills/dev-protocol/`**.
 
-Punteros en raíz: `AGENTS.md` (generado), `CLAUDE.md`, `GEMINI.md`, `.cursor/rules/dev-protocol.mdc`.
+Punteros en raíz: `AGENTS.md` (**opt-out**, playbook a mano), `CLAUDE.md`, `GEMINI.md`, `.cursor/rules/dev-protocol.mdc`.
+
+Memoria de handoff de este producto: [`roadmap/lessons-learned.md`](../../../roadmap/lessons-learned.md).
 
 Por clon, recreá el symlink de Claude Code:
 
@@ -137,12 +141,7 @@ mkdir -p .claude/skills
 ln -sfn ../../.agents/skills/dev-protocol .claude/skills/dev-protocol
 ```
 
-Regenerar / verificar `AGENTS.md`:
-
-```bash
-uv run python scripts/sync_agents_md.py          # o: python3 scripts/sync_agents_md.py
-uv run python scripts/sync_agents_md.py --check
-```
+Este repo **no** regenera `AGENTS.md` desde el skill. El script `scripts/sync_agents_md.py` está en modo opt-out: `--check` no falla; escribir el archivo está bloqueado.
 
 **Una skill por repo** (`dev-protocol`). No symlinks masivos a skills globales del IDE: el catálogo hincha tokens antes de leer código.
 

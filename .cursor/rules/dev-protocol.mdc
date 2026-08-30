@@ -10,6 +10,7 @@ Para CUALQUIER tarea de implementación, bug, review o entrega en este repo, seg
 
 - Leé `SKILL.md` primero (rol, CUSTOMIZACIÓN ELETOR, entorno, flujo idea→entrega con approval gate).
 - Leé los módulos SOLO cuando la tarea lo pida (índice en el skill).
+- En frío: leé `roadmap/lessons-learned.md` (memoria del producto, no del pack).
 - Regla dura: dependencias Python con `uv` (nunca `pip` ni venv manual).
 - Regla dura: `make verify` verde antes de decir que algo está listo (cuando el gate exista en el repo). Sin `--no-verify`.
 - Regla dura: nunca debilites un test para que pase.

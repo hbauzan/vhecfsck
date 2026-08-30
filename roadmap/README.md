@@ -36,6 +36,8 @@ criteria, not by elapsed time.
 | [`risk-register.md`](risk-register.md) | Risks, triggers, mitigations, owning tickets | Advisory |
 | [`release-plan.md`](release-plan.md) | Versioning, packaging, CI/CD, PyPI, launch | Yes (release) |
 | [`agent-playbook.md`](agent-playbook.md) | Execution protocol and guardrails for AI agents | Yes (process) |
+| [`lessons-learned.md`](lessons-learned.md) | Durable handoff memory between agents (invariants) | Process |
+| [`dev-protocol-followups.md`](dev-protocol-followups.md) | Queued work on the dev-protocol pack itself | Tracking only |
 | [`glossary.md`](glossary.md) | HNSW, IVF, tombstone, hubness, DFI, and friends | Reference |
 
 ## Project parameters fixed by the owner

@@ -61,12 +61,13 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # Generated mode only. Drop this hook if MODE=opt-out (this product does).
       - id: agents-md-sync
         name: root AGENTS.md matches the skill
         entry: python scripts/sync_agents_md.py --check
         language: system
         pass_filenames: false
-        files: '^(AGENTS\.md|\.agents/skills/dev-protocol/(guardrails|git-workflow)\.md)$'
+        files: '^(AGENTS\.md|AGENTS\.overlay\.md|\.agents/skills/dev-protocol/(guardrails|git-workflow)\.md)$'
 
 # --- Deliberately NOT here: mypy and pytest ----------------------------------
 # Not because they are optional — they are in `make verify` and in CI. The
