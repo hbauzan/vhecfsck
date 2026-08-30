@@ -242,6 +242,43 @@ scope. macOS is the only supported console until then.
 
 ---
 
+## P9-10 — Local Linux `make verify` in Docker (TBD)
+
+**Depends on:** P9-08 · **Size:** S · **Touches:** `setup.sh` (optional verb), a Docker
+compose/script, `.github/workflows/ci.yml` (commented recipe)
+
+**Do not start this ticket while any higher-priority work is open.** It exists because
+GitHub-hosted Actions were disabled permanently on 2026-08-30 (private-repo minute
+cost). It is post-launch filler, not a launch blocker. Skip it. Status stays `todo`
+until the owner says the board is otherwise idle.
+
+**What it replaces.** The commented recipes in `.github/workflows/ci.yml` and
+`nightly.yml`: Ubuntu × Python 3.11 / 3.12 / 3.13, advisory 3.14, and
+`make verify-full` / engine-SDK drift. Same commands: `uv sync --group dev` then
+`make verify` (or `make verify-full`). Never `--all-extras`.
+
+**What it does not replace.** macOS / Accelerate BLAS. That remains `make verify` on
+the Darwin laptop. Docker on a Mac runs Linux; it does not reproduce the old
+`macos-latest` job.
+
+**Contract (when started)**
+- A documented, copy-pasteable local path: Docker images (`python:3.11`, `3.12`,
+  `3.13`, advisory `3.14`) run the commented CI recipes.
+- Optional: a `setup.sh` verb on Darwin that shells out to that path. If Docker is
+  missing, exit `3` (inconclusive) — never fake healthy. Do not add a GitHub
+  `push` / `schedule` trigger.
+- Multiple Pythons on the host via `uv python install` are allowed as a cheaper
+  subset; they do **not** count as the Linux witness. Docker (or a real Linux
+  host) is what buys glibc.
+
+**Acceptance criteria**
+- [ ] Owner confirmed no higher-priority ticket is open.
+- [ ] Linux containers run `make verify` for 3.11 / 3.12 / 3.13; 3.14 is advisory.
+- [ ] Docker missing → inconclusive, not a red gate on the default `make verify`.
+- [ ] Hosted GitHub Actions still spend zero minutes (no `push` / `schedule`).
+
+---
+
 ## Phase exit checklist
 
 - [ ] `uvx vhecfsck@0.1.0 demo` works on a clean machine, verified in a fresh container.
@@ -253,3 +290,5 @@ scope. macOS is the only supported console until then.
 - [ ] Post-launch triage window observed and its findings recorded.
 - [ ] Linux `setup.sh` port (`P9-09`) only if the owner has given a publish go-ahead
       and the script was run on a real Linux host.
+- [ ] Local Linux Docker witness (`P9-10`) only if the board is otherwise idle
+      (TBD; not a launch blocker).

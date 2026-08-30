@@ -22,8 +22,8 @@ make verify
 
 Or run `./setup.sh` and choose the sync / verify options. `make verify` must be
 green before you open a PR. Pre-commit runs fast hygiene + the read-only guard on
-commit; mypy and the full test suite stay in `make verify` / CI (slow hooks get
-bypassed).
+commit; mypy and the full test suite stay in `make verify` (slow hooks get
+bypassed). Hosted GitHub Actions are disabled; the gate is local.
 
 If a cancelled verify leaves pytest children running, `./setup.sh clean` signals
 only processes whose command line includes this checkout — it does not kill

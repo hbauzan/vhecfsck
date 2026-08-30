@@ -193,19 +193,25 @@ real evidence.
 
 ## 5. CI structure
 
-**Per push and pull request** (`make verify`): Ubuntu × Python 3.11/3.12/3.13, plus macOS × 3.12.
-The macOS job is not redundant — it is the one that catches BLAS and float-formatting differences,
-and the primary development machine is macOS/arm64. Python 3.14 runs advisory. Under 8 minutes.
+**Hosted GitHub Actions are disabled permanently** (2026-08-30). Private-repo runner
+minutes cost money; `ci.yml` and `nightly.yml` keep the old recipes as comments plus an
+inert `workflow_dispatch` stub that never runs on push or schedule.
 
-**Additionally on pull request:** integration suites against containerised Qdrant and PostgreSQL,
-the LanceDB file-based suite, and visual regression in a pinned container. Under 15 minutes total.
+**The gate is local:** `make verify` on the Darwin laptop. That *is* the old
+macOS × 3.12 / Accelerate job.
 
-**Nightly** (`make verify-full`): slow, perf, mutation testing, and a job that installs the newest
-release of each engine SDK to catch upstream drift before users do.
+**Linux × Python 3.11 / 3.12 / 3.13** (advisory 3.14) and **nightly** (`make verify-full`,
+SDK drift) have no remote witness until [P9-10](phases/phase-9-docs-release-and-launch.md)
+— post-launch TBD: the same recipes in Docker, optionally a `setup.sh` verb. Skip P9-10
+while anything else is open. Docker does not reproduce macOS BLAS.
 
-**On release tag:** full verification, build, publish to TestPyPI, install from TestPyPI into a
-clean container and run the demo, then publish to PyPI. The TestPyPI smoke step is the only thing
-that catches a broken wheel before users do.
+**Additionally, when those suites exist:** integration against containerised Qdrant and
+PostgreSQL, the LanceDB file-based suite, and visual regression in a pinned container —
+still local / on demand, not GitHub-hosted.
+
+**On release tag (P9-05):** full verification, build, publish to TestPyPI, install from
+TestPyPI into a clean container and run the demo, then publish to PyPI. That smoke step
+stays a release-engineering concern, not a billed Actions matrix.
 
 ---
 
