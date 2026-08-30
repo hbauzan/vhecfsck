@@ -21,6 +21,12 @@ from vhecfsck.models.metrics import (
     metric_result_from_dict,
     metric_result_to_dict,
 )
+from vhecfsck.models.scene import (
+    DEFAULT_COLOR_PALETTE,
+    LodMetadata,
+    PointClass,
+    ScenePayload,
+)
 from vhecfsck.models.target import (
     Capabilities,
     IndexKind,
@@ -29,16 +35,20 @@ from vhecfsck.models.target import (
 )
 
 __all__ = [
+    "DEFAULT_COLOR_PALETTE",
     "Capabilities",
     "Direction",
     "EvidenceStrength",
     "GraphStats",
     "IndexCounts",
     "IndexKind",
+    "LodMetadata",
     "MetricResult",
     "MetricSpace",
     "MetricState",
     "PartitionStats",
+    "PointClass",
+    "ScenePayload",
     "SearchResult",
     "TargetDescriptor",
     "ThresholdSpec",

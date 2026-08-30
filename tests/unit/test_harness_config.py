@@ -49,6 +49,8 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_logging_redaction.py",
     "tests/unit/test_models.py",
     "tests/unit/test_metric_models.py",
+    "tests/unit/test_scene_model.py",
+    "tests/unit/test_scene_codec.py",
     "tests/unit/test_adapter_protocol.py",
     "tests/unit/test_generator.py",
     "tests/unit/test_pathologies.py",
@@ -65,14 +67,18 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_verdict.py",
     "tests/unit/test_pipeline.py",
     "tests/unit/test_sampling.py",
+    "tests/unit/test_projection.py",
+    "tests/unit/test_lod.py",
     "tests/property/test_canary_props.py",
     "tests/property/test_partitions_props.py",
+    "tests/property/test_projection_props.py",
     "tests/property/test_determinism.py",
     "tests/e2e/test_cli_audit.py",
     "tests/e2e/test_cli_demo.py",
     "tests/e2e/test_prometheus.py",
     "tests/e2e/test_cli_export.py",
     "tests/e2e/test_exit_codes.py",
+    "tests/e2e/test_cli_serve.py",
 )
 
 # Nightly core-floor subprocess (P0-04 / lesson 35). Keep in sync with
@@ -84,11 +90,14 @@ _CORE_COVERAGE_TARGETS = (
     "tests/property/test_hubness_props.py",
     "tests/property/test_canary_props.py",
     "tests/property/test_partitions_props.py",
+    "tests/property/test_projection_props.py",
     "tests/unit/test_fragmentation.py",
     "tests/unit/test_partitions.py",
     "tests/unit/test_verdict.py",
     "tests/unit/test_pipeline.py",
     "tests/unit/test_sampling.py",
+    "tests/unit/test_projection.py",
+    "tests/unit/test_lod.py",
 )
 
 _COVERAGE_SCAN_SKIP = frozenset(

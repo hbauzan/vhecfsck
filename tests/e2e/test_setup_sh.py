@@ -217,11 +217,12 @@ def test_demo_runs_demo_command_when_it_exists() -> None:
     assert "pgvector#244" in blob
 
 
-def test_serve_is_inconclusive_until_the_command_exists() -> None:
+def test_serve_invokes_cli_serve_when_command_exists() -> None:
     result = run_setup("serve")
-    assert result.returncode == EXIT_INCONCLUSIVE
+    # vhecfsck serve exists (P4-06); without [server] extra it exits code 4 (USAGE)
+    assert result.returncode == 4
     blob = result.stdout + result.stderr
-    assert "Heart of Gold" in blob or "serve" in blob
+    assert "vhecfsck serve" in blob or "Server support is not installed" in blob
 
 
 def test_script_source_forbids_daemon_and_saas_mechanics() -> None:
