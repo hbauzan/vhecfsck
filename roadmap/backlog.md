@@ -168,6 +168,7 @@ atomically.
 | P9-07 | Launch | M | P9-04, P9-05, P9-06 | todo |
 | P9-08 | Post-launch triage window | M | P9-07 | todo |
 | P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | todo |
+| P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | todo |
 
 ---
 
@@ -216,8 +217,8 @@ Independent of the critical path once their dependencies are met, and useful for
 | P6 | 9 | 1 | 6 | 2 |
 | P7 | 8 | 0 | 4 | 4 |
 | P8 | 11 | 2 | 7 | 2 |
-| P9 | 9 | 1 | 8 | 0 |
-| **Total** | **100** | **26** | **60** | **14** |
+| P9 | 10 | 2 | 8 | 0 |
+| **Total** | **101** | **27** | **60** | **14** |
 
 The fourteen `L` tickets are the ones to watch. Each should be re-examined before starting: if it
 can be split into independently verifiable pieces, split it. The only legitimate reason for an `L`

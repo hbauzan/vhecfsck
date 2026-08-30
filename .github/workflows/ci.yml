@@ -1,58 +1,92 @@
+# =============================================================================
+# DISABLED PERMANENTLY — do not uncomment to "fix CI".
+# -----------------------------------------------------------------------------
+# GitHub-hosted runners are billed on this private repo. These workflows were
+# turned off on 2026-08-30 so Actions minutes stay at zero.
+#
+# The quality gate is local: `make verify`. The primary machine is macOS/arm64,
+# which already covers the old macos-latest x 3.12 job (Accelerate vs OpenBLAS).
+#
+# Linux x Python 3.11 / 3.12 / 3.13 (and advisory 3.14) is NOT covered until
+# P9-10 — a post-launch TBD: run the recipes below in Docker, optionally from
+# setup.sh. Do not start P9-10 while higher-priority tickets are open.
+#
+# The original workflow is preserved as comments (recipe for P9-10).
+# The stub below (`workflow_dispatch` + `if: false`) exists only because GitHub
+# flags a workflows/*.yml file with no `on:` as invalid. It never runs on
+# push, pull_request, or schedule. Do not add those triggers.
+# =============================================================================
+#
+# name: ci
+#
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#
+# permissions:
+#   contents: read
+#
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: true
+#
+# jobs:
+#   verify:
+#     runs-on: ${{ matrix.os }}
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         os: [ubuntu-latest]
+#         python-version: ["3.11", "3.12", "3.13"]
+#         include:
+#           - os: macos-latest
+#             python-version: "3.12"
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: astral-sh/setup-uv@v5
+#         with:
+#           enable-cache: true
+#       - name: Install Python
+#         run: uv python install ${{ matrix.python-version }}
+#       - name: Sync dependencies
+#         # Lean base + declared dependency groups — never --all-extras (ADR-0002 / P0-15).
+#         run: uv sync --group dev
+#       - name: make verify
+#         run: make verify
+#       - name: Upload coverage
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
+#           path: |
+#             .coverage
+#             coverage.xml
+#           if-no-files-found: ignore
+#
+#   next-python:
+#     runs-on: ubuntu-latest
+#     continue-on-error: true
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: astral-sh/setup-uv@v5
+#         with:
+#           enable-cache: true
+#       - run: uv python install 3.14
+#       - run: uv sync --group dev
+#       - run: make verify
+
 name: ci
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  verify:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.11", "3.12", "3.13"]
-        include:
-          - os: macos-latest
-            python-version: "3.12"
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-      - name: Install Python
-        run: uv python install ${{ matrix.python-version }}
-      - name: Sync dependencies
-        # Lean base + declared dependency groups — never --all-extras (ADR-0002 / P0-15).
-        run: uv sync --group dev
-      - name: make verify
-        run: make verify
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
-          path: |
-            .coverage
-            coverage.xml
-          if-no-files-found: ignore
-
-  next-python:
+  disabled:
+    if: false
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-      - run: uv python install 3.14
-      - run: uv sync --group dev
-      - run: make verify
+      - run: echo "GitHub Actions disabled permanently; local gate is make verify (P9-10 TBD)."
