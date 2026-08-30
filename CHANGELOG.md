@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Embedded 3D visualizer server `vhecfsck serve --target <uri> [--port 8765] [--host 127.0.0.1] [--no-browser] [--report PATH]` and `--serve` flag integration, featuring streaming incremental PCA 3D projection with `svd_flip` determinism (`vhecfsck.core.projection`), class-stratified and voxel-grid Level-of-Detail decimation (`vhecfsck.core.lod`), `ScenePayload` domain model (`vhecfsck.models.scene`), application/octet-stream 8-byte aligned binary scene transport codec (`vhecfsck.report.scene_codec`), and single-flight FastAPI server (`vhecfsck.server`). Tickets: P4-01, P4-02, P4-03, P4-04, P4-05, P4-06.
 - Exit-code contract test suite in `tests/e2e/test_exit_codes.py` exercising real CLI subprocesses for all documented exit codes (0, 1, 2, 3, 4, 70 via `_VHECFSCK_FAULT_INJECT=1`), non-interactive behavior, and quiet mode. Ticket: P3-08.
 - Export CLI command `vhecfsck export --report PATH [--format text|json|prometheus|markdown]` in `vhecfsck/cli.py` and GitHub Flavored Markdown renderer in `vhecfsck/report/markdown.py` (`render_markdown`) for PR comments and job summaries, with major schema version rejection and end-to-end tests in `tests/e2e/test_cli_export.py`. Ticket: P3-07.
 - Prometheus exporter test suite in `tests/e2e/test_prometheus.py` for `vhecfsck/report/prometheus.py` (`render_prometheus`), validating textfile-collector series, metric state/unavailable gauges, bounded label cardinality, and `promtool check metrics` compliance. Ticket: P3-06.

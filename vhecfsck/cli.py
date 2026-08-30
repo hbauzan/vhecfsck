@@ -688,6 +688,88 @@ def _export_impl(
     abort(exit_code)
 
 
+@app.command(name="serve")
+def serve(
+    target: Annotated[
+        str,
+        typer.Option(
+            "--target",
+            "-t",
+            help="Target vector index URI.",
+        ),
+    ] = "",
+    port: Annotated[
+        int,
+        typer.Option(
+            "--port",
+            "-p",
+            help="Server HTTP port.",
+        ),
+    ] = 8765,
+    host: Annotated[
+        str,
+        typer.Option(
+            "--host",
+            help="Bind host address.",
+        ),
+    ] = "127.0.0.1",
+    no_browser: Annotated[
+        bool,
+        typer.Option(
+            "--no-browser",
+            help="Do not automatically open web browser.",
+        ),
+    ] = False,
+    report: Annotated[
+        Path | None,
+        typer.Option(
+            "--report",
+            help="Path to pre-computed JSON report file.",
+        ),
+    ] = None,
+) -> None:
+    """Launch embedded HTTP/WebSocket server for 3D visualizer."""
+    try:
+        _serve_impl(
+            target=target,
+            port=port,
+            host=host,
+            no_browser=no_browser,
+            report_path=report,
+        )
+    except VhecfsckError as exc:
+        abort(handle_uncaught(exc, debug=_DEBUG))
+
+
+def _serve_impl(
+    target: str,
+    port: int,
+    host: str,
+    no_browser: bool,
+    report_path: Path | None,
+) -> None:
+    _ = no_browser
+    from vhecfsck.server.app import check_server_dependencies, create_app
+
+    check_server_dependencies()
+
+    if host == "0.0.0.0" and not _QUIET:
+        warn_msg = (
+            "Warning: binding vhecfsck server to 0.0.0.0 "
+            "exposes database read access without auth\n"
+        )
+        sys.stderr.write(warn_msg)
+        sys.stderr.flush()
+
+    report_str = str(report_path) if report_path else None
+    app_instance = create_app(target_uri=target or None, report_path=report_str)
+
+    import uvicorn
+
+    log_lvl = "info" if not _QUIET else "error"
+    uvicorn.run(app_instance, host=host, port=port, log_level=log_lvl)
+
+
 def main() -> None:
     """Console-script and ``python -m vhecfsck`` entry point."""
     try:
