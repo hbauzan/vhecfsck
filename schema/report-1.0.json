@@ -1,0 +1,377 @@
+{
+  "$defs": {
+    "Direction": {
+      "description": "Threshold gating direction (``02-metrics-spec.md`` §1.5).",
+      "enum": [
+        "lower_is_worse",
+        "higher_is_worse"
+      ],
+      "title": "Direction",
+      "type": "string"
+    },
+    "EvidenceStrength": {
+      "description": "Honest claim strength for a computed metric (§1.4).",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "EvidenceStrength",
+      "type": "string"
+    },
+    "IndexCounts": {
+      "description": "Live / deleted / indexed cardinalities as far as the engine knows.",
+      "properties": {
+        "live": {
+          "title": "Live",
+          "type": "integer"
+        },
+        "deleted": {
+          "title": "Deleted",
+          "type": "integer"
+        },
+        "total": {
+          "title": "Total",
+          "type": "integer"
+        },
+        "indexed": {
+          "title": "Indexed",
+          "type": "integer"
+        },
+        "degenerate": {
+          "title": "Degenerate",
+          "type": "integer"
+        },
+        "exact": {
+          "title": "Exact",
+          "type": "boolean"
+        },
+        "read_at": {
+          "format": "date-time",
+          "title": "Read At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "live",
+        "deleted",
+        "total",
+        "indexed",
+        "degenerate",
+        "exact",
+        "read_at"
+      ],
+      "title": "IndexCounts",
+      "type": "object"
+    },
+    "IndexKind": {
+      "description": "Coarse index topology; ``UNKNOWN`` when the engine cannot say.",
+      "enum": [
+        "FLAT",
+        "IVF",
+        "IVF_PQ",
+        "HNSW",
+        "HNSW_PQ",
+        "UNKNOWN"
+      ],
+      "title": "IndexKind",
+      "type": "string"
+    },
+    "MetricResult": {
+      "description": "One metric outcome for the report (``02-metrics-spec.md`` §2.7 shape).\n\nInvariants (ADR-0004):\n- ``UNAVAILABLE`` → ``value is None`` and non-empty ``unavailable_reason``.\n- ``DISABLED`` → ``value is None``.\n- ``OK`` / ``WARN`` / ``FAIL`` → ``value is not None``, no reason.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/MetricState"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "thresholds": {
+          "$ref": "#/$defs/ThresholdSpec"
+        },
+        "sampling": {
+          "additionalProperties": true,
+          "title": "Sampling",
+          "type": "object"
+        },
+        "detail": {
+          "additionalProperties": true,
+          "title": "Detail",
+          "type": "object"
+        },
+        "evidence_strength": {
+          "$ref": "#/$defs/EvidenceStrength"
+        },
+        "explanation": {
+          "default": "",
+          "title": "Explanation",
+          "type": "string"
+        },
+        "remediation_hint": {
+          "default": "",
+          "title": "Remediation Hint",
+          "type": "string"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unavailable Reason"
+        }
+      },
+      "required": [
+        "id",
+        "state",
+        "value",
+        "unit",
+        "thresholds",
+        "sampling",
+        "detail",
+        "evidence_strength"
+      ],
+      "title": "MetricResult",
+      "type": "object"
+    },
+    "MetricSpace": {
+      "description": "Distance / similarity space read from the target index.",
+      "enum": [
+        "COSINE",
+        "L2",
+        "DOT"
+      ],
+      "title": "MetricSpace",
+      "type": "string"
+    },
+    "MetricState": {
+      "description": "Per-metric health state (``02-metrics-spec.md`` §1.3).",
+      "enum": [
+        "OK",
+        "WARN",
+        "FAIL",
+        "UNAVAILABLE",
+        "DISABLED"
+      ],
+      "title": "MetricState",
+      "type": "string"
+    },
+    "RunContext": {
+      "additionalProperties": false,
+      "description": "Per-run metadata embedded in the report.",
+      "properties": {
+        "started_at": {
+          "title": "Started At",
+          "type": "string"
+        },
+        "duration_seconds": {
+          "title": "Duration Seconds",
+          "type": "number"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "deterministic": {
+          "title": "Deterministic",
+          "type": "boolean"
+        },
+        "stage_timings": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Stage Timings",
+          "type": "object"
+        },
+        "host": {
+          "additionalProperties": true,
+          "title": "Host",
+          "type": "object"
+        }
+      },
+      "required": [
+        "started_at",
+        "duration_seconds",
+        "seed",
+        "deterministic",
+        "stage_timings",
+        "host"
+      ],
+      "title": "RunContext",
+      "type": "object"
+    },
+    "TargetDescriptor": {
+      "description": "Identity of the index under audit (location must already be redacted).",
+      "properties": {
+        "engine": {
+          "title": "Engine",
+          "type": "string"
+        },
+        "engine_version": {
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "index_kind": {
+          "$ref": "#/$defs/IndexKind"
+        },
+        "index_name": {
+          "title": "Index Name",
+          "type": "string"
+        },
+        "location": {
+          "title": "Location",
+          "type": "string"
+        },
+        "dimension": {
+          "title": "Dimension",
+          "type": "integer"
+        },
+        "metric_space": {
+          "$ref": "#/$defs/MetricSpace"
+        }
+      },
+      "required": [
+        "engine",
+        "engine_version",
+        "index_kind",
+        "index_name",
+        "location",
+        "dimension",
+        "metric_space"
+      ],
+      "title": "TargetDescriptor",
+      "type": "object"
+    },
+    "ThresholdSpec": {
+      "description": "Warn/fail pair and gating direction for one metric.",
+      "properties": {
+        "warn": {
+          "title": "Warn",
+          "type": "number"
+        },
+        "fail": {
+          "title": "Fail",
+          "type": "number"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Direction"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Direction"
+        }
+      },
+      "required": [
+        "warn",
+        "fail",
+        "direction"
+      ],
+      "title": "ThresholdSpec",
+      "type": "object"
+    },
+    "Verdict": {
+      "description": "Overall audit outcome (``02-metrics-spec.md`` §6).",
+      "enum": [
+        "OK",
+        "WARN",
+        "FAIL",
+        "INCONCLUSIVE"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Versioned audit artifact consumed by CLI, server, and dashboards.\n\nPydantic v2 model matching ``01-architecture.md`` §6. Enforces\n``extra = \"forbid\"`` and validates that no credential secrets leak into\nreport fields.",
+  "properties": {
+    "schema_version": {
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tool_version": {
+      "title": "Tool Version",
+      "type": "string"
+    },
+    "verdict": {
+      "$ref": "#/$defs/Verdict"
+    },
+    "run": {
+      "$ref": "#/$defs/RunContext"
+    },
+    "target": {
+      "$ref": "#/$defs/TargetDescriptor"
+    },
+    "counts": {
+      "$ref": "#/$defs/IndexCounts"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/MetricResult"
+      },
+      "title": "Metrics",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    },
+    "config": {
+      "additionalProperties": true,
+      "title": "Config",
+      "type": "object"
+    },
+    "degenerate": {
+      "default": 0,
+      "title": "Degenerate",
+      "type": "integer"
+    },
+    "offending_vector_ids": {
+      "items": {
+        "type": "integer"
+      },
+      "title": "Offending Vector Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "tool_version",
+    "verdict",
+    "run",
+    "target",
+    "counts",
+    "metrics",
+    "warnings",
+    "config"
+  ],
+  "title": "Report",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}
