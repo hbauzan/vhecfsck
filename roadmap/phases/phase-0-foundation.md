@@ -277,6 +277,12 @@ invariant ([ADR-0001](../adr/0001-read-only-by-default.md)).
 - [ ] Total wall time under 8 minutes at this phase.
 - [ ] A failing lint rule fails the build.
 
+**Hosted runners retired (2026-08-30).** GitHub Actions on this private repo were
+disabled permanently to stop billed minutes. The YAML files remain as commented
+recipes plus an inert stub. The gate is `make verify` locally. A Linux Docker
+witness is [P9-10](../phases/phase-9-docs-release-and-launch.md) (post-launch TBD;
+skip while higher-priority work is open).
+
 ---
 
 ## P0-11 — Community, security and licence files

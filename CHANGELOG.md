@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- GitHub-hosted Actions (`ci.yml`, `nightly.yml`) disabled permanently so private-repo
+  runner minutes stay at zero. The quality gate is local `make verify`. Linux matrix
+  in Docker is post-launch TBD (`P9-10`).
 - Default `make verify` no longer re-enters pytest-cov from unit meta-tests
   (those stay `@slow` / `verify-full`). Coverage floors (80 overall / 90
   `core/`) are measured from a single instrumented run. `./setup.sh clean`

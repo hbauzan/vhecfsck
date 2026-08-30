@@ -1,41 +1,73 @@
+# =============================================================================
+# DISABLED PERMANENTLY — do not uncomment to "fix CI".
+# -----------------------------------------------------------------------------
+# GitHub-hosted runners are billed on this private repo. These workflows were
+# turned off on 2026-08-30 so Actions minutes stay at zero.
+#
+# `make verify-full` and engine-SDK drift stay local / on demand. There is no
+# scheduled runner. The Linux container path for the same recipes is P9-10
+# (post-launch TBD; skip while higher-priority tickets are open). Optional
+# hook: a setup.sh verb, only if Docker is present; exit 3 if it is not.
+#
+# The original workflow is preserved as comments (recipe for P9-10).
+# The stub below (`workflow_dispatch` + `if: false`) exists only because GitHub
+# flags a workflows/*.yml file with no `on:` as invalid. It never runs on
+# schedule. Do not restore the cron.
+# =============================================================================
+#
+# name: nightly
+#
+# on:
+#   schedule:
+#     - cron: "0 5 * * *"
+#   workflow_dispatch:
+#
+# permissions:
+#   contents: read
+#
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: true
+#
+# jobs:
+#   verify-full:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: astral-sh/setup-uv@v5
+#         with:
+#           enable-cache: true
+#       - run: uv python install 3.12
+#       - run: uv sync --group dev
+#       - run: make verify-full
+#
+#   engine-sdk-drift:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: astral-sh/setup-uv@v5
+#         with:
+#           enable-cache: true
+#       - run: uv python install 3.12
+#       - run: uv sync --group dev
+#       - name: Upgrade optional engine SDKs when declared
+#         # Extras are empty until adapter tickets land; keep the job for drift visibility.
+#         run: |
+#           uv pip list
+#           echo "Engine extras still empty (P5/P7); drift job is a placeholder until SDKs are declared."
+#       - run: make verify
+
 name: nightly
 
 on:
-  schedule:
-    - cron: "0 5 * * *"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
-  verify-full:
+  disabled:
+    if: false
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-      - run: uv python install 3.12
-      - run: uv sync --group dev
-      - run: make verify-full
-
-  engine-sdk-drift:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-      - run: uv python install 3.12
-      - run: uv sync --group dev
-      - name: Upgrade optional engine SDKs when declared
-        # Extras are empty until adapter tickets land; keep the job for drift visibility.
-        run: |
-          uv pip list
-          echo "Engine extras still empty (P5/P7); drift job is a placeholder until SDKs are declared."
-      - run: make verify
+      - run: echo "GitHub Actions disabled permanently; local gate is make verify (P9-10 TBD)."
