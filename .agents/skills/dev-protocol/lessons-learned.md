@@ -10,32 +10,28 @@ De ahí salen sus dos reglas, que están en el §5 del final y son las mismas qu
 
 **P0 Foundation completo** (P0-01…P0-15 `done`).
 **P1 completo** en `main` (P1-01…P1-08 `done`).
-**P2 parcial:** P2-01, P2-03, P2-04, P2-05, P2-07, P2-08, P2-09 `done`. Falta **P2-06** (hubness) para desbloquear **P2-10**.
-**Próximo critical path:** **P2-06** (hubness) → **P2-10** (pipeline) → P3-01 → …
-**HEAD de referencia al handoff:** `4f99f04` merge P2-09 (`make verify` verde; ~2 min suite default, ~2 min extra core cov).
+**P2 completo** en `main` (P2-01…P2-11 `done`), más el speed-up del gate default (`perf/default-suite-runtime`).
+**Próximo critical path:** **P3-01** (report schema pydantic) → P3-02 / P3-03. `vhecfsck audit` (P3-04) también depende de **P3-09** (`LanceDbAdapter`).
+**HEAD de referencia al handoff:** merge de `perf/default-suite-runtime` en `main` (`make verify` verde ≈ 3 min en el Mac de Eletor: suite default ~68 s, coverage un run ~127 s).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + test + coverage + layers + readonly).
 **CI:** `.github/workflows/ci.yml` + `nightly.yml`. Sync en CI = `uv sync --group dev` (**nunca** `--all-extras`).
 
-Stack en `main`:
-- `vhecfsck/models/metrics.py` — `MetricResult`, `MetricState`, `Verdict`, `ThresholdSpec`, `Direction`, JSON round-trip (P2-01)
-- `vhecfsck/core/ground_truth.py` — `exact_knn` / `KnnResult` (P2-04)
-- `vhecfsck/core/canary.py` — tie-tolerant recall, bootstrap CI95 (P2-05)
-- `vhecfsck/core/fragmentation.py` — DFI (P2-07)
-- `vhecfsck/core/partitions.py` — IVF partition CV, ddof=0 (P2-08)
-- `vhecfsck/core/verdict.py` — `evaluate` / `aggregate` / `verdict_to_exit_code` (P2-09)
-- `vhecfsck/adapters/` + `vhecfsck/synthetic/` — sin cambios de contrato en esta tanda
-- `tests/oracle/` — naive + canary; `tests/property/` — canary + partitions props
-
-Paralelos desbloqueados (otra sesión si compartís foco): **P2-02** (sampling), P2-11 (post P2-10).
-**No** P2-10 sin P2-06. **No** P3/P4/P5 hasta cerrar P2-10 (salvo paralelos explícitos).
+Stack en `main` (además de P0/P1):
+- `vhecfsck/core/{ground_truth,canary,hubness,fragmentation,partitions,verdict,sampling}.py`
+- `vhecfsck/pipeline.py` — `run_audit`
+- `vhecfsck/models/report.py` — dataclasses precursoras (P3-01 las vuelve pydantic)
+- `vhecfsck/synthetic/scenarios.py` — `size` ∈ `{tiny, small, large}`; `tiny` ≈ 80 vectores
+- `tests/oracle/` + `tests/property/` (incl. determinism P2-11)
+- `setup.sh` verbo `clean` / menú `[5]` — solo pytest de **este** checkout
 
 Residual dueño (no lo “arregles” vos solo):
 - PyPI `vhecfsck` sigue libre (`404`); falta publicar placeholder con Trusted Publishing / token.
 - Visibilidad del repo: sigue private hasta OK explícito.
 - ADR-0012: la expansión de la `H` en copy público sigue abierta (no inventar gloss).
 - Wall/RSS budgets de `release-plan.md` §4: vacíos hasta **P8-04** — no inventar números.
+- Plan de alcance MVP LanceDB en P3: ver commit `4d7582e` / roadmap — no ensanches P3-09 sin leerlo.
 
 Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, no stack web/daemon.
 
@@ -317,9 +313,41 @@ Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, 
 
 **Problem:** After P2-05…P2-09, five new core modules landed; meta-tests only ran ground_truth until targets were extended per ticket.
 
-**Solution:** Each core ticket added its test file to `_COVERAGE_TARGETS` in `tests/unit/test_harness_config.py` **and** to the `test_core_coverage_gate_passes` subprocess list.
+**Solution:** Each core ticket added its test file to `_COVERAGE_TARGETS` in `tests/unit/test_harness_config.py` **and** to `_CORE_COVERAGE_TARGETS` (used by the `@slow` `test_core_coverage_gate_passes`). The fast test `test_coverage_targets_include_core_importing_modules` fails if a new `from vhecfsck.core` test file is omitted. Live floors are `make coverage`, not the nested subprocess.
 
-**Invariant:** Same as §29 — both lists stay in sync when `vhecfsck/core/` grows.
+**Invariant:** Same as §29 — both lists stay in sync when `vhecfsck/core/` grows. Do not move the nested pytest-cov tests back into the default marker set.
+
+## 36. Never nest pytest-cov inside the default suite
+
+**Problem:** `test_overall_coverage_gate_passes` / `test_core_coverage_gate_passes` spawned pytest+`--cov` over almost the whole suite. Combined with `make coverage` running the suite twice, `make verify` hit 10–20+ min, pegged CPU/RAM, and left orphan pytest children after Ctrl+C.
+
+**Solution:** Those two tests are `@pytest.mark.slow` (`verify-full` / nightly). Default `make test` is `--no-cov`. `make coverage` is **one** instrumented pytest (`fail_under=80`) plus `coverage report --include='vhecfsck/core/*' --fail-under=90` on the same `.coverage` data. Fast contracts keep the floors and the target lists honest without re-entering pytest.
+
+**Invariant:** Do not re-introduce nested pytest-cov in the default gate. Do not lower 80/90. Do not drop the static completeness scan when adding `core/` tests.
+
+## 37. `size="tiny"` is a real cardinality, not a synonym of `small`
+
+**Problem:** P2-11 called `open_scenario(..., size="tiny")` while `ScenarioSize` was only `small|large`. `_n_for("tiny")` fell through to 8k and `_dims` used the large-ish branch (32d / 64 lists). Tests thought they were cheap; they were heavier than `small`.
+
+**Solution:** `ScenarioSize` includes `tiny` (~80 vectors, ≤4 IVF lists, 8/16 dims). Named scenario `tiny` stays the 50-vector exact guard-floor fixture. Verdict tests of P1-08 stay on default `small`.
+
+**Invariant:** A size literal that tests pass must change `n` / `d` / `n_lists`. Do not shrink P1-08 verdict fixtures to `tiny`.
+
+## 38. `setup.sh clean` is checkout-scoped; tests must not self-kill
+
+**Problem:** First `clean` used `pgrep -f pytest` / `pkill` and killed every pytest on the host — including a live `make verify` and, without a guard, the e2e suite that invoked `clean`.
+
+**Solution:** `SETUP_SH_IN_TEST=1` skips signalling. Live `clean` matches `ps` lines that contain both `pytest` and this repo path, then SIGTERM then SIGKILL. No global `pkill`. Log copy says “process cleanup”, not the token `pkill` (source tests forbid that string).
+
+**Invariant:** Never `pgrep -f pytest` / `pkill -f pytest` without a checkout path filter. Never signal when `SETUP_SH_IN_TEST=1`.
+
+## 39. Determinism allowlist must include `metrics.detail.read_at`
+
+**Problem:** DFI (and any metric that embeds `counts.read_at`) writes an ISO timestamp into `detail`. Stripping only `counts.read_at` leaves P2-11 red as soon as those tests actually run on a cheap size.
+
+**Solution:** `FROZEN_VOLATILE_ALLOWLIST` includes `metrics.detail.read_at`; `_strip_volatile_fields` blanks that key per metric.
+
+**Invariant:** New timestamps in report JSON join the frozen allowlist in the same ticket. Do not delete the allowlist test to silence a diff.
 
 ---
 

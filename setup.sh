@@ -80,7 +80,7 @@ print_options() {
     printf "  ${C_CYAN}[4]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
         "uv run vhecfsck serve — inconclusive until P4-06; foreground" "${LABEL_SERVE}"
     printf "  ${C_CYAN}[5]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
-        "kill orphaned pytest processes" "${LABEL_CLEAN}"
+        "kill orphaned pytest processes for this checkout" "${LABEL_CLEAN}"
     printf "  ${C_WHITE}[0]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
         "Exit the panel" "${LABEL_EXIT}"
 }
@@ -204,20 +204,32 @@ cmd_serve() {
 }
 
 cmd_clean() {
-    log_info "${LABEL_CLEAN}: searching for orphaned pytest processes"
+    log_info "${LABEL_CLEAN}: searching for orphaned pytest processes in this checkout"
     if [ "${SETUP_SH_IN_TEST:-}" = "1" ]; then
-        log_ok "Running inside test harness — skipping pkill — ${MOSTLY_HARMLESS}"
+        log_ok "Running inside test harness — skipping process cleanup — ${MOSTLY_HARMLESS}"
         return "${EXIT_OK}"
     fi
-    local pids
-    pids="$(pgrep -f pytest 2>/dev/null)" || true
+    local root pids
+    root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    # Scope to this checkout: never match a stray pytest on the host.
+    pids="$(ps -ax -o pid= -o command= | awk -v root="${root}" -v self="$$" '
+        {
+            pid = $1
+            if (pid == self) next
+            if (index($0, "pytest") == 0) next
+            if (index($0, root) == 0) next
+            print pid
+        }
+    ')"
     if [ -z "${pids}" ]; then
         log_ok "No orphaned pytest processes found — ${MOSTLY_HARMLESS}"
         return "${EXIT_OK}"
     fi
-    log_warn "Terminating orphaned pytest processes (PIDs: ${pids})"
-    echo "${pids}" | xargs kill -9 2>/dev/null || true
-    log_ok "All orphaned pytest processes terminated — ${MOSTLY_HARMLESS}"
+    log_warn "Terminating checkout-scoped pytest processes (PIDs: ${pids})"
+    echo "${pids}" | xargs kill -TERM 2>/dev/null || true
+    sleep 1
+    echo "${pids}" | xargs kill -KILL 2>/dev/null || true
+    log_ok "Checkout-scoped pytest processes terminated — ${MOSTLY_HARMLESS}"
     return "${EXIT_OK}"
 }
 

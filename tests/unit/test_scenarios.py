@@ -95,9 +95,16 @@ def test_large_size_variant_exists() -> None:
     assert int(tiny.state.ids.shape[0]) == 50
 
 
+def test_tiny_size_is_cheap_cardinality() -> None:
+    spec = scenario_healthy(size="tiny")
+    assert spec.size == "tiny"
+    assert int(spec.state.ids.shape[0]) == 80
+    assert spec.n_lists == 4
+
+
 def test_registry_synthetic_uri_opens_named_scenario() -> None:
-    adapter = open_target("synthetic://healthy")
-    assert adapter.descriptor.index_name == "healthy"
+    adapter = open_target("synthetic://tiny")
+    assert adapter.descriptor.index_name == "tiny"
     assert isinstance(adapter, IndexAdapter)
     adapter.close()
 

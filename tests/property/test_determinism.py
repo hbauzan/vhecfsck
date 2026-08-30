@@ -28,6 +28,7 @@ FROZEN_VOLATILE_ALLOWLIST: tuple[str, ...] = (
     "run.stage_timings",
     "run.host",
     "counts.read_at",
+    "metrics.detail.read_at",
 )
 
 
@@ -44,6 +45,15 @@ def _strip_volatile_fields(d: dict[str, Any]) -> dict[str, Any]:
     if "counts" in out and isinstance(out["counts"], dict):
         out["counts"]["read_at"] = "<VOLATILE>"
 
+    if "metrics" in out and isinstance(out["metrics"], list):
+        for m in out["metrics"]:
+            if (
+                isinstance(m, dict)
+                and isinstance(m.get("detail"), dict)
+                and "read_at" in m["detail"]
+            ):
+                m["detail"]["read_at"] = "<VOLATILE>"
+
     return out
 
 
@@ -55,6 +65,7 @@ def test_volatile_allowlist_is_frozen() -> None:
         "run.stage_timings",
         "run.host",
         "counts.read_at",
+        "metrics.detail.read_at",
     )
     assert expected == FROZEN_VOLATILE_ALLOWLIST
 
@@ -80,7 +91,7 @@ def test_scenario_audit_is_deterministic_in_process(scenario_name: str) -> None:
 
 def test_scenario_audit_is_deterministic_cross_process_and_hash_seed() -> None:
     """Run audit in sub-process with varied hash seed; verify byte-identical output."""
-    scenario_name = "healthy"
+    scenario_name = "tiny"
     code = f"""
 import json
 from vhecfsck.adapters.scenarios import open_scenario

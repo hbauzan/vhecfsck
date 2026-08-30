@@ -25,6 +25,10 @@ green before you open a PR. Pre-commit runs fast hygiene + the read-only guard o
 commit; mypy and the full test suite stay in `make verify` / CI (slow hooks get
 bypassed).
 
+If a cancelled verify leaves pytest children running, `./setup.sh clean` signals
+only processes whose command line includes this checkout — it does not kill
+pytest in other repos.
+
 ## Licence headers
 
 This project is Apache-2.0. Copyright attribution in `LICENSE` / `NOTICE` is
