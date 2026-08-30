@@ -47,14 +47,14 @@ typecheck:  ## static type check
 	uv run mypy $(PKG)
 
 test:  ## the fast suite
-	uv run pytest -m "not ($(SLOW_MARKS))"
+	uv run pytest -m "not ($(SLOW_MARKS))" --no-cov
 
 test-fast:  ## the fast suite without coverage instrumentation
 	uv run pytest -m "not ($(SLOW_MARKS))" --no-cov -q
 
-coverage:  ## two floors: whole tree (≥80), then core/ (≥90)
-	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(PKG) --cov-fail-under=$(COV_ALL) -q
-	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(CORE) --cov-fail-under=$(COV_CORE) -q
+coverage:  ## two floors from one run: whole tree (≥80), then core/ (≥90)
+	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(PKG) --cov-report=term-missing --cov-report=xml --cov-fail-under=$(COV_ALL) -q
+	uv run coverage report --include='$(CORE)/*' --fail-under=$(COV_CORE)
 
 layers:  ## import-layering contracts (P0-08)
 	uv run lint-imports
