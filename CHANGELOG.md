@@ -22,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Primary CLI command `vhecfsck audit --target <uri> [options]` in `vhecfsck/cli.py`,
+  supporting options `--format text|json|prometheus`, `--output PATH`, `--queries`, `--k`,
+  `--hubness-sample`, `--k-hub`, `--hubness-source`, `--seed`, `--nprobe`, `--ef-search`,
+  `--max-seconds`, `--max-memory-mb`, `--strict-unavailable`, `--only`, `--skip`, `--config`,
+  `--no-progress`, and exit code taxonomy mapping (0=OK, 1=WARN, 2=FAIL, 3=INCONCLUSIVE, 4=USAGE).
+  Includes Prometheus exporter renderer in `vhecfsck/report/prometheus.py` (`render_prometheus`)
+  and end-to-end tests in `tests/e2e/test_cli_audit.py`. Ticket: P3-04.
 - Rich terminal renderer in `vhecfsck/report/text_report.py` (`render_terminal`),
   featuring target identity header, overall verdict banner, index cardinalities,
   metrics table, metric explanations/hints, offending vector details, and warnings.
