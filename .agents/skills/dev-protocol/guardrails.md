@@ -27,8 +27,9 @@ Two more properties that make it work:
 
 - **Idempotent and argument-free.** An agent must never assemble a verification command from
   memory — ambiguity there is exactly how unverified work gets reported as done.
-- **Fast enough to run every time.** Target under 60 s. Anything slower goes in
-  `make verify-full` (integration, perf, mutation) and runs in CI or on demand.
+- **Fast enough to run every time.** Measure the default gate on the project's reference
+  machine and record that number — do not invent a budget. Anything too slow for every commit
+  goes in `make verify-full` (integration, perf, mutation) and runs in CI or on demand.
 - Targets that do not apply yet are **stubs that exit `0`**, so the gate exists from the first
   commit instead of arriving once the codebase is already messy.
 
@@ -62,8 +63,9 @@ Violating one of these means the work is wrong **regardless of whether the tests
    guessed constant becomes load-bearing within two tasks and nobody remembers it was a guess.
 <!-- agents-md:end guardrails -->
 
-These nine are the canonical list. They are mirrored **verbatim** into the repo's root
-`AGENTS.md` by the generator in §6 — edit them **here**, never there.
+These nine are the canonical list for the **generated** mode in §6. Edit them **here**, never
+in a generated `AGENTS.md`. A product overlay or an opt-out `AGENTS.md` may add rules; it
+must not silently drop these nine.
 
 ---
 
@@ -74,6 +76,9 @@ A task is done when **all** of these hold. There is no partial credit.
 - [ ] Every planned test exists, and each one **failed before** the implementation and passes
       after. A test that passed before the code existed is testing nothing, and this is the
       most common way an agent produces work that looks complete and verifies nothing.
+      **Escape:** if debugging Phase 5 documented that no correct seam exists, this item does
+      not apply; the finding (architecture blocking the lock-down) **does**, and must be in
+      the report.
 - [ ] Every acceptance criterion checked individually. Passing tests do not imply the criteria
       are met — criteria routinely include properties the tests do not cover, such as timing
       budgets, memory ceilings or token cost.
@@ -84,7 +89,8 @@ A task is done when **all** of these hold. There is no partial credit.
       unavoidable it carries a reason comment and is called out in the report.
 - [ ] Documentation synced **conditionally** per [documentation.md](./documentation.md) — the
       assets the change actually affects, not all of them.
-- [ ] Exactly one commit, conventional message, per [git-workflow.md](./git-workflow.md) §1.
+- [ ] On delivery, squash to exactly one conventional commit, per
+      [git-workflow.md](./git-workflow.md) §3. Local commits while working are free.
 - [ ] Report written: what was built, what was verified, any deviation from the plan and why,
       and anything discovered that should become separate work.
 
@@ -130,7 +136,7 @@ for every invariant you cannot afford to have silently re-broken.
 | :--- | :--- | :--- |
 | Provider seam | Provider SDKs are imported and called **only** inside the adapter layer — the mechanical form of the single-interface rule in [SKILL.md](./SKILL.md) §3.2, which is otherwise only prose. | [`check_provider_seam.py`](./templates/check_provider_seam.py) |
 | Layering | Module boundaries from [code-design.md](./code-design.md) §1, declaratively. | [`.importlinter`](./templates/.importlinter) |
-| `AGENTS.md` drift | The root `AGENTS.md` still matches its source (§6). | [`sync_agents_md.py`](./templates/sync_agents_md.py) |
+| `AGENTS.md` drift | In **generated** mode: the root `AGENTS.md` still matches its source (§6). Skip this guard in **opt-out** mode. | [`sync_agents_md.py`](./templates/sync_agents_md.py) |
 | Secret shapes | No keys or private keys reach git. | [`.pre-commit-config.yaml`](./templates/.pre-commit-config.yaml) |
 
 ### 5.3. Break every guard once
@@ -153,12 +159,18 @@ so they carry different content.
   assertion gets deleted and the report says green.
 - **Everything else stays a pointer** to [SKILL.md](./SKILL.md). Procedure, design doctrine,
   the debugging loop and doc-sync are long, situational and cheap to defer.
-- **`AGENTS.md` is generated, never hand-written.** It is a projection of §1, §2 and
-  [git-workflow.md](./git-workflow.md) §1, delimited in this file by `agents-md:` markers.
-  Regenerate with [`templates/sync_agents_md.py`](./templates/sync_agents_md.py); the
-  `--check` mode runs in pre-commit and in `make verify`, and fails when the copy drifts.
-  Generated duplication does not drift — hand-maintained duplication does. Single source of
-  truth is preserved: the source is *this file*.
+- **Two adoption modes — pick one and write it in the script `CONFIG`:**
+  1. **Generated (+ overlay).** `AGENTS.md` is a projection of §1, §2 and
+     [git-workflow.md](./git-workflow.md) §1, delimited here by `agents-md:` markers, plus
+     an optional `AGENTS.overlay.md` at the repo root. The overlay is where product rules
+     live (read-only targets, ADR-gated deps, metric-logic-in-core). The generator
+     concatenates skill blocks + overlay; it never edits the overlay. `--check` runs in
+     pre-commit and in `make verify`, and fails when the projection drifts. Edit
+     `guardrails.md` or the overlay — never the generated file.
+  2. **Opt-out.** The repo keeps a hand-written `AGENTS.md` (playbook distill, product
+     rules). Do **not** wire `--check`. Do **not** run the generator. A future agent that
+     "helpfully" regenerates will drop product rules. This mode is first-class, not a
+     workaround.
 - **Keep it under 80 lines.** It is paid for on every session, so length is a real cost.
 
 ---

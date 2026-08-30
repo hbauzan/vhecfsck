@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Dev-protocol pack: product handoff memory lives in `roadmap/lessons-learned.md`
+  (pack keeps only the template). `AGENTS.md` opt-out is first-class. Delivery
+  is local commits free, squash to one conventional commit, merge to `main` on
+  explicit OK. Skill templates no longer `uv sync --all-extras` or double
+  pytest-cov. Protocol WARN exit is `8` / `0`+stderr; the CLI stays on
+  ADR-0004 (`1` = `WARN`). Follow-ups: `roadmap/dev-protocol-followups.md`.
+
 - GitHub-hosted Actions (`ci.yml`, `nightly.yml`) disabled permanently so private-repo
   runner minutes stay at zero. The quality gate is local `make verify`. Linux matrix
   in Docker is post-launch TBD (`P9-10`).

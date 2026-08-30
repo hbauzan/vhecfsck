@@ -2,7 +2,7 @@
 
 When a bug is reported or tests are failing, follow this 6-phase debugging loop. Do not skip phases unless explicitly justified.
 
-> **[lessons-learned.md](./lessons-learned.md) belongs to this loop — at Phase 3, not before it.** It is the project's handoff memory: what previous agents learned, including the invariants that have already been broken once. A large share of bugs are one of those breaking again, and the file turns such a bug from a fresh investigation into a top-ranked hypothesis that arrives with evidence and a known fix. Read it when you start generating hypotheses, not while building the repro — Phase 1 forbids theorising before a red-capable command exists, and reading a catalogue of causes is theorising. Writing to it is a handoff activity, not a task-closing one; see its §5.
+> **The product's lessons-learned belongs to this loop — at Phase 3, not before it.** Default path: `roadmap/lessons-learned.md` (outside this pack; protocol in [lessons-learned.template.md](./lessons-learned.template.md) §5). It is what previous agents learned, including the invariants that have already been broken once. A large share of bugs are one of those breaking again, and the file turns such a bug from a fresh investigation into a top-ranked hypothesis that arrives with evidence and a known fix. Read it when you start generating hypotheses, not while building the repro — Phase 1 forbids theorising before a red-capable command exists, and reading a catalogue of causes is theorising. Writing to it is a handoff activity, not a task-closing one.
 
 ---
 
@@ -38,11 +38,11 @@ Run the feedback loop and watch it go red.
 ---
 
 ## Phase 3: Hypothesise
-1. **Read [lessons-learned.md](./lessons-learned.md) first.** Check the minimised repro from Phase 2 against the recorded invariants. If one of them covers this area, it is a hypothesis that already comes with evidence and a known fix — rank it at the top and test it first. This is the cheapest hypothesis available and skipping it is how the same bug gets solved twice.
+1. **Read the product's lessons-learned first** (default `roadmap/lessons-learned.md`). Check the minimised repro from Phase 2 against the recorded invariants. If one of them covers this area, it is a hypothesis that already comes with evidence and a known fix — rank it at the top and test it first. This is the cheapest hypothesis available and skipping it is how the same bug gets solved twice.
 2. Generate **3–5 ranked hypotheses** before testing any of them. Single-hypothesis generation anchors on the first plausible idea.
 3. Ensure each hypothesis is **falsifiable**: state the prediction it makes.
    > **Format**: *"If <X> is the cause, then <changing Y> will make the bug disappear / <changing Z> will make it worse."*
-4. **Show the ranked list to the user** before testing. If the user is AFK, proceed with testing the top hypothesis.
+4. **Show the ranked list to the user before testing only if** they asked for interactive debug, **or** the top two hypotheses are equally plausible. Otherwise test the top hypothesis and report what you tried. If the user is AFK and you would have shown the list, proceed with the top hypothesis.
 
 ---
 
@@ -69,5 +69,5 @@ Before declaring a bug resolved, complete this checklist:
 - [ ] `make verify` green — the whole gate, not just the test you were staring at ([guardrails.md](./guardrails.md) §1).
 - [ ] Correct hypothesis is documented in the commit/PR message.
 - [ ] **Post-Mortem**: Ask: *What would have prevented this bug?* If it requires architectural improvements (better test seams, less coupling), log a task or report it to the user. If the answer is a **static guard**, that is the highest-value outcome available — see [guardrails.md](./guardrails.md) §5.
-- [ ] **If the cause was already written in [lessons-learned.md](./lessons-learned.md)**, say so explicitly in the report. A recorded lesson that failed to prevent a recurrence is not a documentation problem — prose does not enforce anything. That invariant has earned a static guard or a regression test ([guardrails.md](./guardrails.md) §5).
-- [ ] If the root cause is a **new** durable invariant, **propose it in the report** so it can go into the next handoff. Do not append it to [lessons-learned.md](./lessons-learned.md) yourself unless the user asks — see its §5.2.
+- [ ] **If the cause was already written in the product's lessons-learned**, say so explicitly in the report. A recorded lesson that failed to prevent a recurrence is not a documentation problem — prose does not enforce anything. That invariant has earned a static guard or a regression test ([guardrails.md](./guardrails.md) §5).
+- [ ] If the root cause is a **new** durable invariant, **propose it in the report** so it can go into the next handoff. Do not append it to the product's lessons-learned yourself unless the user asks — see [lessons-learned.template.md](./lessons-learned.template.md) §5.2.
