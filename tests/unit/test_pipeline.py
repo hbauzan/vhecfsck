@@ -73,7 +73,7 @@ def test_metric_exception_degrades_to_unavailable(
         raise RuntimeError("injected dfi failure")
 
     monkeypatch.setattr("vhecfsck.pipeline.compute_dfi", boom)
-    opened = open_scenario("healthy")
+    opened = open_scenario("tiny")
     try:
         report = run_audit(
             opened.adapter,
@@ -92,24 +92,13 @@ def test_metric_exception_degrades_to_unavailable(
 
 def test_max_seconds_sets_truncated_and_still_reports() -> None:
     """Deadline exceeded → truncated flag; verdict still produced."""
-    calls = {"n": 0}
-
-    def slow_knn(*args: object, **kwargs: object) -> object:
-        calls["n"] += 1
-        if calls["n"] == 1:
-            import time
-
-            time.sleep(0.05)
-        return exact_knn(*args, **kwargs)  # type: ignore[arg-type]
-
-    opened = open_scenario("healthy")
+    opened = open_scenario("tiny")
     try:
-        cfg = replace(load_config(), max_seconds=0.001)
+        cfg = replace(load_config(), max_seconds=0.0)
         report = run_audit(
             opened.adapter,
             cfg,
             search_params=opened.spec.default_search_params,  # type: ignore[arg-type]
-            exact_knn_fn=slow_knn,  # type: ignore[arg-type]
         )
         canary = metric_by_id(report, CANARY_METRIC_ID)
         assert canary is not None
@@ -130,7 +119,7 @@ def test_ground_truth_computed_once_via_injected_fn() -> None:
         calls += 1
         return exact_knn(*args, **kwargs)  # type: ignore[arg-type]
 
-    opened = open_scenario("healthy")
+    opened = open_scenario("tiny")
     try:
         cfg = replace(load_config(), hubness_source="engine")
         run_audit(
@@ -146,7 +135,7 @@ def test_ground_truth_computed_once_via_injected_fn() -> None:
 
 def test_corpus_materialised_once(monkeypatch: pytest.MonkeyPatch) -> None:
     """Live corpus is streamed from the adapter once per audit."""
-    opened = open_scenario("healthy")
+    opened = open_scenario("tiny")
     try:
         adapter = opened.adapter
         original = adapter.iter_live_vectors
@@ -168,7 +157,7 @@ def test_corpus_materialised_once(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_report_schema_fields() -> None:
-    opened = open_scenario("healthy")
+    opened = open_scenario("tiny")
     try:
         report = run_audit(
             opened.adapter,

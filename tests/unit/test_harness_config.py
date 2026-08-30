@@ -7,11 +7,14 @@ conftest determinism fixtures so a future edit cannot silently drop them.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 import textwrap
 import tomllib
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 PYPROJECT = ROOT / "pyproject.toml"
@@ -61,7 +64,35 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_partitions.py",
     "tests/unit/test_verdict.py",
     "tests/unit/test_pipeline.py",
+    "tests/unit/test_sampling.py",
+    "tests/property/test_canary_props.py",
+    "tests/property/test_partitions_props.py",
+    "tests/property/test_determinism.py",
 )
+
+# Nightly core-floor subprocess (P0-04 / lesson 35). Keep in sync with
+# ``test_core_coverage_gate_passes``.
+_CORE_COVERAGE_TARGETS = (
+    "tests/oracle/test_ground_truth.py",
+    "tests/oracle/test_canary.py",
+    "tests/oracle/test_hubness.py",
+    "tests/property/test_hubness_props.py",
+    "tests/property/test_canary_props.py",
+    "tests/property/test_partitions_props.py",
+    "tests/unit/test_fragmentation.py",
+    "tests/unit/test_partitions.py",
+    "tests/unit/test_verdict.py",
+    "tests/unit/test_pipeline.py",
+    "tests/unit/test_sampling.py",
+)
+
+_COVERAGE_SCAN_SKIP = frozenset(
+    {
+        "tests/unit/test_harness_config.py",
+    }
+)
+_COVERAGE_SCAN_SKIP_DIRS = frozenset({"e2e", "perf", "fixtures", "integration"})
+_CORE_IMPORT_RE = re.compile(r"^(?:from|import)\s+vhecfsck\.core\b", re.MULTILINE)
 
 
 def _load_pyproject() -> dict:
@@ -200,6 +231,29 @@ def test_unregistered_marker_fails_collection(tmp_path: Path) -> None:
     assert "not_a_registered_marker" in combined
 
 
+def test_coverage_targets_include_core_importing_modules() -> None:
+    """Fast contract: nightly lists stay complete when core/ grows (lesson 35)."""
+    missing_overall: list[str] = []
+    missing_core: list[str] = []
+    tests_root = ROOT / "tests"
+    for path in sorted(tests_root.rglob("test_*.py")):
+        rel = str(path.relative_to(ROOT))
+        if rel in _COVERAGE_SCAN_SKIP:
+            continue
+        if path.parent.name in _COVERAGE_SCAN_SKIP_DIRS:
+            continue
+        text = path.read_text(encoding="utf-8")
+        if _CORE_IMPORT_RE.search(text) is None:
+            continue
+        if rel not in _COVERAGE_TARGETS:
+            missing_overall.append(rel)
+        if rel not in _CORE_COVERAGE_TARGETS:
+            missing_core.append(rel)
+    assert not missing_overall, f"add to _COVERAGE_TARGETS: {missing_overall}"
+    assert not missing_core, f"add to _CORE_COVERAGE_TARGETS: {missing_core}"
+
+
+@pytest.mark.slow
 def test_overall_coverage_gate_passes() -> None:
     result = subprocess.run(
         [
@@ -223,6 +277,7 @@ def test_overall_coverage_gate_passes() -> None:
     assert result.returncode == 0, combined
 
 
+@pytest.mark.slow
 def test_core_coverage_gate_passes() -> None:
     """Separate core/-scoped invocation at fail_under=90 (contract / P0-04)."""
     result = subprocess.run(
@@ -234,14 +289,7 @@ def test_core_coverage_gate_passes() -> None:
             "--cov-fail-under=90",
             "--override-ini=addopts=",
             "-q",
-            "tests/oracle/test_ground_truth.py",
-            "tests/oracle/test_canary.py",
-            "tests/oracle/test_hubness.py",
-            "tests/property/test_hubness_props.py",
-            "tests/unit/test_fragmentation.py",
-            "tests/unit/test_partitions.py",
-            "tests/unit/test_verdict.py",
-            "tests/unit/test_pipeline.py",
+            *_CORE_COVERAGE_TARGETS,
         ],
         cwd=ROOT,
         check=False,
@@ -250,3 +298,11 @@ def test_core_coverage_gate_passes() -> None:
     )
     combined = result.stdout + result.stderr
     assert result.returncode == 0, combined
+
+
+def test_nested_coverage_gate_tests_are_marked_slow() -> None:
+    """Nested pytest-cov must not run inside the default gate (hangs the host)."""
+    overall_marks = {mark.name for mark in test_overall_coverage_gate_passes.pytestmark}
+    core_marks = {mark.name for mark in test_core_coverage_gate_passes.pytestmark}
+    assert "slow" in overall_marks
+    assert "slow" in core_marks

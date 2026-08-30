@@ -5,6 +5,7 @@ config + expected verdict). Adapters open the adapter instance — ``synthetic/`
 must not import ``adapters/`` (architecture §4).
 
 Small by default (~8k vectors) so the full set builds in CI under 20 s; pass
+``size="tiny"`` for cheap orchestration/determinism (~80 vectors) or
 ``size="large"`` for perf work (~100k). Drifted uses a smaller base before the
 10x append so IVF fit stays bounded.
 """
@@ -26,7 +27,7 @@ from vhecfsck.synthetic.pathologies import (
     skew_partitions,
 )
 
-ScenarioSize = Literal["small", "large"]
+ScenarioSize = Literal["tiny", "small", "large"]
 SearchModeName = Literal["exact", "ivf", "ivf_tombstoned"]
 
 SCENARIO_NAMES: tuple[str, ...] = (
@@ -71,9 +72,9 @@ class ScenarioSpec:
     capabilities: Capabilities | None = None
 
 
-def _n_for(size: ScenarioSize, *, tiny: bool = False) -> int:
-    if tiny:
-        return 50
+def _n_for(size: ScenarioSize) -> int:
+    if size == "tiny":
+        return 80
     if size == "large":
         return 100_000
     # ~8k keeps full-set IVF builds under the 20s CI budget (Python k-means).
@@ -81,9 +82,19 @@ def _n_for(size: ScenarioSize, *, tiny: bool = False) -> int:
 
 
 def _dims(size: ScenarioSize, *, high: bool = False) -> int:
+    if size == "tiny":
+        return 8 if not high else 16
     if high:
         return 64 if size == "small" else 128
     return 16 if size == "small" else 32
+
+
+def _n_clusters(size: ScenarioSize, small: int, large: int) -> int:
+    if size == "tiny":
+        return min(4, small)
+    if size == "large":
+        return large
+    return small
 
 
 def list_scenarios() -> tuple[str, ...]:
@@ -116,7 +127,7 @@ def scenario_healthy(*, size: ScenarioSize = "small") -> ScenarioSpec:
     """Balanced clusters, no churn, generous nprobe — healthy IVF baseline."""
     n = _n_for(size)
     d = _dims(size)
-    n_clusters = 32 if size == "small" else 64
+    n_clusters = _n_clusters(size, 32, 64)
     gen = generate_corpus(
         n,
         d,
@@ -153,9 +164,14 @@ def scenario_healthy(*, size: ScenarioSize = "small") -> ScenarioSpec:
 def scenario_drifted(*, size: ScenarioSize = "small") -> ScenarioSpec:
     """10x growth into existing IVF cells without refitting — lance#4164."""
     # Start smaller: growth_factor=10 multiplies live mass; keep CI under budget.
-    n = 2_000 if size == "small" else 20_000
+    if size == "tiny":
+        n = 80
+    elif size == "small":
+        n = 2_000
+    else:
+        n = 20_000
     d = _dims(size)
-    n_clusters = 16 if size == "small" else 32
+    n_clusters = _n_clusters(size, 16, 32)
     gen = generate_corpus(
         n,
         d,
@@ -195,7 +211,7 @@ def scenario_tombstoned(*, size: ScenarioSize = "small") -> ScenarioSpec:
     """35% skewed churn + tight ef_budget tombstone post-filter — pgvector#244."""
     n = _n_for(size)
     d = _dims(size)
-    n_clusters = 16 if size == "small" else 32
+    n_clusters = _n_clusters(size, 16, 32)
     gen = generate_corpus(
         n,
         d,
@@ -238,7 +254,7 @@ def scenario_hubby(*, size: ScenarioSize = "small") -> ScenarioSpec:
     """High-d hubs and isolated outliers — hubness pathology for hub metrics."""
     n = _n_for(size)
     d = _dims(size, high=True)
-    n_clusters = 24 if size == "small" else 48
+    n_clusters = _n_clusters(size, 24, 48)
     gen = generate_corpus(
         n,
         d,
@@ -249,11 +265,11 @@ def scenario_hubby(*, size: ScenarioSize = "small") -> ScenarioSpec:
         metric_space=MetricSpace.L2,
     )
     state = corpus_state_from_generated(gen)
-    n_hubs = 8 if size == "small" else 16
+    n_hubs = {"tiny": 2, "small": 8, "large": 16}[size]
     state = inject_hubs(state, n_hubs=n_hubs, strength=4.0, seed=405)
     state = inject_antihubs(
         state,
-        n_antihubs=20 if size == "small" else 40,
+        n_antihubs={"tiny": 4, "small": 20, "large": 40}[size],
         distance_factor=8.0,
         seed=406,
     )
@@ -287,7 +303,7 @@ def scenario_capability_limited(*, size: ScenarioSize = "small") -> ScenarioSpec
     gen = generate_corpus(
         n,
         d,
-        n_clusters=8,
+        n_clusters=_n_clusters(size, 8, 8),
         cluster_std=0.2,
         cluster_size_skew=0.0,
         seed=505,

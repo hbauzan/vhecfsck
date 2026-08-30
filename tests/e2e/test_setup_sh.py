@@ -1,8 +1,8 @@
 """Contributor console (`setup.sh`).
 
-Public surface: `./setup.sh help|sync|verify|demo|serve` and the interactive
-menu. Exit codes follow the skill taxonomy (0 / 2 / 3 / 4). The console is a
-contributor tool, not a daemon supervisor and not a product surface.
+Public surface: `./setup.sh help|sync|verify|demo|serve|clean` and the
+interactive menu. Exit codes follow the skill taxonomy (0 / 2 / 3 / 4). The
+console is a contributor tool, not a daemon supervisor and not a product surface.
 """
 
 from __future__ import annotations
@@ -94,7 +94,7 @@ def test_help_puts_actions_before_hitchhiker_quotes() -> None:
         ("make verify", "The mice would like a word"),
         ("uv run vhecfsck demo", "Forty-two"),
         ("uv run vhecfsck serve", "Heart of Gold"),
-        ("kill orphaned pytest processes", "Point-of-View Gun"),
+        ("kill orphaned pytest processes for this checkout", "Point-of-View Gun"),
         ("Exit the panel", EXIT_LINE),
     )
     for action, quote in pairs:
@@ -107,6 +107,15 @@ def test_clean_verb_exits_ok() -> None:
     result = run_setup("clean")
     assert result.returncode == EXIT_OK, result.stderr + result.stdout
     assert "Point-of-View Gun" in result.stdout
+    assert "skipping process cleanup" in result.stdout
+
+
+def test_clean_scopes_kill_to_this_checkout() -> None:
+    source = SETUP.read_text(encoding="utf-8")
+    assert "pkill" not in source
+    assert "pgrep -f pytest" not in source
+    assert "index($0, root)" in source
+    assert 'index($0, "pytest")' in source
 
 
 def test_help_does_not_advertise_saas_daemon_or_vite() -> None:
@@ -221,3 +230,4 @@ def test_script_source_forbids_daemon_and_saas_mechanics() -> None:
     assert "--all-extras" not in source
     assert "huggingface" not in source.lower()
     assert "uvicorn" not in source
+    assert "pkill" not in source
