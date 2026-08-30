@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Pydantic v2 Report schema in `vhecfsck/models/report.py` (`Report`, `RunContext`
+  BaseModels with `extra="forbid"`, `SCHEMA_VERSION = "1.0"` per ADR-0008, secret
+  leak prevention validator, and `Report.compare` structured diff for baseline mode).
+  Accepted `pydantic>=2.0` in base dependencies per ADR-0002. Ticket: P3-01.
+
 - Audit pipeline in `vhecfsck/pipeline.py` (`run_audit`: validate → metrics →
   verdict → `Report`) with per-stage timings, metric isolation, corpus
   materialisation once, and injectable ground-truth backend. Ticket: P2-10.

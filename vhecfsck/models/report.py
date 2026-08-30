@@ -1,37 +1,63 @@
-"""Audit report types (P2-10 precursor to P3-01 pydantic schema).
+"""Audit report types and Pydantic v2 schema (P3-01).
 
-Frozen dataclasses matching ``01-architecture.md`` §6 shape. No credentials,
-raw vectors, or document text in any field.
+Matching ``01-architecture.md`` §6 shape. No credentials, raw vectors,
+or document text in any field.
 """
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping
-from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Self
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from vhecfsck.models.corpus import IndexCounts
-from vhecfsck.models.metrics import MetricResult, Verdict, metric_result_to_dict
-from vhecfsck.models.target import TargetDescriptor
+from vhecfsck.models.metrics import (
+    MetricResult,
+    Verdict,
+    metric_result_from_dict,
+    metric_result_to_dict,
+)
+from vhecfsck.models.target import IndexKind, MetricSpace, TargetDescriptor
 
-SCHEMA_VERSION = "1.0"
+# schema_version change policy (ADR-0008):
+# - Additive changes (new optional fields) -> minor version bump (e.g. 1.0 -> 1.1)
+# - Removals or breaking semantic changes -> major version bump (e.g. 1.0 -> 2.0)
+#   plus a mandatory migration note in CHANGELOG.md.
+SCHEMA_VERSION: str = "1.0"
+
+_SECRET_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"sk-[a-zA-Z0-9_-]{20,}"),
+    re.compile(r"ghp_[a-zA-Z0-9]{36}"),
+    re.compile(r"bearer\s+[a-zA-Z0-9._-]{20,}", re.IGNORECASE),
+    re.compile(r"(?:api[-_]?key|password|secret|token)\s*=\s*[^\s'\"]+", re.IGNORECASE),
+    re.compile(r"[a-zA-Z0-9._%+-]+:[a-zA-Z0-9._%+-]+@"),
+)
 
 
-@dataclass(frozen=True)
-class RunContext:
+class RunContext(BaseModel):
     """Per-run metadata embedded in the report."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     started_at: str
     duration_seconds: float
     seed: int
     deterministic: bool
-    stage_timings: Mapping[str, float]
-    host: Mapping[str, Any]
+    stage_timings: dict[str, float]
+    host: dict[str, Any]
 
 
-@dataclass(frozen=True)
-class Report:
-    """Versioned audit artifact consumed by CLI, server, and dashboards."""
+class Report(BaseModel):
+    """Versioned audit artifact consumed by CLI, server, and dashboards.
+
+    Pydantic v2 model matching ``01-architecture.md`` §6. Enforces
+    ``extra = "forbid"`` and validates that no credential secrets leak into
+    report fields.
+    """
+
+    model_config = ConfigDict(extra="forbid", frozen=True, arbitrary_types_allowed=True)
 
     schema_version: str
     tool_version: str
@@ -41,13 +67,91 @@ class Report:
     counts: IndexCounts
     metrics: tuple[MetricResult, ...]
     warnings: tuple[str, ...]
-    config: Mapping[str, Any]
+    config: dict[str, Any]
     degenerate: int = 0
-    offending_vector_ids: tuple[int, ...] = field(default_factory=tuple)
+    offending_vector_ids: tuple[int, ...] = Field(default_factory=tuple)
+
+    @model_validator(mode="after")
+    def _validate_no_secrets(self) -> Self:
+        """Reject fields containing secret tokens or credentials."""
+        serialized = str(self.model_dump_dict())
+        for pat in _SECRET_PATTERNS:
+            if pat.search(serialized):
+                msg = (
+                    "Report field contains possible credential matching pattern: "
+                    f"{pat.pattern}"
+                )
+                raise ValueError(msg)
+        return self
+
+    def model_dump_dict(self) -> dict[str, Any]:
+        """Convert Report instance to a JSON-serializable dictionary."""
+        return report_to_dict(self)
+
+    def compare(self, other: Report) -> dict[str, Any]:
+        """Compare this report (baseline) against another report (current).
+
+        Returns a structured diff dictionary suitable for baseline mode (P8).
+        """
+        same_schema = self.schema_version == other.schema_version
+        verdict_changed = self.verdict != other.verdict
+        verdict_delta = {
+            "from": self.verdict.value,
+            "to": other.verdict.value,
+        }
+
+        counts_delta = {
+            "live": other.counts.live - self.counts.live,
+            "deleted": other.counts.deleted - self.counts.deleted,
+            "total": other.counts.total - self.counts.total,
+            "indexed": other.counts.indexed - self.counts.indexed,
+            "degenerate": other.counts.degenerate - self.counts.degenerate,
+        }
+
+        self_metrics = {m.id: m for m in self.metrics}
+        other_metrics = {m.id: m for m in other.metrics}
+        all_metric_ids = sorted(set(self_metrics.keys()) | set(other_metrics.keys()))
+
+        metrics_delta: dict[str, dict[str, Any]] = {}
+        for mid in all_metric_ids:
+            m_self = self_metrics.get(mid)
+            m_other = other_metrics.get(mid)
+
+            v_self = m_self.value if m_self else None
+            v_other = m_other.value if m_other else None
+            delta = (
+                (v_other - v_self)
+                if (v_self is not None and v_other is not None)
+                else None
+            )
+
+            metrics_delta[mid] = {
+                "state_from": m_self.state.value if m_self else None,
+                "state_to": m_other.state.value if m_other else None,
+                "value_from": v_self,
+                "value_to": v_other,
+                "delta": delta,
+            }
+
+        self_warns = set(self.warnings)
+        other_warns = set(other.warnings)
+        warnings_diff = {
+            "added": sorted(other_warns - self_warns),
+            "removed": sorted(self_warns - other_warns),
+        }
+
+        return {
+            "same_schema": same_schema,
+            "verdict_changed": verdict_changed,
+            "verdict_delta": verdict_delta,
+            "counts_delta": counts_delta,
+            "metrics_delta": metrics_delta,
+            "warnings_diff": warnings_diff,
+        }
 
 
 def report_to_dict(report: Report) -> dict[str, Any]:
-    """JSON-friendly serialisation (deterministic key order deferred to P3-02)."""
+    """JSON-friendly serialisation matching ``01-architecture.md`` §6."""
     desc = report.target
     counts = report.counts
     return {
@@ -86,6 +190,82 @@ def report_to_dict(report: Report) -> dict[str, Any]:
         "degenerate": report.degenerate,
         "offending_vector_ids": list(report.offending_vector_ids),
     }
+
+
+def report_from_dict(data: Mapping[str, Any]) -> Report:
+    """Deserialize a dictionary back into a Report instance."""
+    from datetime import datetime
+
+    allowed_top_keys = {
+        "schema_version",
+        "tool_version",
+        "verdict",
+        "run",
+        "target",
+        "counts",
+        "metrics",
+        "warnings",
+        "config",
+        "degenerate",
+        "offending_vector_ids",
+    }
+    unknown_keys = set(data.keys()) - allowed_top_keys
+    if unknown_keys:
+        msg = f"Unknown top-level field(s) in report dict: {sorted(unknown_keys)}"
+        raise ValueError(msg)
+
+    run_data = data["run"]
+    target_data = data["target"]
+    counts_data = data["counts"]
+
+    run = RunContext(
+        started_at=str(run_data["started_at"]),
+        duration_seconds=float(run_data["duration_seconds"]),
+        seed=int(run_data["seed"]),
+        deterministic=bool(run_data["deterministic"]),
+        stage_timings=dict(run_data["stage_timings"]),
+        host=dict(run_data["host"]),
+    )
+
+    target = TargetDescriptor(
+        engine=str(target_data["engine"]),
+        engine_version=str(target_data["engine_version"]),
+        index_kind=IndexKind(str(target_data["index_kind"])),
+        index_name=str(target_data["index_name"]),
+        location=str(target_data["location"]),
+        dimension=int(target_data["dimension"]),
+        metric_space=MetricSpace(str(target_data["metric_space"])),
+    )
+
+    counts = IndexCounts(
+        live=int(counts_data["live"]),
+        deleted=int(counts_data["deleted"]),
+        total=int(counts_data["total"]),
+        indexed=int(counts_data["indexed"]),
+        degenerate=int(counts_data["degenerate"]),
+        exact=bool(counts_data["exact"]),
+        read_at=datetime.fromisoformat(str(counts_data["read_at"])),
+    )
+
+    metrics = tuple(metric_result_from_dict(m) for m in data["metrics"])
+    warnings = tuple(str(w) for w in data.get("warnings", ()))
+    config = dict(data.get("config", {}))
+    degenerate = int(data.get("degenerate", 0))
+    offending = tuple(int(v) for v in data.get("offending_vector_ids", ()))
+
+    return Report(
+        schema_version=str(data["schema_version"]),
+        tool_version=str(data["tool_version"]),
+        verdict=Verdict(str(data["verdict"])),
+        run=run,
+        target=target,
+        counts=counts,
+        metrics=metrics,
+        warnings=warnings,
+        config=config,
+        degenerate=degenerate,
+        offending_vector_ids=offending,
+    )
 
 
 def metric_by_id(

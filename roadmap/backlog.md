@@ -68,7 +68,7 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| P3-01 | Report schema | M | P2-01 | todo |
+| P3-01 | Report schema | M | P2-01 | done |
 | P3-02 | JSON renderer and published schema | M | P3-01 | todo |
 | P3-03 | Terminal renderer | M | P3-01 | todo |
 | P3-04 | `vhecfsck audit` | M | P3-02, P3-03, P2-10, P3-09 | todo |
