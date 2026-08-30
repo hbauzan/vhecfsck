@@ -89,12 +89,15 @@ from "you passed a bad flag".
 
 | Code | Name | Means |
 | :--- | :--- | :--- |
-| `0` | `OK` | Succeeded. |
-| `1` | `WARN` | Completed, but something the caller should see. |
+| `0` | `OK` | Succeeded. Diagnostic notes, if any, go to **stderr** — do not spend exit `1` on "ok with an asterisk". POSIX and CI treat `1` as failure. |
 | `2` | `FAIL` | Ran correctly and the answer is negative — checks failed, output rejected. |
 | `3` | `INCONCLUSIVE` | Could not determine an answer. A required capability was missing, a provider was unreachable, a limit was hit. **Not** the same as failure. |
 | `4` | `USAGE` | The caller is wrong: bad flag, bad config key, unparseable input. |
+| `8` | `WARN` | Completed, but something the caller should see. `≥ 8` so shells and CI do not confuse it with a generic failure. Prefer `0` + stderr when the caller should keep going. |
 | `70` | `INTERNAL` | A bug in this program. (`EX_SOFTWARE`, `sysexits.h`.) |
+
+A product ADR may lock a different table (for example an already-shipped CLI that uses
+`1` = `WARN`). Do not "fix" that contract to match this template.
 
 `3` is the one people skip, and it is the one that matters most in LLM work. A timeout against
 a remote provider is not a failed check; reporting it as `2` makes a flaky endpoint look like a

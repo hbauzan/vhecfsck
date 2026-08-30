@@ -47,7 +47,8 @@ cover, such as timing budgets or memory ceilings.
 **Step 7 — Update the paperwork.** `CHANGELOG.md` under `[Unreleased]`. The ticket's status in
 [`backlog.md`](backlog.md). Any doc the ticket names.
 
-**Step 8 — Commit once.**
+**Step 8 — Deliver one commit.** Local commits while working are free. On delivery,
+squash to one conventional commit, then merge to `main` after explicit OK.
 ```text
 <type>(<scope>): <summary>
 

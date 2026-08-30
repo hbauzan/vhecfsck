@@ -51,16 +51,20 @@ The agent **owns the full git lifecycle and executes it automatically** — bran
 ### 3.1. The Approval Gate (mandatory)
 <!-- agents-md:begin delivery -->
 - Branch, stage and commit **locally** as freely as you like while working.
-- **Never `git push` and never merge to the base branch** until the user has verified the change and given an **explicit go-ahead** ("ok", "dale", "andá", "mergealo"). Silence, a thumbs-up on something unrelated, or the absence of objection is **not** approval.
+- **On delivery:** squash those local commits into **one** conventional commit, then merge to
+  `main` (or the repo's base). Only after an **explicit go-ahead** ("ok", "dale", "andá",
+  "mergealo"). Silence, a thumbs-up on something unrelated, or the absence of objection is
+  **not** approval.
+- **Never `git push` and never merge to the base branch** until that go-ahead exists.
 - Reporting "ready to test" and then **waiting** is mandatory, not optional politeness.
 <!-- agents-md:end delivery -->
 
 ### 3.2. Delivery Sequence (run only after approval)
 Default sequence once the user approves:
-1. `git checkout -b <type>/<short-name>` — if not already on a dedicated task branch.
+1. Confirm you are on the dedicated task branch (`<type>/<short-name>`). Create it now only if the work was never branched.
 2. Stage **only files relevant to the task**. Leave unrelated untracked/modified files alone; if scope is unclear, ask (see §3.3).
-3. `git commit` using the metadata format from §1, ending with the `Co-Authored-By` trailer.
-4. `git push -u origin <branch>`.
+3. **Squash** the branch onto one conventional commit (`git reset --soft` to the merge-base with `<base>`, then one `git commit` using the metadata format from §1, ending with the `Co-Authored-By` trailer). Soft reset is the squash tool — it is not `reset --hard`. If the branch was already pushed, squash + update needs a force-push: **stop and ask** (§3.3 / §3.4).
+4. `git push -u origin <branch>` (or the agreed force-push after the user said yes).
 5. `git checkout <base>` → `git merge --no-ff <branch>` → `git push origin <base>`. (`<base>` is usually `main`.)
 6. *(Optional, ask first)* delete the merged branch locally and on the remote.
 

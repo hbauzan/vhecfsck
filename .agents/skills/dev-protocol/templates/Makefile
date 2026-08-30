@@ -61,9 +61,9 @@ test:  ## the fast suite
 test-fast:  ## the fast suite without coverage instrumentation
 	uv run pytest -m "not ($(SLOW_MARKS))" --no-cov -q
 
-coverage:  ## two floors: whole tree, then the core
-	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(PKG)  --cov-fail-under=$(COV_ALL)  -q
-	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(CORE) --cov-fail-under=$(COV_CORE) -q
+coverage:  ## two floors from ONE instrumented run: whole tree, then the core
+	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(PKG) --cov-report=term-missing --cov-fail-under=$(COV_ALL) -q
+	uv run coverage report --include='$(CORE)/*' --fail-under=$(COV_CORE)
 
 # --- Static guards (guardrails.md §5) ----------------------------------------
 
