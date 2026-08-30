@@ -42,10 +42,10 @@ possibility that installing the tool for LanceDB drags in a PostgreSQL driver.
 
 **Costs:**
 - `pydantic` is in the `[server]` extra, so the report model — which needs it — must either move
-  Pydantic into the base install or keep the base report path on dataclasses. **Resolve this in
-  `P3-01`:** measure Pydantic v2's install size and import time, and either accept it in the
-  base install or keep the core report as dataclasses with Pydantic used only at the API
-  boundary. Do not leave the question implicit; it determines whether `demo` stays fast.
+  Pydantic into the base install or keep the base report path on dataclasses. **Resolved in
+  `P3-01`:** measured Pydantic v2's wheel footprint (~1.8 MiB) and warm import time (~15.8 ms),
+  and accepted `pydantic>=2.0` into the base install (`dependencies` in `pyproject.toml`) so
+  that `vhecfsck demo` stays fast with native Pydantic v2 report schema validation.
 - Lazy imports are slightly awkward to type-check and require care to keep out of module scope.
 - Optional extras multiply CI configurations.
 - Dropping Python 3.10 excludes some older platform images. Accepted: 3.10 reaches end of life
