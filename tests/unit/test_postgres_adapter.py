@@ -322,6 +322,16 @@ def test_ivfflat_echoes_lists_and_nprobe() -> None:
         adapter.close()
 
 
+def test_graph_stats_returns_none_and_capability_is_false() -> None:
+    """pgvector / pg_catalog exposes no HNSW graph introspection API (ticket P7-06)."""
+    adapter, _db = _open()
+    try:
+        assert adapter.capabilities.report_graph_stats is False
+        assert adapter.graph_stats() is None
+    finally:
+        adapter.close()
+
+
 def test_empty_fetch_and_search_guards() -> None:
     adapter, _db = _open()
     try:

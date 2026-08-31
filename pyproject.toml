@@ -122,9 +122,11 @@ extend-exclude = [
     ".agents",
     ".claude",
     ".cursor",
+    ".worktrees",
     "roadmap",
     "vhecfsck/web",
 ]
+
 
 [tool.ruff.lint]
 select = [

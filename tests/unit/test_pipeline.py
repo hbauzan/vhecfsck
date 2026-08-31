@@ -223,3 +223,58 @@ def test_proxy_deleted_counts_flag_dfi_estimated() -> None:
         assert dfi.evidence_strength is EvidenceStrength.MEDIUM
     finally:
         adapter.close()
+
+
+def test_entrypoint_tombstoned_escalates_dfi_to_fail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When graph_stats has entrypoint_tombstoned=True, DFI state becomes FAIL."""
+    from unittest.mock import MagicMock
+
+    from numpy import array, int64
+    from vhecfsck.adapters.scenarios import open_scenario
+    from vhecfsck.models import GraphStats
+
+    opened = open_scenario("tiny")
+    try:
+        adapter = opened.adapter
+        fake_stats = GraphStats(
+            in_degree_histogram=array([1, 2], dtype=int64),
+            entry_point_ids=array([0], dtype=int64),
+            entrypoint_tombstoned=True,
+        )
+        # Override capabilities and graph_stats
+        caps = replace(adapter.capabilities, report_graph_stats=True)
+        monkeypatch.setattr(type(adapter), "capabilities", property(lambda _s: caps))
+        monkeypatch.setattr(adapter, "graph_stats", MagicMock(return_value=fake_stats))
+
+        report = run_audit(
+            adapter,
+            load_config(),
+            search_params=opened.spec.default_search_params,  # type: ignore[arg-type]
+        )
+        dfi = metric_by_id(report, DFI_METRIC_ID)
+        assert dfi is not None
+        assert dfi.state is MetricState.FAIL
+        assert dfi.detail.get("entrypoint_tombstoned") is True
+    finally:
+        opened.adapter.close()
+
+
+def test_graph_stats_none_preserves_dfi_verdict() -> None:
+    """When graph_stats is None, entrypoint_tombstoned is None."""
+    from vhecfsck.adapters.scenarios import open_scenario
+
+    opened = open_scenario("tiny")
+    try:
+        report = run_audit(
+            opened.adapter,
+            load_config(),
+            search_params=opened.spec.default_search_params,  # type: ignore[arg-type]
+        )
+        dfi = metric_by_id(report, DFI_METRIC_ID)
+        assert dfi is not None
+        assert dfi.detail.get("entrypoint_tombstoned") is None
+        assert dfi.state is MetricState.OK
+    finally:
+        opened.adapter.close()
