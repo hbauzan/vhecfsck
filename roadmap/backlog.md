@@ -144,7 +144,7 @@ atomically.
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | P8-01 | Reference dataset calibration harness | L | P7 | done |
-| P8-02 | Calibrate and justify the default thresholds | M | P8-01 | todo |
+| P8-02 | Calibrate and justify the default thresholds | M | P8-01 | done |
 | P8-03 | Baseline and delta mode | L | P3-01, P8-02 | todo |
 | P8-04 | Performance budgets | M | P2-04, P5 | todo |
 | P8-05 | Resource ceilings and graceful degradation | M | P2-10 | todo |

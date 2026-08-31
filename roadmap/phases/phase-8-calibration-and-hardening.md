@@ -70,11 +70,11 @@ make verify-full     # includes slow, integration, perf, mutation testing
   work — the likeliest outcome for the hubness metrics, since hubness is a function of `d`.
 
 **Acceptance criteria**
-- [ ] No default threshold remains unjustified by a measurement.
-- [ ] `partition_size_cv` defaults are checked against real k-means output: healthy k-means on
+- [x] No default threshold remains unjustified by a measurement.
+- [x] `partition_size_cv` defaults are checked against real k-means output: healthy k-means on
       real data typically yields a CV well below the inherited `1.20` warn level, so verify
       that the threshold is neither trivially loose nor accidentally tight.
-- [ ] The false-positive rate on healthy reference corpora is documented, whatever it is.
+- [x] The false-positive rate on healthy reference corpora is documented, whatever it is.
 
 ---
 

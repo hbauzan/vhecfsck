@@ -1,1 +1,5 @@
 dataset_id,family,reason
+gist-960,public,gist.tar.gz not in cache; download disabled
+glove-100,public,glove.6B.zip not in cache; download disabled
+sentence-minilm,public,sentence-minilm.npy not in cache
+sift-128,public,sift.tar.gz not in cache; download disabled
