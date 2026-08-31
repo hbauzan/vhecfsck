@@ -24,7 +24,7 @@
 #       - uses: actions/checkout@v4
 #       - uses: astral-sh/setup-uv@v5
 #       - name: Sync dependencies
-#         run: uv sync --group dev --all-extras
+#         run: uv sync --group dev
 #       - name: Run pip-audit
 #         run: uv run pip-audit
 #

@@ -293,7 +293,7 @@ exactly the rare points the tool exists to show.
 **Acceptance criteria**
 - [x] Custom `hatch_build.py` hook compiles front-end assets and includes `vhecfsck/web/dist/index.html` in wheel and sdist.
 - [ ] `pip install dist/*.whl` into a Node-free venv in CI release workflow (residual for [P9-05](../phases/phase-9-docs-release-and-launch.md)).
-- [ ] Wheel size under 10 MB (measured local wheel ~500 KB gzipped / ~2 MB uncompressed).
+- [ ] Wheel size under 10 MB (residual for [P9-05](../phases/phase-9-docs-release-and-launch.md)).
 
 ---
 

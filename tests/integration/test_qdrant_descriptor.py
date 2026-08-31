@@ -6,8 +6,6 @@ import pytest
 from vhecfsck.adapters.qdrant_adapter import QdrantAdapter
 from vhecfsck.models import IndexKind, MetricSpace
 
-pytest.importorskip("qdrant_client")
-
 pytestmark = [pytest.mark.integration, pytest.mark.requires_qdrant]
 
 
@@ -22,6 +20,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.requires_qdrant]
 def test_qdrant_descriptor_metric_spaces(
     distance_name: str, expected: MetricSpace
 ) -> None:
+    pytest.importorskip("qdrant_client")
     from qdrant_client import QdrantClient
     from qdrant_client.http import models
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import subprocess
 import sys
 
+import pytest
 import typer.testing
 from vhecfsck.cli import app
 from vhecfsck.errors import ExitCode
@@ -46,14 +47,50 @@ def test_serve_help_option() -> None:
 
 
 def test_spa_static_serving() -> None:
-    """FastAPI create_app serves the SPA index.html at GET /."""
+    """FastAPI create_app serves the SPA index.html at GET / (200) or fallback (500)."""
     pytest = __import__("pytest")
     pytest.importorskip("fastapi")
+    from pathlib import Path
+
     from fastapi.testclient import TestClient
     from vhecfsck.server.app import create_app
+
+    dist_index = (
+        Path(__file__).resolve().parents[2] / "vhecfsck" / "web" / "dist" / "index.html"
+    )
 
     server_app = create_app(target_uri="synthetic://healthy")
     client = TestClient(server_app)
     response = client.get("/")
-    assert response.status_code == 200
-    assert "vhecfsck" in response.text
+    if dist_index.is_file():
+        assert response.status_code == 200
+        assert "vhecfsck" in response.text
+    else:
+        assert response.status_code == 500
+        assert "make web-build" in response.text
+
+
+def test_spa_static_serving_fallback_when_dist_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When dist/index.html is missing, GET / serves HTTP 500 with actionable hint."""
+    pytest.importorskip("fastapi")
+    from pathlib import Path
+
+    from fastapi.testclient import TestClient
+    from vhecfsck.server.app import create_app
+
+    orig_exists = Path.exists
+
+    def fake_exists(self: Path) -> bool:
+        if self.name == "index.html" and "dist" in self.parts:
+            return False
+        return orig_exists(self)
+
+    monkeypatch.setattr(Path, "exists", fake_exists)
+
+    server_app = create_app(target_uri="synthetic://healthy")
+    client = TestClient(server_app)
+    response = client.get("/")
+    assert response.status_code == 500
+    assert "make web-build" in response.text

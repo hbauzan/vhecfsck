@@ -422,3 +422,46 @@ def test_integration_qdrant_postgres_tests_have_integration_marker() -> None:
     assert not unmarked_files, (
         f"Integration test files missing 'integration' mark: {unmarked_files}"
     )
+
+
+def test_integration_module_importorskip_after_pytestmark() -> None:
+    """Module-level importorskip in integration tests must follow pytestmark."""
+    integration_dir = ROOT / "tests" / "integration"
+    violating_files: list[str] = []
+    for path in sorted(integration_dir.glob("test_*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        pytestmark_lineno: int | None = None
+        importorskip_lineno: int | None = None
+
+        for node in tree.body:
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if (
+                        isinstance(target, ast.Name)
+                        and target.id == "pytestmark"
+                        and pytestmark_lineno is None
+                    ):
+                        pytestmark_lineno = node.lineno
+            elif (
+                isinstance(node, ast.Expr)
+                and isinstance(node.value, ast.Call)
+                and isinstance(node.value.func, ast.Attribute)
+                and isinstance(node.value.func.value, ast.Name)
+                and node.value.func.value.id == "pytest"
+                and node.value.func.attr == "importorskip"
+                and importorskip_lineno is None
+            ):
+                importorskip_lineno = node.lineno
+
+        if importorskip_lineno is not None and (
+            pytestmark_lineno is None or pytestmark_lineno > importorskip_lineno
+        ):
+            violating_files.append(
+                f"{path.name} (importorskip L{importorskip_lineno}, "
+                f"pytestmark L{pytestmark_lineno})"
+            )
+
+    assert not violating_files, (
+        "Module-level importorskip occurs before pytestmark in integration tests: "
+        f"{violating_files}"
+    )
