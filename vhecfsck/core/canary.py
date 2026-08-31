@@ -253,6 +253,7 @@ def compute_canary_recall(
     fail: float = CANARY_FAIL,
     rtol: float = CANARY_RTOL,
     enforce_min_queries: bool = True,
+    eligible_ids: frozenset[int] | None = None,
 ) -> MetricResult:
     """Compute canary recall against blocked exact ground truth (§2).
 
@@ -305,6 +306,17 @@ def compute_canary_recall(
         corpus_vectors=corpus_vectors,
         corpus_batches=corpus_batches,
     )
+    if eligible_ids is not None:
+        keep_idx = [i for i in range(int(ids.shape[0])) if int(ids[i]) in eligible_ids]
+        if keep_idx:
+            idx = np.asarray(keep_idx, dtype=np.int64)
+            ids = ids[idx]
+            vecs = vecs[idx]
+            id_to_row = {int(ids[i]): i for i in range(int(ids.shape[0]))}
+        else:
+            ids = np.asarray([], dtype=np.int64)
+            vecs = np.zeros((0, 0), dtype=np.float32)
+            id_to_row = {}
     n_live = int(ids.shape[0])
     if n_live == 0:
         return _unavailable(

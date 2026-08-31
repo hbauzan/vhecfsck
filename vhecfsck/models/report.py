@@ -25,7 +25,7 @@ from vhecfsck.models.target import IndexKind, MetricSpace, TargetDescriptor
 # - Additive changes (new optional fields) -> minor version bump (e.g. 1.0 -> 1.1)
 # - Removals or breaking semantic changes -> major version bump (e.g. 1.0 -> 2.0)
 #   plus a mandatory migration note in CHANGELOG.md.
-SCHEMA_VERSION: str = "1.0"
+SCHEMA_VERSION: str = "1.1"
 
 _SECRET_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"sk-[a-zA-Z0-9_-]{20,}"),
@@ -70,6 +70,7 @@ class Report(BaseModel):
     config: dict[str, Any]
     degenerate: int = 0
     offending_vector_ids: tuple[int, ...] = Field(default_factory=tuple)
+    canary_groups: dict[str, MetricResult] | None = None
 
     @model_validator(mode="after")
     def _validate_no_secrets(self) -> Self:
@@ -196,6 +197,14 @@ def report_to_dict(report: Report) -> dict[str, Any]:
         "config": dict(report.config),
         "degenerate": report.degenerate,
         "offending_vector_ids": list(report.offending_vector_ids),
+        "canary_groups": (
+            None
+            if report.canary_groups is None
+            else {
+                key: metric_result_to_dict(value)
+                for key, value in sorted(report.canary_groups.items())
+            }
+        ),
     }
 
 
@@ -215,6 +224,7 @@ def report_from_dict(data: Mapping[str, Any]) -> Report:
         "config",
         "degenerate",
         "offending_vector_ids",
+        "canary_groups",
     }
     unknown_keys = set(data.keys()) - allowed_top_keys
     if unknown_keys:
@@ -259,6 +269,18 @@ def report_from_dict(data: Mapping[str, Any]) -> Report:
     config = dict(data.get("config", {}))
     degenerate = int(data.get("degenerate", 0))
     offending = tuple(int(v) for v in data.get("offending_vector_ids", ()))
+    groups_raw = data.get("canary_groups")
+    canary_groups: dict[str, MetricResult] | None
+    if groups_raw is None:
+        canary_groups = None
+    else:
+        if not isinstance(groups_raw, dict):
+            msg = "canary_groups must be an object or null"
+            raise ValueError(msg)
+        canary_groups = {
+            str(key): metric_result_from_dict(value)
+            for key, value in groups_raw.items()
+        }
 
     return Report(
         schema_version=str(data["schema_version"]),
@@ -272,6 +294,7 @@ def report_from_dict(data: Mapping[str, Any]) -> Report:
         config=config,
         degenerate=degenerate,
         offending_vector_ids=offending,
+        canary_groups=canary_groups,
     )
 
 

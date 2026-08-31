@@ -38,7 +38,6 @@ from vhecfsck.models import (
 
 _IDENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _DIM_RE = re.compile(r"\((\d+)\)")
-_SCAN_CURSOR = "vhecfsck_live"
 _SUPERUSER_WARNED = False
 
 # SELECT-only catalog / session reads. Names and bodies must not contain
@@ -202,6 +201,18 @@ def parse_reloptions(raw: object) -> dict[str, str]:
         key, _, value = chunk.partition("=")
         out[key.strip()] = value.strip()
     return out
+
+
+def vector_sql_literal(vec: object) -> str:
+    """Render a float vector as ``'[...]'::vector`` (no bound parameter).
+
+    Read-only sessions may fail ``register_vector``, so bound ``float[]``
+    does not match ``vector`` operators. The values come from our ndarray,
+    not from identifier interpolation.
+    """
+    arr = np.asarray(vec, dtype=np.float64).reshape(-1)
+    inner = ",".join(f"{float(x):.9g}" for x in arr.tolist())
+    return f"'[{inner}]'::vector"
 
 
 def _read_sql(
@@ -430,32 +441,40 @@ class PostgresAdapter:
         try:
             rows = _read_sql(cur, _SQL_PGSTATTUPLE, (self._qual,))
         except Exception:
+            rollback = getattr(self._conn, "rollback", None)
+            if callable(rollback):
+                with contextlib.suppress(Exception):
+                    rollback()
             return None
         if not rows:
             return None
         return int(rows[0][0] or 0), int(rows[0][1] or 0)
 
     def iter_live_vectors(self, *, batch_size: int) -> Iterator[VectorBatch]:
+        """Keyset scan — ``Cursor.stream`` cannot DECLARE a cursor (no result)."""
         self._ensure_open()
         if batch_size < 1:
             raise UsageError("batch_size must be >= 1")
-        declare = (
-            f"DECLARE {_SCAN_CURSOR} CURSOR FOR "
-            f"SELECT {self._idc}, {self._vec} FROM {self._qual}"
-        )
-        fetch = f"FETCH FORWARD {int(batch_size)} FROM {_SCAN_CURSOR}"
-        close_sql = f"CLOSE {_SCAN_CURSOR}"
+        last: int | None = None
         with self._with_cursor() as cur:
-            _read_sql(cur, declare)
-            try:
-                while True:
-                    rows = _read_sql(cur, fetch)
-                    if not rows:
-                        break
-                    yield self._rows_to_batch(rows)
-            finally:
-                with contextlib.suppress(Exception):
-                    _read_sql(cur, close_sql)
+            while True:
+                if last is None:
+                    query = (
+                        f"SELECT {self._idc}, {self._vec} FROM {self._qual} "
+                        f"ORDER BY {self._idc} LIMIT {int(batch_size)}"
+                    )
+                    rows = _read_sql(cur, query)
+                else:
+                    query = (
+                        f"SELECT {self._idc}, {self._vec} FROM {self._qual} "
+                        f"WHERE {self._idc} > %s ORDER BY {self._idc} "
+                        f"LIMIT {int(batch_size)}"
+                    )
+                    rows = _read_sql(cur, query, (last,))
+                if not rows:
+                    break
+                yield self._rows_to_batch(rows)
+                last = int(rows[-1][0])
 
     def _rows_to_batch(self, rows: list[Any]) -> VectorBatch:
         ids = np.ascontiguousarray(
@@ -469,29 +488,40 @@ class PostgresAdapter:
         return VectorBatch(ids=ids, vectors=vecs)
 
     def _as_vector(self, raw: object) -> np.ndarray:
-        arr = np.asarray(raw, dtype=np.float32)
+        to_numpy = getattr(raw, "to_numpy", None)
+        if callable(to_numpy):
+            arr = np.asarray(to_numpy(), dtype=np.float32)
+        else:
+            to_list = getattr(raw, "to_list", None)
+            if callable(to_list):
+                arr = np.asarray(to_list(), dtype=np.float32)
+            else:
+                arr = np.asarray(raw, dtype=np.float32)
         return np.ascontiguousarray(arr.reshape(-1), dtype=np.float32)
 
     def sample_ids(self, n: int, *, seed: int) -> IdArray:
         self._ensure_open()
         collected: list[int] = []
-        declare = (
-            f"DECLARE {_SCAN_CURSOR} CURSOR FOR SELECT {self._idc} FROM {self._qual}"
-        )
-        fetch = f"FETCH FORWARD 512 FROM {_SCAN_CURSOR}"
-        close_sql = f"CLOSE {_SCAN_CURSOR}"
+        last: int | None = None
         with self._with_cursor() as cur:
-            _read_sql(cur, declare)
-            try:
-                while True:
-                    rows = _read_sql(cur, fetch)
-                    if not rows:
-                        break
-                    for row in rows:
-                        collected.append(int(row[0]))
-            finally:
-                with contextlib.suppress(Exception):
-                    _read_sql(cur, close_sql)
+            while True:
+                if last is None:
+                    query = (
+                        f"SELECT {self._idc} FROM {self._qual} "
+                        f"ORDER BY {self._idc} LIMIT 512"
+                    )
+                    rows = _read_sql(cur, query)
+                else:
+                    query = (
+                        f"SELECT {self._idc} FROM {self._qual} "
+                        f"WHERE {self._idc} > %s ORDER BY {self._idc} LIMIT 512"
+                    )
+                    rows = _read_sql(cur, query, (last,))
+                if not rows:
+                    break
+                for row in rows:
+                    collected.append(int(row[0]))
+                last = int(rows[-1][0])
         if not collected:
             return np.empty(0, dtype=np.int64)
         arr = np.ascontiguousarray(np.array(collected, dtype=np.int64))
@@ -544,16 +574,16 @@ class PostgresAdapter:
         nprobe = int(params.get("nprobe", 1))
         ef_search = int(params.get("ef_search", max(k, 1)))
         op = _OPS[self._metric_val]
-        knn_sql = (
-            f"SELECT {self._idc} FROM {self._qual} "
-            f"ORDER BY {self._vec} {op} %s LIMIT %s"
-        )
-        explain_sql = f"EXPLAIN (FORMAT JSON) {knn_sql}"
         with self._with_cursor() as cur:
             self._apply_search_knobs(cur, nprobe=nprobe, ef_search=ef_search)
-            probe = queries[0].tolist()
+            probe_sql = vector_sql_literal(queries[0])
+            knn_sql = (
+                f"SELECT {self._idc} FROM {self._qual} "
+                f"ORDER BY {self._vec} {op} {probe_sql} LIMIT {int(k)}"
+            )
+            explain_sql = f"EXPLAIN (FORMAT JSON) {knn_sql}"
             try:
-                explained = _read_sql(cur, explain_sql, (probe, k))
+                explained = _read_sql(cur, explain_sql)
             except Exception as exc:
                 raise CapabilityError(
                     f"index_not_used: EXPLAIN failed: {exc}",
@@ -568,7 +598,12 @@ class PostgresAdapter:
             qn = int(queries.shape[0])
             out_ids = np.full((qn, k), -1, dtype=np.int64)
             for qi in range(qn):
-                rows = _read_sql(cur, knn_sql, (queries[qi].tolist(), k))
+                lit = vector_sql_literal(queries[qi])
+                qsql = (
+                    f"SELECT {self._idc} FROM {self._qual} "
+                    f"ORDER BY {self._vec} {op} {lit} LIMIT {int(k)}"
+                )
+                rows = _read_sql(cur, qsql)
                 for hi, row in enumerate(rows[:k]):
                     out_ids[qi, hi] = int(row[0])
         effective: dict[str, object] = {
