@@ -13,4 +13,8 @@ wall-clock frame-rate measurement on a named reference machine; that number is o
 - a budget above `device_max` is refused
 - ten scene reloads dispose geometry (no Three.js leak)
 
+## Browser E2E Runner
+
+Playwright e2e tests (`make web-test-e2e` / `npm --prefix vhecfsck/web run test:e2e`) verify real WebGL2 non-blank canvas rendering, draw call accounting, progress WebSocket resilience, and WCAG accessibility in headless Chromium. Real frame-rate wall-clock benchmark measurements are reserved for P8-04.
+
 To regenerate the README tour asset: `make demo-gif`.

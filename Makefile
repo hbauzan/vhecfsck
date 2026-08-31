@@ -15,7 +15,7 @@ SLOW_MARKS ?= slow or integration or perf
 
 .DEFAULT_GOAL := help
 .PHONY: help verify verify-full lint format-check fmt typecheck test test-fast \
-        coverage layers readonly mutation web-build demo demo-gif clean
+        coverage layers readonly mutation web-build web-test web-test-e2e demo demo-gif clean
 
 help:  ## show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -84,6 +84,13 @@ web-test:  ## front-end unit tests (P4-07)
 		npm --prefix vhecfsck/web test; \
 	else \
 		echo "npm not installed; skipping web-test"; \
+	fi
+
+web-test-e2e:  ## front-end e2e browser tests via Playwright
+	@if command -v npm >/dev/null 2>&1; then \
+		npm --prefix vhecfsck/web run test:e2e; \
+	else \
+		echo "npm not installed; skipping web-test-e2e"; \
 	fi
 
 demo:  ## local demo scenario (P3-05)

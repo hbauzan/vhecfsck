@@ -388,5 +388,7 @@ export class PointCloudRenderer {
     requestAnimationFrame(this.animate);
     if (this.controls) this.controls.update();
     this.renderer.render(this.scene, this.camera);
+    (window as unknown as { __VHECFSCK_DRAW_CALLS__?: number }).__VHECFSCK_DRAW_CALLS__ =
+      this.renderer.info.render.calls;
   };
 }
