@@ -70,7 +70,7 @@ If runtime versions fall outside the tested window, `vhecfsck` emits a warning w
 
 ### The Telemetry Trap: Why `points_count` vs `indexed_vectors_count` is NOT Used for DFI
 
-A tempting alternative for computing deletion fraction is comparing `points_count` to `indexed_vectors_count`. **`vhecfsck` explicitly avoids this ratio** (see [ADR-0013](../../roadmap/adr/0013-adapter-protocol.md) and metrics spec §4.2):
+A tempting alternative for computing deletion fraction is comparing `points_count` to `indexed_vectors_count`. **`vhecfsck` explicitly avoids this ratio** (see [ADR-0013](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/adr/0013-adapter-protocol.md) and metrics spec §4.2):
 
 1. `indexed_vectors_count` excludes vectors in small or unindexed segments below Qdrant's indexing threshold (`indexing_threshold`).
 2. On a freshly loaded, clean collection, unindexed vectors would cause `points_count - indexed_vectors_count` to report spurious non-zero deletion fragmentation.

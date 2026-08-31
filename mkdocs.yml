@@ -1,0 +1,87 @@
+site_name: vhecfsck
+site_description: Read-only, empirical, offline auditor for vector indexes.
+site_url: https://hbauzan.github.io/vhecfsck/
+repo_url: https://github.com/hbauzan/vhecfsck
+repo_name: hbauzan/vhecfsck
+edit_uri: blob/main/docs/
+
+theme:
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Concepts & Pathologies: concepts.md
+  - Metrics Reference: metrics.md
+  - Engine Guides:
+      - Capability Matrix: engines/capability-matrix.md
+      - LanceDB Guide: engines/lancedb.md
+      - Qdrant Guide: engines/qdrant.md
+      - pgvector Guide: engines/pgvector.md
+      - Cross-Engine Consistency: engines/cross-engine.md
+      - Graph Statistics Findings: engines/graph-stats.md
+  - CI Integration: ci-integration.md
+  - Read-Only Guarantee: read-only.md
+  - Calibration Data:
+      - Overview: calibration/README.md
+      - Datasets Catalogue: calibration/datasets.md
+      - Threshold Profiles: calibration/thresholds.md
+      - Hubness Sensitivity: calibration/hubness_sensitivity.md
+      - Gaussian 16d Calibration: calibration/reports/gaussian-16.md
+      - Gaussian 64d Calibration: calibration/reports/gaussian-64.md
+      - Gaussian 128d Calibration: calibration/reports/gaussian-128.md
+      - Gaussian 384d Calibration: calibration/reports/gaussian-384.md
+      - Gaussian 768d Calibration: calibration/reports/gaussian-768.md
+      - Gaussian 1536d Calibration: calibration/reports/gaussian-1536.md
+      - Synthetic Healthy Calibration: calibration/reports/synthetic-healthy.md
+      - Synthetic Drifted Calibration: calibration/reports/synthetic-drifted.md
+      - Synthetic Tombstoned Calibration: calibration/reports/synthetic-tombstoned.md
+      - Synthetic Hubby Calibration: calibration/reports/synthetic-hubby.md
+  - Performance & Scale:
+      - Benchmarks & Budgets: performance.md
+      - Visualizer Performance: perf/visualizer.md
+  - Scenario Reproductions:
+      - "Qdrant #7147": scenarios/qdrant-7147.md
+      - "pgvector #244": scenarios/pgvector-244.md
+      - "Lance #4164": scenarios/lance-4164.md
+  - Generated References:
+      - CLI Reference: cli-reference.md
+      - Report Schema Reference: schema-reference.md
+  - Developer Testing: testing.md
+  - Contributing: contributing.md

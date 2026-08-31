@@ -1,6 +1,6 @@
 # Consolidated Engine Capability & Metric Matrix
 
-This document provides a single consolidated matrix of target engines versus metrics, detailing exactness, evidence ceilings, and provenance per [ADR-0013](../../roadmap/adr/0013-adapter-protocol.md).
+This document provides a single consolidated matrix of target engines versus metrics, detailing exactness, evidence ceilings, and provenance per [ADR-0013](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/adr/0013-adapter-protocol.md).
 
 ---
 

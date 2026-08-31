@@ -62,6 +62,9 @@ vhecfsck/web/test-results/
 .env.*
 !.env.example
 
+# MkDocs
+site/
+
 # OS
 Thumbs.db
 .worktrees/
