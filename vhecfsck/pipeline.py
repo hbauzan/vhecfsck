@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import os
 import platform
+import resource
+import sys
 import time
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, replace
@@ -36,7 +38,7 @@ from vhecfsck.core.hubness import (
 )
 from vhecfsck.core.partitions import PARTITION_CV_METRIC_ID, compute_partition_cv
 from vhecfsck.core.verdict import aggregate, verdict_to_exit_code
-from vhecfsck.errors import UsageError
+from vhecfsck.errors import ResourceError, TargetConnectionError, UsageError
 from vhecfsck.models import (
     EvidenceStrength,
     IndexCounts,
@@ -52,6 +54,14 @@ ProgressCallback = Callable[[str, float], None]
 MetricCallback = Callable[[MetricResult], None]
 ExactKnnFn = Callable[..., KnnResult]
 _StageT = TypeVar("_StageT")
+
+
+def _get_peak_rss_mb() -> float:
+    ru = resource.getrusage(resource.RUSAGE_SELF)
+    if sys.platform == "darwin":
+        return float(ru.ru_maxrss) / (1024.0 * 1024.0)
+    return float(ru.ru_maxrss) / 1024.0
+
 
 _MAX_OFFENDING_IDS = 20
 _HUBNESS_SAMPLE_SEED_OFFSET = 10_007
@@ -172,13 +182,25 @@ def _degrade_sampling(
     """Shrink query/sample counts when ``max_memory_mb`` would be exceeded."""
     if config.max_memory_mb is None:
         return config
+    if config.max_memory_mb <= 0:
+        raise ResourceError(
+            f"max_memory_mb must be > 0 (got {config.max_memory_mb})",
+            hint="Set a positive memory ceiling in MB.",
+        )
     budget_bytes = float(config.max_memory_mb) * 1024.0 * 1024.0
     need = float(n_live) * float(dimension) * _BYTES_PER_VECTOR
     if need <= budget_bytes:
         return config
     scale = budget_bytes / need
+    if scale < 0.0001 or budget_bytes < 1024 * 1:
+        need_mb = need / (1024 * 1024)
+        raise ResourceError(
+            f"Memory ceiling {config.max_memory_mb:.2f} MB is below minimum "
+            f"required allocation ({need_mb:.2f} MB needed)",
+            hint="Increase --max-memory-mb to allow minimum viable sampling.",
+        )
     new_queries = max(5, int(config.queries * scale))
-    new_hub = max(1000, int(config.hubness_sample_size * scale))
+    new_hub = max(100, int(config.hubness_sample_size * scale))
     return replace(
         config,
         queries=new_queries,
@@ -253,6 +275,13 @@ def _run_metric(
     else:
         try:
             result = fn()
+        except TargetConnectionError:
+            raise
+        except (ConnectionError, OSError) as exc:
+            raise TargetConnectionError(
+                f"Target connection lost mid-audit: {exc}",
+                hint="Verify target service status and network availability.",
+            ) from exc
         except Exception as exc:
             result = _unavailable_metric(
                 metric_id,
@@ -357,7 +386,15 @@ def run_audit(
 
     def _stage(name: str, fn: Callable[[], _StageT]) -> _StageT:
         t0 = time.monotonic()
-        out = fn()
+        try:
+            out = fn()
+        except TargetConnectionError:
+            raise
+        except (ConnectionError, OSError) as exc:
+            raise TargetConnectionError(
+                f"Target connection lost mid-audit: {exc}",
+                hint="Verify target service status and network availability.",
+            ) from exc
         timings[name] = time.monotonic() - t0
         return out
 
@@ -699,6 +736,7 @@ def run_audit(
             "cpu_count": os.cpu_count(),
             "platform": platform.platform(),
         },
+        peak_rss_mb=_get_peak_rss_mb(),
     )
 
     counts_out = IndexCounts(
