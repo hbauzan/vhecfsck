@@ -114,8 +114,7 @@ def test_clean_scopes_kill_to_this_checkout() -> None:
     source = SETUP.read_text(encoding="utf-8")
     assert "pkill" not in source
     assert "pgrep -f pytest" not in source
-    assert "index($0, root)" in source
-    assert 'index($0, "pytest")' in source
+    assert "clean_orphans.py" in source
 
 
 def test_help_does_not_advertise_saas_daemon_or_vite() -> None:
