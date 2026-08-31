@@ -36,6 +36,8 @@ uv.lock.bak
 
 # Node / front end (P4+)
 node_modules/
+vhecfsck/web/node_modules/
+vhecfsck/web/dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

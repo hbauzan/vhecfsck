@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vhecfsck — 3D Vector Index Visualizer</title>
+  <style>
+    :root {
+      --bg-dark: #0f1117;
+      --card-bg: rgba(22, 26, 36, 0.85);
+      --text-main: #e2e8f0;
+      --text-dim: #94a3b8;
+      --border-color: #2d3748;
+      --accent-ok: #10b981;
+      --accent-warn: #f59e0b;
+      --accent-fail: #ef4444;
+      --accent-inconclusive: #6b7280;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    #webgl-fallback {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card-bg);
+      border: 1px solid var(--accent-fail);
+      padding: 24px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 480px;
+      z-index: 100;
+      display: none;
+    }
+
+    #webgl-fallback h2 {
+      color: var(--accent-fail);
+      margin-bottom: 12px;
+    }
+
+    #webgl-fallback a {
+      color: #3b82f6;
+      text-decoration: underline;
+    }
+
+    #hud-overlay {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      width: 380px;
+      max-height: calc(100vh - 32px);
+      overflow-y: auto;
+      z-index: 10;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .hud-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .hud-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .verdict-badge {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .verdict-ok { background: rgba(16, 185, 129, 0.2); color: var(--accent-ok); border: 1px solid var(--accent-ok); }
+    .verdict-warn { background: rgba(245, 158, 11, 0.2); color: var(--accent-warn); border: 1px solid var(--accent-warn); }
+    .verdict-fail { background: rgba(239, 68, 68, 0.2); color: var(--accent-fail); border: 1px solid var(--accent-fail); }
+    .verdict-inconclusive { background: rgba(107, 114, 128, 0.2); color: var(--accent-inconclusive); border: 1px solid var(--accent-inconclusive); }
+
+    .banner {
+      background: rgba(30, 41, 59, 0.7);
+      border-left: 3px solid #3b82f6;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+
+    .banner-warning {
+      border-left-color: var(--accent-warn);
+      color: #fcd34d;
+    }
+
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .metrics-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .metric-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .metric-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .metric-status {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: #f8fafc;
+    }
+
+    .metric-meta {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      user-select: none;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+
+    .legend-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .legend-item.dimmed {
+      opacity: 0.35;
+      text-decoration: line-through;
+    }
+
+    .shortcuts-guide {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-top: 1px solid var(--border-color);
+      padding-top: 10px;
+    }
+
+    kbd {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: #fff;
+    }
+
+    #controls-panel {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: rgba(30, 41, 59, 0.9);
+      border-color: #475569;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div id="webgl-fallback">
+    <h2>WebGL2 Not Supported</h2>
+    <p>Your browser environment does not support WebGL2 hardware acceleration.</p>
+    <p style="margin-top: 12px;"><a id="json-fallback-link" href="/api/report" target="_blank">View Raw JSON Report</a></p>
+  </div>
+
+  <div id="hud-overlay">
+    <div class="hud-header">
+      <span class="hud-title">vhecfsck audit</span>
+      <span id="verdict-badge" class="verdict-badge verdict-inconclusive">LOADING</span>
+    </div>
+
+    <div id="lod-banner" class="banner">
+      Loading scene payload...
+    </div>
+
+    <div id="variance-banner" class="banner banner-warning">
+      <strong>3D Projection Caveat:</strong> PCA 3D projection is a lossy sketch of high-dimensional space.
+    </div>
+
+    <div>
+      <div class="section-title">Audit Metrics</div>
+      <div id="metrics-list" class="metrics-list"></div>
+    </div>
+
+    <div>
+      <div class="section-title">Point Classes & Layers</div>
+      <div id="legend-grid" class="legend-grid"></div>
+    </div>
+
+    <div class="shortcuts-guide">
+      <span><kbd>H</kbd> Hubs</span>
+      <span><kbd>A</kbd> Anti-hubs</span>
+      <span><kbd>T</kbd> Tombstones</span>
+      <span><kbd>G</kbd> Healthy</span>
+      <span><kbd>R</kbd> Reset View</span>
+    </div>
+  </div>
+
+  <div id="controls-panel">
+    <button id="reset-cam-btn" class="btn">Reset View</button>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

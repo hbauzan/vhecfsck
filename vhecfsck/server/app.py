@@ -34,7 +34,11 @@ def create_app(
         Configured FastAPI application instance.
     """
     check_server_dependencies()
+    from pathlib import Path
+
     from fastapi import FastAPI
+    from fastapi.responses import HTMLResponse
+    from fastapi.staticfiles import StaticFiles
 
     from vhecfsck.server.routes import router
 
@@ -47,5 +51,20 @@ def create_app(
     app.state.report_path = report_path
     app.state.audit_running = False
     app.include_router(router)
+
+    dist_dir = Path(__file__).parent.parent / "web" / "dist"
+    if (dist_dir / "index.html").exists():
+        app.mount("/", StaticFiles(directory=str(dist_dir), html=True), name="static")
+    else:
+
+        @app.get("/")
+        def index_fallback() -> HTMLResponse:
+            content = (
+                "<!DOCTYPE html><html><head><title>vhecfsck visualizer</title></head>"
+                "<body><h1>vhecfsck 3D Visualizer</h1>"
+                "<p>Front-end bundle not found. If running from a git checkout, "
+                "run <code>make web-build</code> first.</p></body></html>"
+            )
+            return HTMLResponse(content=content, status_code=500)
 
     return app

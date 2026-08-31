@@ -26,3 +26,17 @@ def test_serve_help_option() -> None:
     assert "--port" in result.stdout
     assert "--no-browser" in result.stdout
     assert "--report" in result.stdout
+
+
+def test_spa_static_serving() -> None:
+    """FastAPI create_app serves the SPA index.html at GET /."""
+    pytest = __import__("pytest")
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+    from vhecfsck.server.app import create_app
+
+    server_app = create_app(target_uri="synthetic://healthy")
+    client = TestClient(server_app)
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "vhecfsck" in response.text
