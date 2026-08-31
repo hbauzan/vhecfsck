@@ -136,6 +136,7 @@ apply — which, after P8-02, will be many of them.
 **Depends on:** P2-10 · **Size:** M · **Touches:** `vhecfsck/pipeline.py`, `vhecfsck/core/ground_truth.py`, `tests/unit/test_resource_limits.py`
 
 **Contract**
+- **Note:** Skeleton support for graceful degradation and truncation flags is already present in `vhecfsck.pipeline._degrade_sampling` and `vhecfsck.core.ground_truth.exact_knn` (truncated). Full CLI resource budget orchestration remains to be completed in P8-05.
 - `--max-memory-mb`: estimate the requirement before starting each stage; if it would exceed
   the ceiling, reduce the sample size, record the reduction, downgrade
   `evidence_strength`, and set the relevant `truncated` flag. Never proceed and hope.

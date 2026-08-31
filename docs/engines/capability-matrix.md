@@ -13,12 +13,12 @@ This document provides a single consolidated matrix of target engines versus met
 | **Canary Recall (k-NN)** | `OK` (Exact) | `OK` (Exact, `float16` upcast) | `OK` (Exact, `hnsw_ef`) | `OK` (Exact, `EXPLAIN` guarded) |
 | **IVF Partition CV** | `OK` (Exact) | `OK` (Exact) | `UNAVAILABLE` (HNSW) | `UNAVAILABLE` |
 | **HNSW Graph Stats** | `UNAVAILABLE` | `UNAVAILABLE` (IVF) | `UNAVAILABLE` (Telemetry gap) | `UNAVAILABLE` (SQL gap) |
-| **Filtered Search** | `False` | `False` | `False`** | `False` |
+| **Filtered Search** | `False` | `False` | `True`** | `False` |
 | **Custom Search Parameters** | `OK` (`ef_search`, `nprobe`) | `OK` (`nprobes`) | `OK` (`hnsw_ef`) | `OK` (`hnsw.ef_search`, `ivfflat.probes`) |
 
 > **\*** Note on Qdrant DFI: Derived strictly from per-segment `num_deleted_vectors` telemetry. If segment telemetry is omitted by the server, DFI is reported as `UNAVAILABLE` rather than substituting `points_count - indexed_vectors_count` (which misreports unindexed vectors as deleted).
 >
-> **\*\*** Note on Filtered Search: Currently `False` across all adapters. Future ticket P7-03 may introduce per-tenant / grouped canary filtering for Qdrant.
+> **\*\*** Note on Filtered Search: Supported for Qdrant via Schema 1.1 per-tenant / grouped canary recall (`canary_groups`, P7-03). Other engines remain `False`.
 
 ---
 

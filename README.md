@@ -7,14 +7,17 @@ dashboards do not: *is this index still returning the right neighbours?*
 
 ## Quickstart
 
-The intended first-run path (hero command):
+Run the interactive CLI demonstration:
 
 ```bash
 uvx vhecfsck demo
 ```
 
-`demo` lands in a later ticket (P3-05). Until then the package is installable as a
-pre-alpha CLI stub; contributor workflows use a git checkout (see below).
+Or from a local checkout:
+
+```bash
+uv run vhecfsck demo
+```
 
 ## What it is (and is not)
 
@@ -37,14 +40,7 @@ For a complete comparison of engine capabilities and metric exactness, see the [
 
 ## Status
 
-Phase 7 Qdrant / pgvector adapters landed (P7-02, P7-04). P7-01 container
-harness is in. HNSW graph stats evaluation (P7-06) concluded `UNAVAILABLE` for
-Qdrant and pgvector (see [docs/engines/graph-stats.md](docs/engines/graph-stats.md)).
-Engine guides and capability matrix published (P7-08). Issue reproductions
-(`qdrant#7147`, `pgvector#244`) remain. P8-08 hypothesis fuzzing is in. Pre-alpha
-capabilities ship ticket-by-ticket; this README will not claim a benchmark or
-exit-code behaviour until measured and implemented. The full launch README is
-[P9-01](roadmap/phases/phase-9-docs-release-and-launch.md).
+Pre-alpha status: P0–P7 complete in `main` (including Qdrant, pgvector, and LanceDB adapters, container harness, graph stats evaluation, issue guards `qdrant#7147`, `pgvector#244`, and `lance#4164`, engine guides, and capability matrix). Hardening tickets P8-08, P8-09, and P8-11 are done. Next critical path is P8-01 calibration. Note: `docs/assets/vhecfsck-demo.gif` is a 320×180 deterministic NumPy raster stand-in; the launch hero GIF and full launch README land in [P9-01](roadmap/phases/phase-9-docs-release-and-launch.md). The `qdrant#7147` integration test serves as a regression guard (aggregate vs. grouped recall contrast is unit-tested in `test_canary_groups.py`; launch P9-04 relies on `pgvector#244` and `lance#4164`).
 
 ## Develop from a checkout
 

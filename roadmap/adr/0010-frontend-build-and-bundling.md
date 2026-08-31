@@ -22,8 +22,7 @@ would add more build surface and bundle weight than the application code itself.
 ## Decision
 
 - **Vite + TypeScript in `strict` mode**, with Vitest for unit tests and Playwright for browser
-  and visual regression tests. ESLint and Prettier, wired into `make verify` via a `web-lint`
-  target so the front end is held to the same gate as the Python.
+  and visual regression tests (`make web-test-e2e`). Node/web linters and Playwright browser tests are intentionally isolated from the core Python quality gate (`make verify`) so Python-only environments require no Node setup (lesson 45).
 - **No UI framework.** Three.js, a few hundred lines of DOM for the HUD, and a purpose-built
   canvas helper for the two histograms. Revisit only if the UI genuinely grows.
 - **CI builds `vhecfsck/web/dist` and bundles it into both the wheel and the sdist**, via a Hatch
@@ -49,7 +48,7 @@ experience with no JavaScript in it. The zero-egress property is verifiable and 
 security story.
 
 **Costs:**
-- Two toolchains in one repository, two lint configurations, two CI paths. Unavoidable for any
+- Two toolchains in one repository, two lint configurations, two CI paths (`web-lint`/Playwright stay isolated from `make verify` per lesson 45). Unavoidable for any
   Python package with a real web UI.
 - The release pipeline depends on Node, so a Node-side break blocks a release. Mitigated by
   pinning versions and committing `package-lock.json`.

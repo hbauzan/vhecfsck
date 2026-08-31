@@ -7,7 +7,7 @@ from tests.integration.conftest import postgres_dsn
 from vhecfsck.adapters.postgres_adapter import PostgresAdapter, parse_postgres_target
 from vhecfsck.errors import UsageError
 
-pytestmark = pytest.mark.requires_postgres
+pytestmark = [pytest.mark.integration, pytest.mark.requires_postgres]
 
 
 def test_parse_strips_table_params_from_dsn() -> None:

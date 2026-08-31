@@ -211,14 +211,14 @@ Independent of the critical path once their dependencies are met, and useful for
 | P0 | 15 | 8 | 7 | 0 |
 | P1 | 8 | 1 | 4 | 3 |
 | P2 | 11 | 5 | 4 | 2 |
-| P3 | 8 | 3 | 5 | 0 |
+| P3 | 9 | 3 | 6 | 0 |
 | P4 | 11 | 2 | 8 | 1 |
 | P5 | 10 | 3 | 7 | 0 |
 | P6 | 9 | 1 | 6 | 2 |
 | P7 | 8 | 0 | 4 | 4 |
 | P8 | 11 | 2 | 7 | 2 |
 | P9 | 10 | 2 | 8 | 0 |
-| **Total** | **101** | **27** | **60** | **14** |
+| **Total** | **102** | **27** | **61** | **14** |
 
 The fourteen `L` tickets are the ones to watch. Each should be re-examined before starting: if it
 can be split into independently verifiable pieces, split it. The only legitimate reason for an `L`

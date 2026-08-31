@@ -172,8 +172,7 @@ through the UI instead of an orbit control and a shrug.
 
 **Acceptance criteria**
 - [x] Two runs produce visually identical output.
-- [x] The GIF shows, in order: a healthy index, the degradation, and the tool's verdict. The
-      narrative is the asset; a pretty rotating point cloud is not.
+- [ ] The GIF shows, in order: a healthy index, the degradation, and the tool's verdict. (Note: `scripts/record_demo.py` is a 320×180 deterministic NumPy raster stand-in asset; full Playwright hero GIF lands in [P9-01](phase-9-docs-release-and-launch.md)).
 
 ---
 
