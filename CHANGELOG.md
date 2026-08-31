@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Phase 5 LanceDB Adapter (P5-01..P5-06): Read-only `LanceDBAdapter` for Lance / LanceDB datasets (`vhecfsck/adapters/lancedb_adapter.py`). Features dataset discovery and descriptor construction (P5-01), immutable snapshot version pinning `--dataset-version N` (P5-02), exact per-fragment deletion accounting (P5-03), vector streaming scan and random access `_rowid` lookup with float16-to-float32 upcasting (P5-04), native k-NN batched search with `nprobe`/`refine_factor` effective parameter propagation (P5-05), and IVF cell partition introspection (P5-06).
+
 - Phase 4 SPA Front-End Visualizer (`vhecfsck/web/`): Vite + TypeScript scaffold,
   zero-copy binary scene decoder, Three.js point-cloud renderer with translucent tombstone
   pass, audit report HUD overlay with 3D projection variance caveat, Vitest unit tests,

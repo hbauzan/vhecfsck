@@ -36,7 +36,10 @@ Issues = "https://github.com/hbauzan/vhecfsck/issues"
 Changelog = "https://github.com/hbauzan/vhecfsck/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-lancedb = []
+lancedb = [
+    "lancedb>=0.37.1",
+    "pylance>=11.0.0",
+]
 qdrant = []
 postgres = []
 server = []
