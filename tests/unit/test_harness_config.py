@@ -188,6 +188,15 @@ def test_engine_extras_declare_sdks() -> None:
     assert any("pgvector" in dep for dep in postgres)
 
 
+def test_testcontainers_is_dev_not_product_extra() -> None:
+    data = _load_pyproject()
+    dev = data["dependency-groups"]["dev"]
+    assert any(dep.startswith("testcontainers") for dep in dev)
+    extras = data["project"]["optional-dependencies"]
+    for name, deps in extras.items():
+        assert all("testcontainers" not in dep for dep in deps), name
+
+
 def test_test_directory_skeleton_exists() -> None:
     tests_root = ROOT / "tests"
     missing = [name for name in REQUIRED_TEST_DIRS if not (tests_root / name).is_dir()]

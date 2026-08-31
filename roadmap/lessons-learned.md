@@ -27,10 +27,11 @@ las dos por reflejo.
 progress, query probe, partition views, tombstone layer, camera tour, README GIF,
 accessible palettes, visual regression).
 **Playwright Visualizer E2E slice completo** en `main` (WebGL2, screenshot regression, WS resilience, probe interaction, axe accessibility, colour-by baselines).
-**P7-02 / P7-04** Qdrant + Postgres adapters en `main` (extras opt-in, fakes inyectados en el gate; P7-01 harness y reproductions siguen abiertos).
+**P7-01** harness de containers en `main` (ADR-0018: `testcontainers` en `dev`; images pineadas; seeder en `tests/`).
+**P7-02 / P7-04** Qdrant + Postgres adapters en `main` (extras opt-in, fakes inyectados en el gate).
 **P8-08** Hypothesis fuzzing del core en `main` (ADR-0017, `tests/property/test_fuzz.py`).
-**Próximo critical path:** **P7-01** (testcontainers) y después **P7-03 / P7-05** (repros). P8-01 sigue bloqueado en P7 completo.
-**HEAD de referencia al handoff:** `main` after P7-02/P7-04 + P8-08.
+**Próximo critical path:** **P7-03** (`qdrant#7147`) y **P7-05** (`pgvector#244`). P7-06/P7-07/P7-08 después. P8-01 sigue bloqueado en P7 completo.
+**HEAD de referencia al handoff:** `main` after P7-01.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + coverage + layers + readonly). `coverage` is the suite; `make test` is the inner loop.
@@ -471,6 +472,26 @@ derive metrics.
 **Solution:** Fake methods use the real keyword names. After one `FETCH`, return empty. Contract suite registers `qdrant_injected` / `postgres_injected` so this is not unit-only.
 
 **Invariant:** Do not rename SDK kwargs to silence ARG002; `del name` or assert them. A scan/cursor fake must have an empty terminal page.
+
+---
+
+## 50. `make verify` must not have `[qdrant]` / `[postgres]` installed
+
+**Problem:** `PostgresAdapter._maybe_register_vector` runs whenever `pgvector` is importable. A gate venv with `--extra postgres` calls `register_vector(FakePostgres)` → `TypeError`, nine contract ERRORs, and a red `make verify` that looks like a harness bug.
+
+**Solution:** Gate sync is `uv sync --group dev` (today also `--extra lancedb`: those tests import `pyarrow` at module level). Engine extras only for `uv run pytest tests/integration`. Restore the gate venv before the next `make verify`. Do not teach the fake to satisfy `register_vector`.
+
+**Invariant:** `[qdrant]` / `[postgres]` stay out of the venv that runs the gate. `--extra postgres` is not a harmless convenience (lesson 5 covers `--all-extras`; this is the single-extra version of the same trap).
+
+---
+
+## 51. Container harness: marker rewrite, skip≠CI, seed in `tests/`
+
+**Problem:** Default addopts are `-m "not slow and not integration and not perf"`. `pytest tests/integration` would deselect P7-01. A Docker skip in CI would merge a suite that never ran. Seeding in `vhecfsck/` would be a write path (ADR-0001).
+
+**Solution:** `tests/integration/conftest.py` drops `not integration` from `markexpr` when every arg is under that directory. No Docker → skip with an actionable message; `CI` / `GITHUB_ACTIONS` → `pytest.fail`. Images pinned in `tests/integration/containers.py`; wait strategies, not `sleep`. `SeedPlan` in `tests/integration/seeding.py` is shared. `CREATE EXTENSION vector` **before** `register_vector`. The session Postgres fixture exports `VHECFSCK_POSTGRES_DSN` so DSN-gated tests in that directory run against the throwaway server.
+
+**Invariant:** `testcontainers` is `dev` (ADR-0018), never a product extra. Do not bind fixed host ports. Do not put churn SQL in `adapters/` or `core/`.
 
 ---
 
