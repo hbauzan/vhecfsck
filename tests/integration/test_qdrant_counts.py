@@ -7,8 +7,6 @@ from vhecfsck.adapters.qdrant_adapter import QdrantAdapter
 from vhecfsck.core.fragmentation import compute_dfi
 from vhecfsck.models import MetricState
 
-pytest.importorskip("qdrant_client")
-
 pytestmark = [pytest.mark.integration, pytest.mark.requires_qdrant]
 
 

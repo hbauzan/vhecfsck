@@ -78,6 +78,7 @@ only-include = [
     "LICENSE",
     "NOTICE",
     "pyproject.toml",
+    "hatch_build.py",
 ]
 artifacts = ["vhecfsck/web/dist"]
 

@@ -65,7 +65,7 @@
 #           if-no-files-found: ignore
 #
 #   # P7-01 — container integration (copy into P9-10; do not enable hosted runners here).
-#   # Image pins live in tests/integration/containers.py. Never uv sync --all-extras.
+#   # Image pins live in tests/integration/containers.py. Never sync all extras.
 #   integration:
 #     runs-on: ubuntu-latest
 #     steps:

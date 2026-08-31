@@ -30,7 +30,7 @@ accessible palettes, visual regression).
 **P7 completo** en `main` (P7-01…P7-08 `done` — container harness, Qdrant/Postgres adapters, qdrant#7147, pgvector#244, graph stats UNAVAILABLE, lance#4164, engine matrix & guides).
 **P8-08 / P8-09 / P8-11** `done` en `main` (fuzzing, error message audit, security hardening).
 **Próximo critical path:** **P8-01** (calibración).
-**HEAD de referencia al handoff:** `main` post HYG-02.
+**HEAD de referencia al handoff:** `main` post HYG-02 (HYG-03 cierra residuals de HYG-01/02 en rama `fix/hyg-03-gate-and-hook`).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + coverage + layers + readonly). `coverage` is the suite; `make test` is the inner loop.
