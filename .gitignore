@@ -64,3 +64,4 @@ vhecfsck/web/test-results/
 
 # OS
 Thumbs.db
+.worktrees/

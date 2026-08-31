@@ -30,16 +30,20 @@ See [roadmap/00-vision-and-scope.md](roadmap/00-vision-and-scope.md) and
 ## Engine Adapters
 
 - **LanceDB / Lance**: Read-only snapshot audits (`--dataset-version N`), exact deletion accounting, vector streaming, native k-NN search, and IVF partition introspection. See [LanceDB Guide](docs/engines/lancedb.md).
-- **Qdrant**: Read-only HTTP/gRPC or local/embedded client. Point counts via the count API; deleted counts only when per-segment telemetry exists (otherwise DFI is `UNAVAILABLE`). Extra: `pip install "vhecfsck[qdrant]"`.
-- **Postgres / pgvector**: Read-only session (`default_transaction_read_only=on`). Catalog introspection for HNSW/IVFFlat operator classes; DFI is a table-level proxy. Extra: `pip install "vhecfsck[postgres]"`.
+- **Qdrant**: Read-only HTTP/gRPC client. Point counts via collection info; deleted counts only when per-segment telemetry exists (otherwise DFI is `UNAVAILABLE`). Extra: `uv sync --extra qdrant`. See [Qdrant Guide](docs/engines/qdrant.md).
+- **Postgres / pgvector**: Read-only session (`default_transaction_read_only=on`). Catalog introspection for HNSW/IVFFlat operator classes; DFI is a table-level proxy. Extra: `uv sync --extra postgres`. See [pgvector Guide](docs/engines/pgvector.md).
+
+For a complete comparison of engine capabilities and metric exactness, see the [Consolidated Capability Matrix](docs/engines/capability-matrix.md).
 
 ## Status
 
 Phase 7 Qdrant / pgvector adapters landed (P7-02, P7-04). P7-01 container
-harness is in. Issue reproductions (`qdrant#7147`, `pgvector#244`) remain.
-P8-08 hypothesis fuzzing is in. Pre-alpha capabilities ship ticket-by-ticket; this
-README will not claim a benchmark or exit-code behaviour until measured and
-implemented. The full launch README is
+harness is in. HNSW graph stats evaluation (P7-06) concluded `UNAVAILABLE` for
+Qdrant and pgvector (see [docs/engines/graph-stats.md](docs/engines/graph-stats.md)).
+Engine guides and capability matrix published (P7-08). Issue reproductions
+(`qdrant#7147`, `pgvector#244`) remain. P8-08 hypothesis fuzzing is in. Pre-alpha
+capabilities ship ticket-by-ticket; this README will not claim a benchmark or
+exit-code behaviour until measured and implemented. The full launch README is
 [P9-01](roadmap/phases/phase-9-docs-release-and-launch.md).
 
 ## Develop from a checkout
