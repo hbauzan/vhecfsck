@@ -44,7 +44,7 @@ Two rules make this diagram enforceable rather than decorative:
 vhecfsck/
 ├── pyproject.toml               # uv + hatchling; single source of version truth
 ├── README.md                    # hero GIF + one-line quickstart
-├── AGENTS.md                    # generated from roadmap/agent-playbook.md (P0-12)
+├── AGENTS.md                    # hand-written / opt-out distill of agent-playbook.md (lesson 16)
 ├── LICENSE                      # Apache-2.0
 ├── CHANGELOG.md                 # keep-a-changelog, release-automated
 ├── Makefile                     # `make verify` is the single quality gate

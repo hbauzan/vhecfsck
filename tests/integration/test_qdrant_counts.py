@@ -9,7 +9,7 @@ from vhecfsck.models import MetricState
 
 pytest.importorskip("qdrant_client")
 
-pytestmark = pytest.mark.requires_qdrant
+pytestmark = [pytest.mark.integration, pytest.mark.requires_qdrant]
 
 
 def test_clean_collection_dfi_never_spurious(qdrant_embedded_collection) -> None:

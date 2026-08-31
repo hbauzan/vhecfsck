@@ -27,11 +27,10 @@ las dos por reflejo.
 progress, query probe, partition views, tombstone layer, camera tour, README GIF,
 accessible palettes, visual regression).
 **Playwright Visualizer E2E slice completo** en `main` (WebGL2, screenshot regression, WS resilience, probe interaction, axe accessibility, colour-by baselines).
-**P7-01** harness de containers en `main` (ADR-0018: `testcontainers` en `dev`; images pineadas; seeder en `tests/`).
-**P7-02 / P7-04** Qdrant + Postgres adapters en `main` (extras opt-in, fakes inyectados en el gate).
-**P8-08** Hypothesis fuzzing del core en `main` (ADR-0017, `tests/property/test_fuzz.py`).
-**Próximo critical path:** **P7-03** (`qdrant#7147`) y **P7-05** (`pgvector#244`). P7-06/P7-07/P7-08 después. P8-01 sigue bloqueado en P7 completo.
-**HEAD de referencia al handoff:** `main` after P7-01.
+**P7 completo** en `main` (P7-01…P7-08 `done` — container harness, Qdrant/Postgres adapters, qdrant#7147, pgvector#244, graph stats UNAVAILABLE, lance#4164, engine matrix & guides).
+**P8-08 / P8-09 / P8-11** `done` en `main` (fuzzing, error message audit, security hardening).
+**Próximo critical path:** **P8-01** (calibración).
+**HEAD de referencia al handoff:** `main` post HYG-01.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + coverage + layers + readonly). `coverage` is the suite; `make test` is the inner loop.

@@ -239,12 +239,12 @@ it belongs in a test so it cannot be lost.
 
 ## Phase exit checklist
 
-- [ ] Contract suite green for all four adapters, zero skips, in CI.
-- [ ] Both reproductions automated, with measured numbers in the docs and counterfactual
+- [x] Contract suite green for all four adapters, zero skips, in CI.
+- [x] Both reproductions automated, with measured numbers in the docs and counterfactual
       recovery asserted.
-- [ ] Per-tenant / filtered recall breakdown implemented (an additive schema change).
-- [ ] pgvector audits run in a server-enforced read-only transaction, with an `EXPLAIN` guard
+- [x] Per-tenant / filtered recall breakdown implemented (an additive schema change).
+- [x] pgvector audits run in a server-enforced read-only transaction, with an `EXPLAIN` guard
       against silently measuring a sequential scan.
-- [ ] Qdrant DFI is exact or `UNAVAILABLE` — never the misleading proxy.
-- [ ] Cross-engine intrinsic metrics agree, or the discrepancy is explained.
-- [ ] Capability matrix published.
+- [x] Qdrant DFI is exact or `UNAVAILABLE` — never the misleading proxy.
+- [x] Cross-engine intrinsic metrics agree, or the discrepancy is explained.
+- [x] Capability matrix published.

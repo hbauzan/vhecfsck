@@ -57,3 +57,5 @@ CLI: `--filter tenant_id=t0` (one group) and `--group-by tenant_id` (breakdown
 in `canary_groups`, schema 1.1). Qdrant opts into `Capabilities.filtered_search`;
 Postgres / LanceDB / synthetic stay `False` and ignore `--group-by` with a
 warning.
+
+> **Launch Narrative Note**: This integration test serves strictly as an automated regression guard. The fundamental contrast (aggregate recall masking an isolated tenant failure vs. grouped canary catching it) is unit-tested in `tests/unit/test_canary_groups.py`. Launch demonstrations (P9-04) rely on live, reproducible degradation scenarios in `pgvector#244` and `lance#4164`, rather than expecting a live 0.98 → 0.61 demo on Qdrant.

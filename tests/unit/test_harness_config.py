@@ -6,6 +6,7 @@ conftest determinism fixtures so a future edit cannot silently drop them.
 
 from __future__ import annotations
 
+import ast
 import os
 import re
 import subprocess
@@ -362,3 +363,61 @@ def test_nested_coverage_gate_tests_are_marked_slow() -> None:
     core_marks = {mark.name for mark in test_core_coverage_gate_passes.pytestmark}
     assert "slow" in overall_marks
     assert "slow" in core_marks
+
+
+def _extract_module_markers(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    markers: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == "pytestmark":
+                    values = (
+                        node.value.elts
+                        if isinstance(node.value, ast.List)
+                        else [node.value]
+                    )
+                    for val in values:
+                        if (
+                            isinstance(val, ast.Attribute)
+                            and isinstance(val.value, ast.Attribute)
+                            and val.value.attr == "mark"
+                        ):
+                            markers.add(val.attr)
+                        elif (
+                            isinstance(val, ast.Call)
+                            and isinstance(val.func, ast.Attribute)
+                            and isinstance(val.func.value, ast.Attribute)
+                            and val.func.value.attr == "mark"
+                        ):
+                            markers.add(val.func.attr)
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            for decorator in node.decorator_list:
+                d_val = decorator.func if isinstance(decorator, ast.Call) else decorator
+                if (
+                    isinstance(d_val, ast.Attribute)
+                    and isinstance(d_val.value, ast.Attribute)
+                    and d_val.value.attr == "mark"
+                ):
+                    markers.add(d_val.attr)
+    return markers
+
+
+def test_integration_qdrant_postgres_tests_have_integration_marker() -> None:
+    """Non-docker integration tests declaring qdrant/postgres must have mark."""
+    integration_dir = ROOT / "tests" / "integration"
+    unmarked_files: list[str] = []
+    for path in sorted(integration_dir.glob("test_*.py")):
+        markers = _extract_module_markers(path)
+        requires_qdrant_or_pg = (
+            "requires_qdrant" in markers or "requires_postgres" in markers
+        )
+        if (
+            requires_qdrant_or_pg
+            and "requires_docker" not in markers
+            and "integration" not in markers
+        ):
+            unmarked_files.append(path.name)
+    assert not unmarked_files, (
+        f"Integration test files missing 'integration' mark: {unmarked_files}"
+    )

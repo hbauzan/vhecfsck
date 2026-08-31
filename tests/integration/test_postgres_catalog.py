@@ -6,7 +6,7 @@ import pytest
 from vhecfsck.adapters.postgres_adapter import metric_from_opclass
 from vhecfsck.models import MetricSpace
 
-pytestmark = pytest.mark.requires_postgres
+pytestmark = [pytest.mark.integration, pytest.mark.requires_postgres]
 
 
 @pytest.mark.parametrize(

@@ -8,7 +8,7 @@ from vhecfsck.models import IndexKind, MetricSpace
 
 pytest.importorskip("qdrant_client")
 
-pytestmark = pytest.mark.requires_qdrant
+pytestmark = [pytest.mark.integration, pytest.mark.requires_qdrant]
 
 
 @pytest.mark.parametrize(

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- HYG-01: Synced roadmap documentation, README status, capability matrix, and ADR-0010 to main; isolated Qdrant and Postgres server integration test modules with `pytest.mark.integration`.
+
 ### Added
 
 - P7-07 cross-engine hubness suite: same `SeedSpec` on synthetic, LanceDB, Qdrant, and pgvector; hub share / anti-hub agree (delta 0 on the measured corpus). Table: `docs/engines/cross-engine.md`.

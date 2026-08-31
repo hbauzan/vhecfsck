@@ -109,6 +109,12 @@ def pytest_collection_modifyitems(
 
     Default addopts include ``not integration``. ``pytest tests/integration``
     is the documented on-demand command and must not deselect the harness.
+
+    Note on marker asymmetry: file-based LanceDB integration tests intentionally
+    omit ``pytest.mark.integration`` so they run in the main gate when
+    ``--extra lancedb`` is present. Server/container engine tests (Qdrant,
+    Postgres) carry ``integration`` so they stay isolated from the default gate
+    even if extras exist in the venv.
     """
     del items
     if not invocation_is_integration_dir(config):
