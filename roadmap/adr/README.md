@@ -40,6 +40,7 @@ revisited because its stated conditions changed.
 | [0016](0016-qdrant-postgres-extras.md) | Optional extras for Qdrant and Postgres / pgvector | Accepted | P7 |
 | [0017](0017-hypothesis-fuzzing-dev-dependency.md) | Hypothesis as a dev dependency for core fuzzing | Accepted | P8 |
 | [0018](0018-testcontainers-dev-dependency.md) | testcontainers as a harness-only dev dependency | Accepted | P7 |
+| [0019](0019-mkdocs-material-docs-site.md) | MkDocs Material for Documentation Site and Generated References | Accepted | P9-02, CI/CD |
 
 ## Template
 
