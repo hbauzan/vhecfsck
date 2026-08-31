@@ -130,7 +130,7 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| P7-01 | Container-based integration harness | M | P0-10 | todo |
+| P7-01 | Container-based integration harness | M | P0-10 | done |
 | P7-02 | Qdrant adapter: descriptor, counts, telemetry trap | L | P1-02, P7-01 | done |
 | P7-03 | Reproduce `qdrant#7147` (multitenant subgraph corruption) | L | P7-02 | todo |
 | P7-04 | pgvector adapter: read-only session and catalog introspection | L | P1-02, P7-01 | done |

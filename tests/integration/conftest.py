@@ -11,6 +11,11 @@ from collections.abc import Iterator
 
 import numpy as np
 import pytest
+from tests.integration.containers import (
+    invocation_is_integration_dir,
+    postgres_container_session,
+    qdrant_container_session,
+)
 
 
 def postgres_dsn() -> str | None:
@@ -58,3 +63,52 @@ def qdrant_embedded_collection() -> Iterator[tuple[object, str]]:
         closer = getattr(client, "close", None)
         if callable(closer):
             closer()
+
+
+@pytest.fixture(scope="session")
+def qdrant_service() -> Iterator[object]:
+    """Session-scoped Qdrant container (P7-01)."""
+    with qdrant_container_session() as service:
+        yield service
+
+
+@pytest.fixture(scope="session")
+def postgres_service() -> Iterator[object]:
+    """Session-scoped PostgreSQL+pgvector container (P7-01).
+
+    Also exports ``VHECFSCK_POSTGRES_DSN`` so existing DSN-gated tests in this
+    directory run against the throwaway server instead of skipping.
+    """
+    with postgres_container_session() as service:
+        previous = os.environ.get("VHECFSCK_POSTGRES_DSN")
+        os.environ["VHECFSCK_POSTGRES_DSN"] = service.dsn
+        try:
+            yield service
+        finally:
+            if previous is None:
+                os.environ.pop("VHECFSCK_POSTGRES_DSN", None)
+            else:
+                os.environ["VHECFSCK_POSTGRES_DSN"] = previous
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    """Re-enable ``integration`` tests when the invocation is that directory.
+
+    Default addopts include ``not integration``. ``pytest tests/integration``
+    is the documented on-demand command and must not deselect the harness.
+    """
+    del items
+    if not invocation_is_integration_dir(config):
+        return
+    expr = (config.option.markexpr or "").strip()
+    if "not integration" not in expr:
+        return
+    rewritten = (
+        expr.replace("and not integration", "")
+        .replace("not integration and", "")
+        .replace("not integration", "")
+        .strip()
+    )
+    config.option.markexpr = rewritten

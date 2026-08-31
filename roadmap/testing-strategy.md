@@ -207,8 +207,9 @@ SDK drift) have no remote witness until [P9-10](phases/phase-9-docs-release-and-
 while anything else is open. Docker does not reproduce macOS BLAS.
 
 **Additionally, when those suites exist:** integration against containerised Qdrant and
-PostgreSQL, the LanceDB file-based suite, and visual regression in a pinned container —
-still local / on demand, not GitHub-hosted.
+PostgreSQL (P7-01: `testcontainers`, pinned tags, health-gated startup; local skip is
+actionable, `CI=true` fails a skip), the LanceDB file-based suite, and visual regression
+in a pinned container — still local / on demand, not GitHub-hosted.
 
 **On release tag (P9-05):** full verification, build, publish to TestPyPI, install from
 TestPyPI into a clean container and run the demo, then publish to PyPI. That smoke step

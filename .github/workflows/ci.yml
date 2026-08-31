@@ -64,6 +64,37 @@
 #             coverage.xml
 #           if-no-files-found: ignore
 #
+#   # P7-01 — container integration (copy into P9-10; do not enable hosted runners here).
+#   # Image pins live in tests/integration/containers.py. Never uv sync --all-extras.
+#   integration:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: astral-sh/setup-uv@v5
+#         with:
+#           enable-cache: true
+#       - uses: actions/cache@v4
+#         with:
+#           path: /tmp/vhecfsck-engine-images
+#           key: engine-images-${{ hashFiles('tests/integration/containers.py') }}
+#       - name: Load cached engine images
+#         run: |
+#           mkdir -p /tmp/vhecfsck-engine-images
+#           if [ -f /tmp/vhecfsck-engine-images/qdrant.tar ]; then docker load -i /tmp/vhecfsck-engine-images/qdrant.tar; fi
+#           if [ -f /tmp/vhecfsck-engine-images/pgvector.tar ]; then docker load -i /tmp/vhecfsck-engine-images/pgvector.tar; fi
+#       - name: Pull pinned engine images
+#         run: |
+#           docker pull qdrant/qdrant:v1.19.0
+#           docker pull pgvector/pgvector:0.8.6-pg16
+#       - name: Save engine images to cache
+#         run: |
+#           docker save qdrant/qdrant:v1.19.0 -o /tmp/vhecfsck-engine-images/qdrant.tar
+#           docker save pgvector/pgvector:0.8.6-pg16 -o /tmp/vhecfsck-engine-images/pgvector.tar
+#       - name: Sync harness + engine extras
+#         run: uv sync --group dev --extra qdrant --extra postgres
+#       - name: Container integration
+#         run: uv run pytest tests/integration -q --no-cov
+#
 #   next-python:
 #     runs-on: ubuntu-latest
 #     continue-on-error: true
