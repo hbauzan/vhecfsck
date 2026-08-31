@@ -137,7 +137,7 @@ atomically.
 | P7-05 | Reproduce `pgvector#244` (dead tuples collapse recall) | M | P7-04 | done |
 | P7-06 | HNSW graph statistics (best effort) | M | P7-02, P7-04 | done |
 | P7-07 | Cross-engine consistency suite | M | P5, P7-02, P7-04 | done |
-| P7-08 | Engine guides and capability matrix | M | P7-02, P7-04, P7-06 | todo |
+| P7-08 | Engine guides and capability matrix | M | P7-02, P7-04, P7-06 | done |
 
 ## P8 — Calibration and hardening · [phase file](phases/phase-8-calibration-and-hardening.md)
 
@@ -151,9 +151,9 @@ atomically.
 | P8-06 | Concurrency and chaos | M | P5, P7 | todo |
 | P8-07 | Mutation testing on the numeric core | M | P2 | todo |
 | P8-08 | Fuzzing and adversarial inputs | M | P2, P3 | done |
-| P8-09 | Error message audit | S | P0-05 | todo |
+| P8-09 | Error message audit | S | P0-05 | done |
 | P8-10 | Read-only assurance across all engines | M | P5-07, P7 | todo |
-| P8-11 | Supply chain and dependency review | S | P0-10 | todo |
+| P8-11 | Supply chain and dependency review | S | P0-10 | done |
 
 ## P9 — Documentation, release and launch · [phase file](phases/phase-9-docs-release-and-launch.md)
 
