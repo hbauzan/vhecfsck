@@ -65,10 +65,28 @@ readonly:  ## AST read-only guard (P0-09 / ADR-0001)
 mutation:  ## mutation testing (stub until a later phase owns it)
 	@echo "mutation: deferred (stub ok)"
 
-web-build:  ## front-end bundle (deferred to P4)
-	@echo "web-build: deferred to P4 (stub ok)"
+web-build:  ## front-end bundle (P4-11)
+	@if command -v npm >/dev/null 2>&1; then \
+		npm --prefix vhecfsck/web run build; \
+	else \
+		echo "npm not installed; skipping web-build"; \
+	fi
 
-demo:  ## local demo scenario (deferred to P3-05)
+web-lint:  ## front-end lint and typecheck (P4-07)
+	@if command -v npm >/dev/null 2>&1; then \
+		npm --prefix vhecfsck/web run typecheck; \
+	else \
+		echo "npm not installed; skipping web-lint"; \
+	fi
+
+web-test:  ## front-end unit tests (P4-07)
+	@if command -v npm >/dev/null 2>&1; then \
+		npm --prefix vhecfsck/web test; \
+	else \
+		echo "npm not installed; skipping web-test"; \
+	fi
+
+demo:  ## local demo scenario (P3-05)
 	@echo "demo: deferred to P3-05 (stub ok)"
 
 clean:  ## remove caches and build artefacts

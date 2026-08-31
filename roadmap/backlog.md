@@ -88,11 +88,11 @@ atomically.
 | P4-04 | Binary scene transport | M | P4-02 | done |
 | P4-05 | FastAPI server | M | P4-04, P2-10 | done |
 | P4-06 | `vhecfsck serve` | S | P4-05 | done |
-| P4-07 | Front-end scaffold | M | P0-10 | todo |
-| P4-08 | Point-cloud renderer | L | P4-07, P4-04 | todo |
-| P4-09 | Report HUD | M | P4-08 | todo |
-| P4-10 | Visual regression baseline | M | P4-09 | todo |
-| P4-11 | Bundle the front end into the wheel | M | P4-07, P0-01 | todo |
+| P4-07 | Front-end scaffold | M | P0-10 | done |
+| P4-08 | Point-cloud renderer | L | P4-07, P4-04 | done |
+| P4-09 | Report HUD | M | P4-08 | done |
+| P4-10 | Visual regression baseline | M | P4-09 | done |
+| P4-11 | Bundle the front end into the wheel | M | P4-07, P0-01 | done |
 
 > **MVP gate** after P4. Run the checklist in [`03-phases-overview.md §4`](03-phases-overview.md)
 > before starting anything below this line.

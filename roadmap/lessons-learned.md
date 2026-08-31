@@ -19,9 +19,11 @@ las dos por reflejo.
 
 **P0 Foundation completo** (P0-01…P0-15 `done`).
 **P1 completo** en `main` (P1-01…P1-08 `done`).
-**P2 completo** en `main` (P2-01…P2-11 `done`), más el speed-up del gate default (`perf/default-suite-runtime`).
-**Próximo critical path:** **P3-01** (report schema pydantic) → P3-02 / P3-03. `vhecfsck audit` (P3-04) también depende de **P3-09** (`LanceDbAdapter`).
-**HEAD de referencia al handoff:** merge de `perf/default-suite-runtime` en `main` (`make verify` verde ≈ 3 min en el Mac de Eletor: suite default ~68 s, coverage un run ~127 s).
+**P2 completo** en `main` (P2-01…P2-11 `done`).
+**P3 completo** en `main` (P3-01…P3-09 `done`).
+**P4 completo** en `main` (P4-01…P4-11 `done` — 3D projection, binary transport, FastAPI server, SPA visualizer).
+**Próximo critical path:** **P5-01** (`LanceDbAdapter` dataset discovery) → P5-02…P5-06.
+**HEAD de referencia al handoff:** merge de `feat/p4-visualizer-spa` en `main` (`make verify` verde: 464 tests + 5 vitest tests).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + test + coverage + layers + readonly).
@@ -357,6 +359,14 @@ Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, 
 **Solution:** `FROZEN_VOLATILE_ALLOWLIST` includes `metrics.detail.read_at`; `_strip_volatile_fields` blanks that key per metric.
 
 **Invariant:** New timestamps in report JSON join the frozen allowlist in the same ticket. Do not delete the allowlist test to silence a diff.
+
+## 40. SPA Front-End Visualizer bundle is zero-egress and zero-Node for Python users
+
+**Problem:** Including a web UI visualizer can accidentally introduce external CDN requests (egress risks) or require Node.js at `pip install` time.
+
+**Solution:** Vite + TypeScript in `strict` mode with Vitest + `happy-dom` (`vhecfsck/web`). Bundled static output in `vhecfsck/web/dist` is packaged inside Python wheel/sdist. `dist/` is not committed to git repository; `make web-build` builds locally for dev checkout, while `vhecfsck serve` returns an actionable error if `dist/` is missing.
+
+**Invariant:** All visualizer assets (fonts, icons, Three.js shaders) must be bundled locally with zero egress. Python end-users must never need Node.js.
 
 ---
 
