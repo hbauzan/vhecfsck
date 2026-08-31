@@ -313,7 +313,8 @@ class PostgresAdapter:
             return
         register = getattr(module, "register_vector", None)
         if callable(register):
-            register(self._conn)
+            with contextlib.suppress(Exception):
+                register(self._conn)
 
     def _server_version(self) -> str:
         info = getattr(self._conn, "info", None)
@@ -603,6 +604,12 @@ class PostgresAdapter:
         return None
 
     def graph_stats(self) -> GraphStats | None:
+        """HNSW graph statistics (histogram, entry points, tombstone).
+
+        Unavailable for pgvector: pgvector 0.8.x and pg_catalog expose no SQL
+        interface or system view for HNSW internal graph topology, entry point
+        IDs, or entrypoint tombstone status.
+        """
         self._ensure_open()
         return None
 

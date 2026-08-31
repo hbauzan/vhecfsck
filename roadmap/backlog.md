@@ -135,7 +135,7 @@ atomically.
 | P7-03 | Reproduce `qdrant#7147` (multitenant subgraph corruption) | L | P7-02 | todo |
 | P7-04 | pgvector adapter: read-only session and catalog introspection | L | P1-02, P7-01 | done |
 | P7-05 | Reproduce `pgvector#244` (dead tuples collapse recall) | M | P7-04 | todo |
-| P7-06 | HNSW graph statistics (best effort) | M | P7-02, P7-04 | todo |
+| P7-06 | HNSW graph statistics (best effort) | M | P7-02, P7-04 | done |
 | P7-07 | Cross-engine consistency suite | M | P5, P7-02, P7-04 | todo |
 | P7-08 | Engine guides and capability matrix | M | P7-02, P7-04, P7-06 | todo |
 

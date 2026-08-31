@@ -482,11 +482,16 @@ def run_audit(
     def _dfi() -> MetricResult:
         th = effective.thresholds[DFI_METRIC_ID]
         proxy = bool(caps.report_deleted_counts and not caps.deleted_counts_exact)
+        graph_stats = adapter.graph_stats() if caps.report_graph_stats else None
+        entrypoint_tombstoned = (
+            graph_stats.entrypoint_tombstoned if graph_stats is not None else None
+        )
         return compute_dfi(
             counts,
             report_deleted_counts=caps.report_deleted_counts,
             estimated=(not counts.exact) or proxy,
             proxy=proxy,
+            entrypoint_tombstoned=entrypoint_tombstoned,
             warn=th.warn,
             fail=th.fail,
         )

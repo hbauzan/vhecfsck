@@ -315,6 +315,16 @@ def test_iter_fetch_search_and_readonly_counts() -> None:
         adapter.close()
 
 
+def test_graph_stats_returns_none_and_capability_is_false() -> None:
+    """Qdrant exposes no HNSW graph introspection API (ticket P7-06)."""
+    adapter = _adapter()
+    try:
+        assert adapter.capabilities.report_graph_stats is False
+        assert adapter.graph_stats() is None
+    finally:
+        adapter.close()
+
+
 def test_close_blocks_use() -> None:
     adapter = _adapter()
     adapter.close()

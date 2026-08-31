@@ -616,6 +616,12 @@ class QdrantAdapter:
         return None
 
     def graph_stats(self) -> GraphStats | None:
+        """HNSW graph statistics (histogram, entry points, tombstone).
+
+        Unavailable for Qdrant: neither qdrant-client 1.12+ nor Qdrant server
+        v1.19.0 telemetry / REST / gRPC expose internal HNSW graph structure,
+        entry point IDs, or entrypoint tombstone status.
+        """
         self._ensure_open()
         return None
 
