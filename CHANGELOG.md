@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- P8-08 hypothesis property-based fuzzing test suite (`tests/property/test_fuzz.py`) covering numeric core entry points, 3D projection, report schema deserialization, and binary scene codec.
+- ADR-0017 documenting `hypothesis` as a dev dependency for core fuzzing.
+
 ### Changed
 
 - `make verify` runs the default pytest suite once (via `coverage`). `make test`

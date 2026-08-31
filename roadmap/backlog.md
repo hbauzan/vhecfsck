@@ -150,7 +150,7 @@ atomically.
 | P8-05 | Resource ceilings and graceful degradation | M | P2-10 | todo |
 | P8-06 | Concurrency and chaos | M | P5, P7 | todo |
 | P8-07 | Mutation testing on the numeric core | M | P2 | todo |
-| P8-08 | Fuzzing and adversarial inputs | M | P2, P3 | todo |
+| P8-08 | Fuzzing and adversarial inputs | M | P2, P3 | done |
 | P8-09 | Error message audit | S | P0-05 | todo |
 | P8-10 | Read-only assurance across all engines | M | P5-07, P7 | todo |
 | P8-11 | Supply chain and dependency review | S | P0-10 | todo |
