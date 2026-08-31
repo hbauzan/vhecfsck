@@ -147,12 +147,12 @@ atomically.
 | P8-02 | Calibrate and justify the default thresholds | M | P8-01 | done |
 | P8-03 | Baseline and delta mode | L | P3-01, P8-02 | done |
 | P8-04 | Performance budgets | M | P2-04, P5 | done |
-| P8-05 | Resource ceilings and graceful degradation | M | P2-10 | todo |
-| P8-06 | Concurrency and chaos | M | P5, P7 | todo |
-| P8-07 | Mutation testing on the numeric core | M | P2 | todo |
+| P8-05 | Resource ceilings and graceful degradation | M | P2-10 | done |
+| P8-06 | Concurrency and chaos | M | P5, P7 | done |
+| P8-07 | Mutation testing on the numeric core | M | P2 | done |
 | P8-08 | Fuzzing and adversarial inputs | M | P2, P3 | done |
 | P8-09 | Error message audit | S | P0-05 | done |
-| P8-10 | Read-only assurance across all engines | M | P5-07, P7 | todo |
+| P8-10 | Read-only assurance across all engines | M | P5-07, P7 | done |
 | P8-11 | Supply chain and dependency review | S | P0-10 | done |
 
 ## P9 — Documentation, release and launch · [phase file](phases/phase-9-docs-release-and-launch.md)
