@@ -1,0 +1,54 @@
+# =============================================================================
+# Supply Chain & Security Audit Workflow — P8-11
+# -----------------------------------------------------------------------------
+# GitHub-hosted runners are disabled on push for this private repository.
+# Security audits can be executed on-demand locally or via workflow_dispatch.
+#
+# Local execution:
+#   uv run pip-audit
+#   npm audit --prefix vhecfsck/web
+# =============================================================================
+#
+# name: security-audit
+#
+# on:
+#   workflow_dispatch:
+#
+# permissions:
+#   contents: read
+#
+# jobs:
+#   audit-python:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: astral-sh/setup-uv@v5
+#       - name: Sync dependencies
+#         run: uv sync --group dev --all-extras
+#       - name: Run pip-audit
+#         run: uv run pip-audit
+#
+#   audit-web:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: "20"
+#       - name: Run npm audit
+#         run: npm audit --prefix vhecfsck/web
+
+name: security-audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disabled:
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Security audit workflow disabled on push; run on-demand locally or via workflow_dispatch."
