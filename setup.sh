@@ -206,33 +206,15 @@ cmd_serve() {
 }
 
 cmd_clean() {
-    log_info "${LABEL_CLEAN}: searching for orphaned pytest processes in this checkout"
+    log_info "${LABEL_CLEAN}: searching for orphaned processes in this checkout"
     if [ "${SETUP_SH_IN_TEST:-}" = "1" ]; then
         log_ok "Running inside test harness — skipping process cleanup — ${MOSTLY_HARMLESS}"
         return "${EXIT_OK}"
     fi
-    local root pids
+    local root
     root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    # Scope to this checkout: never match a stray pytest on the host.
-    pids="$(ps -ax -o pid= -o command= | awk -v root="${root}" -v self="$$" '
-        {
-            pid = $1
-            if (pid == self) next
-            if (index($0, "pytest") == 0) next
-            if (index($0, root) == 0) next
-            print pid
-        }
-    ')"
-    if [ -z "${pids}" ]; then
-        log_ok "No orphaned pytest processes found — ${MOSTLY_HARMLESS}"
-        return "${EXIT_OK}"
-    fi
-    log_warn "Terminating checkout-scoped pytest processes (PIDs: ${pids})"
-    echo "${pids}" | xargs kill -TERM 2>/dev/null || true
-    sleep 1
-    echo "${pids}" | xargs kill -KILL 2>/dev/null || true
-    log_ok "Checkout-scoped pytest processes terminated — ${MOSTLY_HARMLESS}"
-    return "${EXIT_OK}"
+    python3 "${root}/scripts/clean_orphans.py"
+    return $?
 }
 
 pause_if_tty() {
