@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+### Added
+
+- P8-01 Reference dataset calibration harness: reproducible harness (`scripts/calibrate.py`, `make calibrate`) executing the full metric suite over isotropic Gaussian controls across dimensions d ∈ {64, 128, 384, 768, 1536}, named synthetic scenario pathologies (`healthy`, `drifted`, `tombstoned`, `hubby`), and public ANN benchmark datasets (`sift-128`, `gist-960`, `glove-100`, `sentence-minilm`). Enforces permissive dataset licensing and excludes LDC-restricted corpora (`nytimes-256`, risk R13). Generates derived calibration statistics (`docs/calibration/results.csv`, `hubness_sensitivity.csv`, `skipped.csv`), catalogue documentation (`docs/calibration/datasets.md`), and hubness sampling sensitivity curves across `S` ∈ {1k, 5k, 20k, 50k} and `k_hub` ∈ {5, 10, 20}. Tests: `tests/unit/test_calibration_harness.py`, `tests/perf/test_calibration.py`.
 
 - HYG-03: Fixed commented `--all-extras` recipe in `security.yml` and added workflow lint test; moved module-level `importorskip` out of Qdrant integration tests so `pytestmark` deselects them cleanly; updated `hatch_build.py` hook to skip npm execution when `dist/index.html` exists and included `hatch_build.py` in sdist `only-include`; removed unmeasured wheel size numbers from phase 4 roadmap; and updated `test_spa_static_serving` to cover both pre-built and missing bundle paths.
 - HYG-02: Declared `[server]` optional dependencies (`fastapi`, `uvicorn`) in `pyproject.toml` and `dev` group, implemented custom hatch build hook in `hatch_build.py` to bundle SPA assets into wheel and sdist, and updated serve missing extra test to run in an isolated process.

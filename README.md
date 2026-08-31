@@ -54,7 +54,7 @@ make verify         # single quality gate
 make demo-gif       # regenerate docs/assets/vhecfsck-demo.gif
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md). Calibration measurements: [docs/calibration/README.md](docs/calibration/README.md) (`make calibrate`).
 
 ## Licence
 
