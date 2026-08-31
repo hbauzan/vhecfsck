@@ -159,7 +159,7 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| P9-01 | README | M | P6-07, P8-04 | todo |
+| P9-01 | README | M | P6-07, P8-04 | done |
 | P9-02 | Documentation site | M | P9-01 | todo |
 | P9-03 | CI integration recipes | M | P3-08 | todo |
 | P9-04 | Verify the anchor issues and write the launch post | M | P5-09, P7-03, P7-05 | todo |

@@ -207,6 +207,18 @@
           "additionalProperties": true,
           "title": "Host",
           "type": "object"
+        },
+        "peak_rss_mb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Peak Rss Mb"
         }
       },
       "required": [
