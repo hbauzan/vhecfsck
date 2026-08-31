@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `make verify` runs the default pytest suite once (via `coverage`). `make test`
+  stays as the uninstrumented inner loop. Playbook / `AGENTS.md`: three moments
+  (TDD while coding → verify once per ticket → `verify-full` on a version tag).
 - Dev-protocol pack: product handoff memory lives in `roadmap/lessons-learned.md`
   (pack keeps only the template). `AGENTS.md` opt-out is first-class. Delivery
   is local commits free, squash to one conventional commit, merge to `main` on

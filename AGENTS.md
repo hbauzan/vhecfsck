@@ -9,12 +9,21 @@ non-negotiable subset.
 
 ## The gate
 
+Three moments. Do not collapse them.
+
+| When | Command |
+| :--- | :--- |
+| While coding (TDD) | `uv run pytest` on the tests you are writing, plus a neighbour if the seam is next door. `make test` if you want the uninstrumented default suite. |
+| Ticket ready to merge | `make verify` **once**. Coverage **is** the suite (do not also run `make test` as a gate step). |
+| Version tag / `verify-full` | `make verify-full`. Always, however long it takes. |
+
 ```bash
 make verify
 ```
 
-Green or you are not finished. Never `--no-verify`. Never "green except a pre-existing
-failure" — that failure is a finding to report.
+Green or the ticket is not finished. Never `--no-verify`. Never "green except a pre-existing
+failure" — that failure is a finding to report. Do not run `make verify` just because you
+pulled `main`.
 
 ## Hard guardrails
 

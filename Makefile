@@ -23,7 +23,7 @@ help:  ## show available targets
 
 # --- The gate ----------------------------------------------------------------
 
-verify: lint format-check typecheck test coverage layers readonly  ## THE GATE — green before every commit
+verify: lint format-check typecheck coverage layers readonly  ## THE GATE — once per ticket (coverage is the suite)
 
 verify-full: verify  ## the gate plus slow suites and mutation (stubs OK until owned)
 	@ec=0; \
@@ -46,7 +46,7 @@ fmt:  ## auto-fix formatting and lint
 typecheck:  ## static type check
 	uv run mypy $(PKG)
 
-test:  ## the fast suite
+test:  ## inner-loop suite (no cov); not a verify prerequisite
 	uv run pytest -m "not ($(SLOW_MARKS))" --no-cov
 
 test-fast:  ## the fast suite without coverage instrumentation

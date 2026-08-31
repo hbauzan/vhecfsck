@@ -33,12 +33,18 @@ work that looks complete and verifies nothing.
 **Step 4 — Implement the minimum that satisfies the tests and the contract.** No speculative
 generality. No adjacent refactoring. No "while I was in here".
 
-**Step 5 — Verify.**
-```bash
-make verify
-```
-This is the gate. It must be green. Not "green except for a pre-existing failure" — green. If
-something unrelated is broken, that is a finding to report, not a reason to proceed.
+**Step 5 — Verify at the right moment.** Three gears; do not collapse them.
+
+- **While coding:** run the test you just wrote (TDD). If the change crosses a neighbour
+  seam, run that file too. `make test` is the uninstrumented default suite — inner loop,
+  not the gate.
+- **Ticket ready to merge:** `make verify` **once**. It must be green. Not "green except
+  for a pre-existing failure" — green. If something unrelated is broken, that is a finding
+  to report, not a reason to proceed. Do not run it on every pull of `main`.
+- **Version tag:** `make verify-full`. Always.
+
+`make verify` runs the default suite **once**, instrumented (`coverage`). `make test` is
+not a prerequisite of the gate.
 
 **Step 6 — Check the acceptance criteria one by one.** Actually check them. Do not assume that
 passing tests implies the criteria are met; they frequently include properties the tests do not
@@ -180,10 +186,11 @@ Each of these has already happened somewhere, in some project, and each is easy 
 
 ```bash
 ./setup.sh help          # contributor console (macOS); ./setup.sh verify when the gate exists
-make verify              # the gate — must be green before every commit
-make verify-full         # adds slow, integration, perf, mutation testing
+make verify              # merge gate — once per ticket (suite via coverage)
+make verify-full         # version / nightly: slow, integration, perf, mutation
 make fmt                 # auto-fix formatting and lint
-make test-fast           # unit + property only
+make test                # inner-loop default suite, no coverage
+make test-fast           # same as test, quieter
 make web-build           # build the front-end bundle
 make demo                # run the demo scenario locally
 make demo-gif            # regenerate the README asset (P6-07)

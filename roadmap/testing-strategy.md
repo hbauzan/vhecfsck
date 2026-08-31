@@ -177,8 +177,9 @@ real evidence.
 
 ## 4. Fixture strategy
 
-- **Small by default.** The whole fast suite must run in seconds, or agents and humans will stop
-  running it, and a gate nobody runs is not a gate.
+- **Small by default.** The inner loop (`make test` / the file you are editing) must stay
+  cheap enough that agents and humans keep running it. The merge gate is `make verify`
+  once per ticket; `verify-full` is the version-tag suite. A gate nobody runs is not a gate.
 - **Generated, not committed.** Corpora come from the seeded synthetic generator. Committing a
   100 MB `.npy` is a repository problem forever.
 - **Session-cached.** Expensive corpora are built once per session and reused.
