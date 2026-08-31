@@ -27,6 +27,33 @@ _SPEC_THRESHOLD_TABLE: dict[str, tuple[float, float, Direction]] = {
     "partition_size_cv": (1.20, 2.00, "higher_is_worse"),
 }
 
+# Dimension-aware threshold profiles calibrated in P8-02 via empirical
+# Gaussian controls.
+DIMENSION_PROFILES: dict[str, dict[str, tuple[float, float, Direction]]] = {
+    "low": _SPEC_THRESHOLD_TABLE,
+    "medium": {
+        "canary_recall": (0.85, 0.70, "lower_is_worse"),
+        "hub_share_top1pct": (0.28, 0.42, "higher_is_worse"),
+        "antihub_fraction": (0.39, 0.50, "higher_is_worse"),
+        "dfi": (0.15, 0.30, "higher_is_worse"),
+        "partition_size_cv": (1.20, 2.00, "higher_is_worse"),
+    },
+    "high": {
+        "canary_recall": (0.85, 0.70, "lower_is_worse"),
+        "hub_share_top1pct": (0.32, 0.45, "higher_is_worse"),
+        "antihub_fraction": (0.43, 0.55, "higher_is_worse"),
+        "dfi": (0.15, 0.30, "higher_is_worse"),
+        "partition_size_cv": (1.30, 2.10, "higher_is_worse"),
+    },
+    "ultra_high": {
+        "canary_recall": (0.85, 0.70, "lower_is_worse"),
+        "hub_share_top1pct": (0.35, 0.48, "higher_is_worse"),
+        "antihub_fraction": (0.46, 0.58, "higher_is_worse"),
+        "dfi": (0.15, 0.30, "higher_is_worse"),
+        "partition_size_cv": (1.50, 2.25, "higher_is_worse"),
+    },
+}
+
 _METRIC_IDS: tuple[str, ...] = tuple(_SPEC_THRESHOLD_TABLE)
 
 
@@ -72,6 +99,48 @@ def _default_thresholds() -> dict[str, Threshold]:
 
 
 DEFAULT_THRESHOLDS: Mapping[str, Threshold] = _default_thresholds()
+
+
+def get_profile_name_for_dimension(dimension: int) -> str:
+    """Map dimension d to calibration profile name."""
+    if dimension <= 64:
+        return "low"
+    if dimension <= 384:
+        return "medium"
+    if dimension <= 1024:
+        return "high"
+    return "ultra_high"
+
+
+def get_default_thresholds_for_dimension(dimension: int) -> dict[str, Threshold]:
+    """Get calibrated default thresholds for target dimension."""
+    profile_name = get_profile_name_for_dimension(dimension)
+    table = DIMENSION_PROFILES[profile_name]
+    return {
+        metric_id: Threshold(warn=warn, fail=fail, direction=direction)
+        for metric_id, (warn, fail, direction) in table.items()
+    }
+
+
+def resolve_thresholds_for_dimension(
+    cfg: AuditConfig, dimension: int
+) -> dict[str, Threshold]:
+    """Resolve thresholds for a target dimension.
+
+    Preserves explicit user overrides in ``cfg.thresholds``; resolves
+    unmodified defaults using the P8-02 calibrated profile for ``dimension``.
+    """
+    if dimension <= 0:
+        return dict(cfg.thresholds)
+    calibrated = get_default_thresholds_for_dimension(dimension)
+    out: dict[str, Threshold] = {}
+    for metric_id, default_th in calibrated.items():
+        user_th = cfg.thresholds.get(metric_id)
+        if user_th is None or user_th == DEFAULT_THRESHOLDS.get(metric_id):
+            out[metric_id] = default_th
+        else:
+            out[metric_id] = user_th
+    return out
 
 
 def _default_metrics_enabled() -> dict[str, bool]:

@@ -20,7 +20,11 @@ from numpy.typing import NDArray
 
 from vhecfsck import __version__
 from vhecfsck.adapters.base import IndexAdapter, SearchParams
-from vhecfsck.config import AuditConfig, Threshold
+from vhecfsck.config import (
+    AuditConfig,
+    Threshold,
+    resolve_thresholds_for_dimension,
+)
 from vhecfsck.core.canary import CANARY_METRIC_ID, compute_canary_recall
 from vhecfsck.core.fragmentation import DFI_METRIC_ID, compute_dfi
 from vhecfsck.core.ground_truth import KnnResult, exact_knn
@@ -378,6 +382,11 @@ def run_audit(
         n_live=n_live,
         dimension=dimension,
     )
+    if dimension > 0:
+        effective = replace(
+            effective,
+            thresholds=resolve_thresholds_for_dimension(effective, dimension),
+        )
     if effective.queries != config.queries or effective.hubness_sample_size != (
         config.hubness_sample_size
     ):

@@ -104,3 +104,42 @@ def test_out_of_range_threshold_raises_usage_error() -> None:
         Threshold(warn=0.50, fail=0.70, direction="lower_is_worse")
     with pytest.raises(UsageError):
         Threshold(warn=0.40, fail=0.20, direction="higher_is_worse")
+
+
+def test_dimension_profiles_scale_with_dimension() -> None:
+    from vhecfsck.config import (
+        get_default_thresholds_for_dimension,
+        get_profile_name_for_dimension,
+        resolve_thresholds_for_dimension,
+    )
+
+    assert get_profile_name_for_dimension(16) == "low"
+    assert get_profile_name_for_dimension(64) == "low"
+    assert get_profile_name_for_dimension(128) == "medium"
+    assert get_profile_name_for_dimension(384) == "medium"
+    assert get_profile_name_for_dimension(768) == "high"
+    assert get_profile_name_for_dimension(1536) == "ultra_high"
+
+    low = get_default_thresholds_for_dimension(64)
+    ultra = get_default_thresholds_for_dimension(1536)
+
+    assert low["hub_share_top1pct"].warn == 0.20
+    assert ultra["hub_share_top1pct"].warn == 0.35
+    assert ultra["antihub_fraction"].warn == 0.46
+    assert ultra["partition_size_cv"].warn == 1.50
+
+    # User explicit override must be preserved over dimension calibration
+    cfg = AuditConfig()
+    cfg_override = load_config(
+        cli_overrides={
+            "thresholds": {"hub_share_top1pct": {"warn": 0.18, "fail": 0.30}}
+        }
+    )
+
+    resolved_default = resolve_thresholds_for_dimension(cfg, 1536)
+    assert resolved_default["hub_share_top1pct"].warn == 0.35  # calibrated ultra_high
+
+    resolved_override = resolve_thresholds_for_dimension(cfg_override, 1536)
+    assert (
+        resolved_override["hub_share_top1pct"].warn == 0.18
+    )  # explicit override preserved

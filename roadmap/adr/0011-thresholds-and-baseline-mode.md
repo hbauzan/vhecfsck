@@ -1,8 +1,22 @@
 # ADR-0011 — Configurable thresholds plus baseline/delta gating
 
-**Status:** Accepted (measurements pending `P8-02`)
+**Status:** Accepted (calibrated in `P8-02`)
 **Affects:** P0, P2, P8
 **Corrects:** source specification defect 7
+
+## Amendment (P8-02 Calibration Results)
+
+Empirical measurements from **P8-01** / **P8-02** over isotropic Gaussian controls ($d \in \{16, 64, 128, 384, 768, 1536\}$), synthetic pathologies, and public corpora confirmed that `canary_recall` (warn `< 0.85`, fail `< 0.70`) and `dfi` (warn `> 0.15`, fail `> 0.30`) are dimension-invariant and justified.
+
+For hubness metrics (`hub_share_top1pct`, `antihub_fraction`) and partition variance (`partition_size_cv`), measurements proved that hubness and cluster size variance scale with dimension $d$. A single global default caused 100% false-positive rates on isotropic Gaussian controls for $d \ge 128$.
+
+**Calibrated Per-Dimensionality Profiles (`vhecfsck/config.py`):**
+- `low` ($d \le 64$): `hub_share` (0.20 / 0.35), `antihub` (0.25 / 0.40), `partition_cv` (1.20 / 2.00)
+- `medium` ($64 < d \le 384$): `hub_share` (0.28 / 0.42), `antihub` (0.39 / 0.50), `partition_cv` (1.20 / 2.00)
+- `high` ($384 < d \le 1024$): `hub_share` (0.32 / 0.45), `antihub` (0.43 / 0.55), `partition_cv` (1.30 / 2.10)
+- `ultra_high` ($d > 1024$): `hub_share` (0.35 / 0.48), `antihub` (0.46 / 0.58), `partition_cv` (1.50 / 2.25)
+
+Full calibration documentation and error rate analyses are published in [`docs/calibration/thresholds.md`](../../docs/calibration/thresholds.md).
 
 ## Context
 
