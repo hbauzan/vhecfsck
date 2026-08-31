@@ -21,7 +21,7 @@ las dos por reflejo.
 **P1 completo** en `main` (P1-01…P1-08 `done`).
 **P2 completo** en `main` (P2-01…P2-11 `done`).
 **P3 completo** en `main` (P3-01…P3-09 `done`).
-**P4 completo** en `main` (P4-01…P4-11 `done` — 3D projection, binary transport, FastAPI server, SPA visualizer).
+**P4 completo** en `main` (P4-01…P4-11 `done` — 3D projection, binary transport, FastAPI server, SPA visualizer; P4-11 hatch build hook in `hatch_build.py`, Node-free clean machine CI smoke residual P9-05).
 **P5 completo** en `main` (P5-01…P5-10 `done` — LanceDB adapter).
 **P6 completo** en `main` (P6-01…P6-09 — progressive LOD, live
 progress, query probe, partition views, tombstone layer, camera tour, README GIF,
@@ -30,7 +30,7 @@ accessible palettes, visual regression).
 **P7 completo** en `main` (P7-01…P7-08 `done` — container harness, Qdrant/Postgres adapters, qdrant#7147, pgvector#244, graph stats UNAVAILABLE, lance#4164, engine matrix & guides).
 **P8-08 / P8-09 / P8-11** `done` en `main` (fuzzing, error message audit, security hardening).
 **Próximo critical path:** **P8-01** (calibración).
-**HEAD de referencia al handoff:** `main` post HYG-01.
+**HEAD de referencia al handoff:** `main` post HYG-02.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + coverage + layers + readonly). `coverage` is the suite; `make test` is the inner loop.

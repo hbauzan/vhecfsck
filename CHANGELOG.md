@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- HYG-02: Declared `[server]` optional dependencies (`fastapi`, `uvicorn`) in `pyproject.toml` and `dev` group, implemented custom hatch build hook in `hatch_build.py` to bundle SPA assets into wheel and sdist, and updated serve missing extra test to run in an isolated process.
+
 ### Changed
 
 - HYG-01: Synced roadmap documentation, README status, capability matrix, and ADR-0010 to main; isolated Qdrant and Postgres server integration test modules with `pytest.mark.integration`.

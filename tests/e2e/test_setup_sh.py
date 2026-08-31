@@ -217,12 +217,25 @@ def test_demo_runs_demo_command_when_it_exists() -> None:
     assert "pgvector#244" in blob
 
 
-def test_serve_invokes_cli_serve_when_command_exists() -> None:
-    result = run_setup("serve")
-    # vhecfsck serve exists (P4-06); without [server] extra it exits code 4 (USAGE)
-    assert result.returncode == 4
-    blob = result.stdout + result.stderr
-    assert "vhecfsck serve" in blob or "Server support is not installed" in blob
+def test_serve_invokes_cli_serve_when_command_exists(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    log = tmp_path / "uv-args.txt"
+    uv = bin_dir / "uv"
+    uv.write_text(
+        f'#!/bin/sh\nprintf "%s\\n" "$@" > "{log}"\nexit 0\n',
+        encoding="utf-8",
+    )
+    uv.chmod(uv.stat().st_mode | stat.S_IXUSR)
+
+    result = run_setup(
+        "serve",
+        env={"PATH": f"{bin_dir}{os.pathsep}{os.environ.get('PATH', '')}"},
+    )
+    assert result.returncode == EXIT_OK
+    recorded = log.read_text(encoding="utf-8")
+    assert "vhecfsck" in recorded
+    assert "serve" in recorded
 
 
 def test_script_source_forbids_daemon_and_saas_mechanics() -> None:

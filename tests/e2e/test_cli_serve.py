@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import subprocess
+import sys
+
 import typer.testing
 from vhecfsck.cli import app
 from vhecfsck.errors import ExitCode
@@ -11,11 +14,25 @@ runner = typer.testing.CliRunner()
 
 def test_serve_missing_extra_raises_usage_error() -> None:
     """When fastapi/uvicorn missing, serve exits with USAGE (code 4)."""
-    args = ["serve", "--target", "synthetic://healthy", "--no-browser"]
-    result = runner.invoke(app, args)
-    assert result.exit_code == ExitCode.USAGE
-    assert "pip install" in result.stdout or "pip install" in result.stderr
-    assert "vhecfsck[server]" in result.stdout or "vhecfsck[server]" in result.stderr
+    code = (
+        "import sys; "
+        "sys.modules['fastapi'] = None; "
+        "sys.modules['uvicorn'] = None; "
+        "from vhecfsck.cli import main; "
+        "sys.argv = ['vhecfsck', 'serve', '--target', "
+        "'synthetic://healthy', '--no-browser']; "
+        "main()"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == ExitCode.USAGE
+    combined = result.stdout + result.stderr
+    assert "pip install" in combined
+    assert "vhecfsck[server]" in combined
 
 
 def test_serve_help_option() -> None:

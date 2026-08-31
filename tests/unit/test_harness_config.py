@@ -92,6 +92,7 @@ _COVERAGE_TARGETS = (
     "tests/e2e/test_cli_export.py",
     "tests/e2e/test_exit_codes.py",
     "tests/e2e/test_cli_serve.py",
+    "tests/unit/test_build_hook.py",
 )
 
 # Nightly core-floor subprocess (P0-04 / lesson 35). Keep in sync with
