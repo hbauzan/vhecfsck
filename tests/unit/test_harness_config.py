@@ -77,6 +77,8 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_scene_service.py",
     "tests/unit/test_probe_service.py",
     "tests/unit/test_demo_capture.py",
+    "tests/unit/test_qdrant_adapter.py",
+    "tests/unit/test_postgres_adapter.py",
     "tests/property/test_canary_props.py",
     "tests/property/test_partitions_props.py",
     "tests/property/test_projection_props.py",
@@ -116,6 +118,8 @@ _CORE_COVERAGE_TARGETS = (
     "tests/unit/test_scene_service.py",
     "tests/unit/test_probe_service.py",
     "tests/unit/test_demo_capture.py",
+    "tests/unit/test_qdrant_adapter.py",
+    "tests/unit/test_postgres_adapter.py",
 )
 
 _COVERAGE_SCAN_SKIP = frozenset(
@@ -173,6 +177,15 @@ def test_coverage_fail_under_overall_is_80() -> None:
 def test_pytest_cov_is_a_dev_dependency() -> None:
     dev = _load_pyproject()["dependency-groups"]["dev"]
     assert any(dep.startswith("pytest-cov") for dep in dev)
+
+
+def test_engine_extras_declare_sdks() -> None:
+    extras = _load_pyproject()["project"]["optional-dependencies"]
+    qdrant = extras["qdrant"]
+    postgres = extras["postgres"]
+    assert any("qdrant-client" in dep for dep in qdrant)
+    assert any("psycopg" in dep for dep in postgres)
+    assert any("pgvector" in dep for dep in postgres)
 
 
 def test_test_directory_skeleton_exists() -> None:

@@ -27,8 +27,10 @@ las dos por reflejo.
 progress, query probe, partition views, tombstone layer, camera tour, README GIF,
 accessible palettes, visual regression).
 **Playwright Visualizer E2E slice completo** en `main` (WebGL2, screenshot regression, WS resilience, probe interaction, axe accessibility, colour-by baselines).
-**Próximo critical path:** **P7** (Qdrant / pgvector) unless the owner reorders.
-**HEAD de referencia al handoff:** `main` after P6 (branched from `4d93e20`).
+**P7-02 / P7-04** Qdrant + Postgres adapters en `main` (extras opt-in, fakes inyectados en el gate; P7-01 harness y reproductions siguen abiertos).
+**P8-08** Hypothesis fuzzing del core en `main` (ADR-0017, `tests/property/test_fuzz.py`).
+**Próximo critical path:** **P7-01** (testcontainers) y después **P7-03 / P7-05** (repros). P8-01 sigue bloqueado en P7 completo.
+**HEAD de referencia al handoff:** `main` after P7-02/P7-04 + P8-08.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + coverage + layers + readonly). `coverage` is the suite; `make test` is the inner loop.
@@ -429,6 +431,46 @@ derive metrics.
 **Solution:** Playwright + `@axe-core/playwright` tests live in `vhecfsck/web/tests/e2e/*.spec.ts` with `testMatch: '**/*.spec.ts'` in `playwright.config.ts`. They run via `npm --prefix vhecfsck/web run test:e2e` (`make web-test-e2e`). Python gate `make verify` remains browser-free and fast.
 
 **Invariant:** Playwright tests are strictly devDependencies. `make verify` does not invoke the browser.
+
+---
+
+## 46. Postgres adapter: `Cursor.stream`, never `.execute()`
+
+**Problem:** `scripts/check_readonly.py` denies `.execute()` (and `.commit()`, `.upsert()`, …) under `adapters/` and `core/` with **zero** `# readonly-ok` exemptions (`test_guard_passes_on_clean_tree`). psycopg's normal read path is `.execute()`.
+
+**Solution:** Session: `options="-c default_transaction_read_only=on"` plus `Connection.read_only = True`. Statement send: `Cursor.stream`. Session knobs via `SELECT set_config(...)`, not a write-shaped `SET`. Identifiers must match `^[A-Za-z_][A-Za-z0-9_]*$` so they are interpolated without quoting tricks.
+
+**Invariant:** Do not add an exemption to land SQL. Do not put denied statement shapes (`DELETE FROM`, `INSERT INTO`, `VACUUM`, …) in adapter string constants — including comments that are actually string literals. Naive substring tests for `.execute(` fail on the module docstring (lessons 12/17); use `check_file`.
+
+---
+
+## 47. Qdrant DFI: only per-segment `num_deleted_vectors`
+
+**Problem:** `points_count - indexed_vectors_count` looks like a tombstone count. It also excludes vectors in segments below the indexing threshold, so a freshly loaded clean collection reports fragmentation that does not exist (metrics spec §4.2).
+
+**Solution:** Walk collection telemetry for `num_deleted_vectors`. If the field never appears, `report_deleted_counts=False` → DFI `UNAVAILABLE`. Never substitute the indexed gap.
+
+**Invariant:** Honest capabilities over a convenient number. Pipeline sets DFI `proxy` when `report_deleted_counts and not deleted_counts_exact` (Postgres table-level `n_dead_tup`).
+
+---
+
+## 48. `Report` secret scanner vs `redact_secrets`
+
+**Problem:** `redact_secrets` rewrites `postgres://user:pass@host` to `postgres://user:REDACTED@host` and `?api_key=` to `api_key=REDACTED`. `Report._validate_no_secrets` still matches `user:pass@` and `api_key=`, so a redacted P7 location cannot serialise.
+
+**Solution:** Strip the token `REDACTED` from the dumped report before scanning. Live passwords still fail. Adapter `location` stays `redact_secrets(target)`.
+
+**Invariant:** Do not skip the scanner. Do not put a live DSN in `TargetDescriptor.location`.
+
+---
+
+## 49. Injected engine fakes must match SDK keywords and terminate scans
+
+**Problem:** Prefixing unused args (`def retrieve(self, _collection_name, ...)`) breaks `retrieve(collection_name=...)`. The adapter falls back and the test “passes” on the wrong path. A Postgres fake that always returns rows on `FETCH` makes `iter_live_vectors` hang.
+
+**Solution:** Fake methods use the real keyword names. After one `FETCH`, return empty. Contract suite registers `qdrant_injected` / `postgres_injected` so this is not unit-only.
+
+**Invariant:** Do not rename SDK kwargs to silence ARG002; `del name` or assert them. A scan/cursor fake must have an empty terminal page.
 
 ---
 

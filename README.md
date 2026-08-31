@@ -30,10 +30,17 @@ See [roadmap/00-vision-and-scope.md](roadmap/00-vision-and-scope.md) and
 ## Engine Adapters
 
 - **LanceDB / Lance**: Read-only snapshot audits (`--dataset-version N`), exact deletion accounting, vector streaming, native k-NN search, and IVF partition introspection. See [LanceDB Guide](docs/engines/lancedb.md).
+- **Qdrant**: Read-only HTTP/gRPC or local/embedded client. Point counts via the count API; deleted counts only when per-segment telemetry exists (otherwise DFI is `UNAVAILABLE`). Extra: `pip install "vhecfsck[qdrant]"`.
+- **Postgres / pgvector**: Read-only session (`default_transaction_read_only=on`). Catalog introspection for HNSW/IVFFlat operator classes; DFI is a table-level proxy. Extra: `pip install "vhecfsck[postgres]"`.
 
 ## Status
 
-Phase 5 complete (LanceDB adapter fully implemented and verified). Pre-alpha capabilities ship ticket-by-ticket; this README will not claim a benchmark or exit-code behaviour until measured and implemented. The full launch README is [P9-01](roadmap/phases/phase-9-docs-release-and-launch.md).
+Phase 7 Qdrant / pgvector adapters landed (P7-02, P7-04). P8-08 hypothesis
+fuzzing is in. Container harness and issue reproductions (`qdrant#7147`,
+`pgvector#244`) remain. Pre-alpha capabilities ship ticket-by-ticket; this
+README will not claim a benchmark or exit-code behaviour until measured and
+implemented. The full launch README is
+[P9-01](roadmap/phases/phase-9-docs-release-and-launch.md).
 
 ## Develop from a checkout
 

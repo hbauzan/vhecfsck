@@ -137,6 +137,59 @@ def test_secret_leak_prevention() -> None:
             config=base_report.config,
         )
 
+    with pytest.raises(ValueError, match="credential"):
+        Report(
+            schema_version=base_report.schema_version,
+            tool_version=base_report.tool_version,
+            verdict=base_report.verdict,
+            run=base_report.run,
+            target=TargetDescriptor(
+                engine="pgvector",
+                engine_version="16",
+                index_kind=IndexKind.HNSW,
+                index_name="items",
+                location="postgres://alice:s3cret@db.example:5432/vectors",
+                dimension=4,
+                metric_space=MetricSpace.L2,
+            ),
+            counts=base_report.counts,
+            metrics=base_report.metrics,
+            warnings=base_report.warnings,
+            config=base_report.config,
+        )
+
+
+def test_redacted_engine_location_is_not_treated_as_a_leak() -> None:
+    """P7 adapters put redacted DSNs in ``location``; that is not a leak."""
+    from vhecfsck.logging import redact_secrets
+
+    base = _sample_report()
+    location = redact_secrets(
+        "postgres://alice:s3cret@db.example:5432/vectors?table=t&column=v"
+    )
+    assert "s3cret" not in location
+    report = Report(
+        schema_version=base.schema_version,
+        tool_version=base.tool_version,
+        verdict=base.verdict,
+        run=base.run,
+        target=TargetDescriptor(
+            engine="pgvector",
+            engine_version="16",
+            index_kind=IndexKind.HNSW,
+            index_name="items",
+            location=location,
+            dimension=4,
+            metric_space=MetricSpace.L2,
+        ),
+        counts=base.counts,
+        metrics=base.metrics,
+        warnings=base.warnings,
+        config=base.config,
+    )
+    assert "s3cret" not in str(report.model_dump_dict())
+    assert "REDACTED" in report.target.location
+
 
 def test_report_compare() -> None:
     """Report.compare produces structured delta for baseline comparison."""
