@@ -35,9 +35,9 @@ See [roadmap/00-vision-and-scope.md](roadmap/00-vision-and-scope.md) and
 
 ## Status
 
-Phase 7 Qdrant / pgvector adapters landed (P7-02, P7-04). P8-08 hypothesis
-fuzzing is in. Container harness and issue reproductions (`qdrant#7147`,
-`pgvector#244`) remain. Pre-alpha capabilities ship ticket-by-ticket; this
+Phase 7 Qdrant / pgvector adapters landed (P7-02, P7-04). P7-01 container
+harness is in. Issue reproductions (`qdrant#7147`, `pgvector#244`) remain.
+P8-08 hypothesis fuzzing is in. Pre-alpha capabilities ship ticket-by-ticket; this
 README will not claim a benchmark or exit-code behaviour until measured and
 implemented. The full launch README is
 [P9-01](roadmap/phases/phase-9-docs-release-and-launch.md).

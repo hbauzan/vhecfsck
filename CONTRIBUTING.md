@@ -70,6 +70,21 @@ asserted as `None` (→ `UNAVAILABLE` in the metric layer), never skipped.
 To add an engine, register a factory in `tests/contract/conftest.py`
 (`ADAPTER_REGISTRY`) only — do not edit the suite module.
 
+## Engine containers (P7-01)
+
+Qdrant and PostgreSQL+pgvector integration uses pinned `testcontainers` images.
+`make verify` does **not** start Docker (those tests are marked `integration`).
+On demand, with a running Docker engine:
+
+```bash
+uv sync --group dev --extra qdrant --extra postgres   # never --all-extras
+uv run pytest tests/integration -q --no-cov
+```
+
+Without Docker the suite skips with an actionable message. In CI (`CI=true`)
+that skip is a failure. Seeding helpers live in `tests/integration/seeding.py`,
+never in `vhecfsck/`.
+
 ## Pull requests
 
 - One logical change per PR; conventional commit messages
