@@ -373,6 +373,19 @@
       ],
       "default": null,
       "title": "Canary Groups"
+    },
+    "baseline_delta": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Baseline Delta"
     }
   },
   "required": [

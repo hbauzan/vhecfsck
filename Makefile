@@ -15,7 +15,7 @@ SLOW_MARKS ?= slow or integration or perf
 
 .DEFAULT_GOAL := help
 .PHONY: help verify verify-full lint format-check fmt typecheck test test-fast \
-        coverage layers readonly mutation web-build web-test web-test-e2e demo demo-gif calibrate clean
+        coverage layers readonly mutation web-build web-test web-test-e2e demo demo-gif calibrate clean clean-proc
 
 help:  ## show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -23,7 +23,7 @@ help:  ## show available targets
 
 # --- The gate ----------------------------------------------------------------
 
-verify: lint format-check typecheck coverage layers readonly  ## THE GATE — once per ticket (coverage is the suite)
+verify: clean-proc lint format-check typecheck coverage layers readonly clean-proc  ## THE GATE — once per ticket (coverage is the suite)
 
 verify-full: verify  ## the gate plus slow suites and mutation (stubs OK until owned)
 	@ec=0; \
@@ -46,13 +46,13 @@ fmt:  ## auto-fix formatting and lint
 typecheck:  ## static type check
 	uv run mypy $(PKG)
 
-test:  ## inner-loop suite (no cov); not a verify prerequisite
+test: clean-proc  ## inner-loop suite (no cov); not a verify prerequisite
 	uv run pytest -m "not ($(SLOW_MARKS))" --no-cov
 
 test-fast:  ## the fast suite without coverage instrumentation
 	uv run pytest -m "not ($(SLOW_MARKS))" --no-cov -q
 
-coverage:  ## two floors from one run: whole tree (≥80), then core/ (≥90)
+coverage: clean-proc  ## two floors from one run: whole tree (≥80), then core/ (≥90)
 	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(PKG) --cov-report=term-missing --cov-report=xml --cov-fail-under=$(COV_ALL) -q
 	uv run coverage report --include='$(CORE)/*' --fail-under=$(COV_CORE)
 
@@ -105,3 +105,6 @@ calibrate:  ## P8-01 reference calibration (downloads public corpora on demand)
 clean:  ## remove caches and build artefacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache .coverage htmlcov dist build
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +
+
+clean-proc:  ## kill orphaned pytest processes for this checkout
+	uv run python scripts/clean_orphans.py

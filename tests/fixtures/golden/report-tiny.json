@@ -1,9 +1,38 @@
 {
+  "baseline_delta": null,
   "canary_groups": null,
   "config": {
     "block_working_set_mb": 256,
+    "delta_thresholds": {
+      "antihub_fraction": {
+        "direction": "higher_is_worse",
+        "fail": 0.1,
+        "warn": 0.05
+      },
+      "canary_recall": {
+        "direction": "lower_is_worse",
+        "fail": -0.1,
+        "warn": -0.05
+      },
+      "dfi": {
+        "direction": "higher_is_worse",
+        "fail": 0.1,
+        "warn": 0.05
+      },
+      "hub_share_top1pct": {
+        "direction": "higher_is_worse",
+        "fail": 0.1,
+        "warn": 0.05
+      },
+      "partition_size_cv": {
+        "direction": "higher_is_worse",
+        "fail": 0.4,
+        "warn": 0.2
+      }
+    },
     "filter_field": null,
     "filter_value": null,
+    "gate_mode": "both",
     "group_by": null,
     "hubness_sample_size": 20000,
     "hubness_source": "truth",
