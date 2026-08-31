@@ -27,11 +27,13 @@ pre-alpha CLI stub; contributor workflows use a git checkout (see below).
 See [roadmap/00-vision-and-scope.md](roadmap/00-vision-and-scope.md) and
 [ADR-0001](roadmap/adr/0001-read-only-by-default.md).
 
+## Engine Adapters
+
+- **LanceDB / Lance**: Read-only snapshot audits (`--dataset-version N`), exact deletion accounting, vector streaming, native k-NN search, and IVF partition introspection. See [LanceDB Guide](docs/engines/lancedb.md).
+
 ## Status
 
-Pre-alpha. Capabilities ship ticket-by-ticket; this README will not claim a
-benchmark, engine support matrix, or exit-code behaviour until those are measured
-and implemented. The full launch README is [P9-01](roadmap/phases/phase-9-docs-release-and-launch.md).
+Phase 5 complete (LanceDB adapter fully implemented and verified). Pre-alpha capabilities ship ticket-by-ticket; this README will not claim a benchmark or exit-code behaviour until measured and implemented. The full launch README is [P9-01](roadmap/phases/phase-9-docs-release-and-launch.md).
 
 ## Develop from a checkout
 

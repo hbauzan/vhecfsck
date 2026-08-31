@@ -22,8 +22,8 @@ las dos por reflejo.
 **P2 completo** en `main` (P2-01…P2-11 `done`).
 **P3 completo** en `main` (P3-01…P3-09 `done`).
 **P4 completo** en `main` (P4-01…P4-11 `done` — 3D projection, binary transport, FastAPI server, SPA visualizer).
-**P5-01…P5-06 completo** en `main` (dataset discovery, version pinning, exact deletion accounting, streaming scan, native k-NN search, IVF partition introspection).
-**Próximo critical path:** **P5-07** (Read-only verification harness) → P5-08…P5-10 (compatibility matrix, reproduce `lance#4164`, LanceDB user guide).
+**P5 completo** en `main` (P5-01…P5-10 `done` — dataset discovery, snapshot version pinning, deletion accounting, vector streaming, native search, IVF partition introspection, read-only harness, compatibility matrix, lance#4164 repro, user guide).
+**Próximo critical path:** **P6-01** (Scale to a 1M-point corpus) → P6-02…P6-09 (Visualizer depth).
 **HEAD de referencia al handoff:** merge de `feat/p5-lancedb-adapter` en `main` (`make verify` verde: 475 tests Python + 5 vitest tests).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
@@ -390,6 +390,14 @@ because `main` was updated. Do not invent a fourth command for “related tests�
 **Solution:** In `pyproject.toml`, `lancedb = ["pylance>=11.0.0", "lancedb>=0.37.1"]`. `LanceDBAdapter` checks both `lance` and `lancedb` modules on import, and uses `ds.describe_indices()` and `ds.stats.index_stats(name)` for non-deprecated metadata access.
 
 **Invariant:** `lancedb` extra must require `pylance` + `lancedb`. Import checks verify both modules.
+
+## 43. DirectorySnapshot & `chmod a-w` read-only harness
+
+**Problem:** Standard file comparison after an audit may pass if a write failure is silently caught or swallowed by an engine.
+
+**Solution:** In `tests/integration/test_readonly_lancedb.py` (P5-07), `DirectorySnapshot` records size, mtime, and SHA-256 for all files. Additionally, the audit runs against a dataset mounted read-only (`chmod -R a-w`).
+
+**Invariant:** File-backed engine read-only tests must combine hash/mtime snapshot diffing with a `chmod -R a-w` read-only mount execution.
 
 ---
 
