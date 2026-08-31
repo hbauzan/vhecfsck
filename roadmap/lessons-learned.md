@@ -504,6 +504,36 @@ derive metrics.
 
 ---
 
+### Lesson 53 (P8-05 Resource Ceilings & Graceful Degradation)
+
+**Context:** High-dimensional vector audits on memory-constrained machines could risk OOM or thrashing if sample sizes are uncalibrated to available memory ceilings.
+
+**Solution:** `_degrade_sampling` scales `queries` and `hubness_sample_size` proportionally when `max_memory_mb` is exceeded, appending `sampling_degraded_for_memory_budget` warnings and setting `truncated = True`. If memory budget is below minimum viable allocation (< 1 KB or scale < 0.0001), `ResourceError` (exit code `USAGE`/4) is raised. Peak RSS is captured in `RunContext.peak_rss_mb`.
+
+**Invariant:** Resource limits must trigger explicit degradation with evidence downgrade or raise `ResourceError`; never allow unhandled OOM or unflagged truncated output.
+
+---
+
+### Lesson 54 (P8-06 Mid-Audit Connection Loss & Concurrency)
+
+**Context:** Targets killed or network drops mid-audit could produce unhandled `ConnectionError`/`OSError` exceptions (exit code 70 internal error).
+
+**Solution:** `vhecfsck/pipeline.py` wraps adapter calls in `_stage` and `_run_metric` to catch `(ConnectionError, OSError)` and raise `TargetConnectionError` (exit code `USAGE`/4) with actionable hints.
+
+**Invariant:** Target connectivity failures during audits must always map to `TargetConnectionError` (exit code 4), never raw process crashes.
+
+---
+
+### Lesson 55 (P8-10 Read-Only Assurance & Network Egress)
+
+**Context:** Infrastructure audit tools must guarantee zero network egress and zero state mutations across all engines.
+
+**Solution:** `tests/integration/test_readonly_all.py` enforces filesystem hash/mtime invariance across LanceDB/Synthetic and monkeypatches `socket.socket.connect` to assert 0 external egress connections during `run_audit`. Documented in `docs/read-only.md` and `SECURITY.md`.
+
+**Invariant:** `run_audit` must never attempt external network connections or mutate target index state.
+
+---
+
 ## 5. Protocolo de Mantenimiento de Lecciones Aprendidas
 
 Este archivo es caro de leer y fácil de arruinar. Si se lee por reflejo, se paga en cada sesión; si se escribe por reflejo, se llena de ruido y deja de servir para lo único que sirve: que la próxima IA arranque donde terminó la anterior.
