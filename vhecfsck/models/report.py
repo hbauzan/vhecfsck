@@ -71,6 +71,7 @@ class Report(BaseModel):
     degenerate: int = 0
     offending_vector_ids: tuple[int, ...] = Field(default_factory=tuple)
     canary_groups: dict[str, MetricResult] | None = None
+    baseline_delta: dict[str, Any] | None = None
 
     @model_validator(mode="after")
     def _validate_no_secrets(self) -> Self:
@@ -205,6 +206,7 @@ def report_to_dict(report: Report) -> dict[str, Any]:
                 for key, value in sorted(report.canary_groups.items())
             }
         ),
+        "baseline_delta": report.baseline_delta,
     }
 
 
@@ -225,6 +227,7 @@ def report_from_dict(data: Mapping[str, Any]) -> Report:
         "degenerate",
         "offending_vector_ids",
         "canary_groups",
+        "baseline_delta",
     }
     unknown_keys = set(data.keys()) - allowed_top_keys
     if unknown_keys:
@@ -295,6 +298,7 @@ def report_from_dict(data: Mapping[str, Any]) -> Report:
         degenerate=degenerate,
         offending_vector_ids=offending,
         canary_groups=canary_groups,
+        baseline_delta=data.get("baseline_delta"),
     )
 
 

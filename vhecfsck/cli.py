@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 from enum import Enum
@@ -15,9 +16,12 @@ import typer
 from vhecfsck.adapters.base import SearchParams
 from vhecfsck.adapters.registry import open_target
 from vhecfsck.config import _METRIC_IDS, load_config
+from vhecfsck.core.baseline import GateMode, evaluate_baseline_delta
 from vhecfsck.core.verdict import verdict_to_exit_code
 from vhecfsck.errors import ExitCode, UsageError, VhecfsckError, abort, handle_uncaught
 from vhecfsck.logging import configure_logging
+from vhecfsck.models import Verdict
+from vhecfsck.models.report import Report, report_from_dict
 from vhecfsck.pipeline import ProgressCallback, run_audit
 from vhecfsck.report import (
     render_json,
@@ -99,6 +103,22 @@ class DemoSizeChoice(str, Enum):
     SMALL = "small"
     LARGE = "large"
     TINY = "tiny"
+
+
+class GateChoice(str, Enum):
+    """Gating policy choice when evaluating audit against a baseline."""
+
+    ABSOLUTE = "absolute"
+    DELTA = "delta"
+    BOTH = "both"
+
+
+baseline_app = typer.Typer(
+    name="baseline",
+    help="Capture and manage index baselines.",
+    no_args_is_help=True,
+)
+app.add_typer(baseline_app, name="baseline")
 
 
 @app.callback()
@@ -301,6 +321,20 @@ def audit(
             help="Per-group canary breakdown on a payload field.",
         ),
     ] = None,
+    baseline: Annotated[
+        Path | None,
+        typer.Option(
+            "--baseline",
+            help="Path to baseline report JSON file for delta comparison.",
+        ),
+    ] = None,
+    gate: Annotated[
+        GateChoice,
+        typer.Option(
+            "--gate",
+            help="Gating policy mode: absolute, delta, or both.",
+        ),
+    ] = GateChoice.BOTH,
 ) -> None:
     """Perform a topological health audit on a vector index target."""
     try:
@@ -329,6 +363,8 @@ def audit(
             no_progress=no_progress,
             filter_clause=filter_clause,
             group_by=group_by,
+            baseline=baseline,
+            gate=gate,
         )
     except VhecfsckError as exc:
         abort(handle_uncaught(exc, debug=_DEBUG))
@@ -359,6 +395,8 @@ def _audit_impl(
     no_progress: bool,
     filter_clause: str | None = None,
     group_by: str | None = None,
+    baseline: Path | None = None,
+    gate: GateChoice = GateChoice.BOTH,
 ) -> None:
     raw_target = target_opt or target_pos
     if not raw_target:
@@ -448,6 +486,8 @@ def _audit_impl(
             ),
         )
 
+    if gate is not None:
+        cli_overrides["gate_mode"] = gate.value
     effective_config = load_config(config_path=config, cli_overrides=cli_overrides)
 
     # 3. Build search params
@@ -485,6 +525,35 @@ def _audit_impl(
         search_params=search_params if search_params else None,
         on_progress=on_progress,
     )
+
+    # 6b. Evaluate baseline delta if requested
+    if baseline is not None:
+        if not baseline.exists():
+            raise UsageError(
+                f"baseline report file not found: {baseline}",
+                hint="Record a baseline first using 'vhecfsck baseline record'.",
+            )
+        try:
+            raw_text = baseline.read_text(encoding="utf-8")
+            base_dict = json.loads(raw_text)
+            baseline_report = report_from_dict(base_dict)
+        except Exception as exc:
+            if isinstance(exc, VhecfsckError):
+                raise exc
+            raise UsageError(
+                f"failed to parse baseline report from {baseline}: {exc}",
+                hint="Ensure baseline file is valid JSON conforming to Report schema.",
+            ) from exc
+
+        diff, final_verdict = evaluate_baseline_delta(
+            baseline=baseline_report,
+            current=report,
+            config=effective_config,
+            gate_mode=GateMode(gate.value),
+        )
+        report = report.model_copy(
+            update={"verdict": final_verdict, "baseline_delta": diff}
+        )
 
     # 7. Render output
     if format == FormatChoice.JSON:
@@ -702,8 +771,6 @@ def _export_impl(
 ) -> None:
     import json
 
-    from vhecfsck.models.report import Report
-
     if not report_path.exists():
         raise UsageError(
             f"report file not found: {report_path}",
@@ -853,3 +920,152 @@ def main() -> None:
         abort(handle_uncaught(exc, debug=_DEBUG))
     except Exception as exc:
         abort(handle_uncaught(exc, debug=_DEBUG))
+
+
+@baseline_app.command(name="record")
+def baseline_record(
+    target_opt: Annotated[
+        str | None,
+        typer.Option(
+            "--target",
+            "-t",
+            help="Target index URI or path.",
+        ),
+    ] = None,
+    target_pos: Annotated[
+        str | None,
+        typer.Argument(
+            help="Target index URI or path.",
+        ),
+    ] = None,
+    output: Annotated[
+        Path,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Output baseline report JSON file path.",
+        ),
+    ] = Path("baseline.json"),
+    queries: Annotated[
+        int | None,
+        typer.Option("--queries", help="Number of queries to sample."),
+    ] = None,
+    queries_count: Annotated[
+        int | None,
+        typer.Option("--queries-count", help="Number of queries to sample."),
+    ] = None,
+    k: Annotated[
+        int | None,
+        typer.Option("--k", help="k nearest neighbors for canary recall."),
+    ] = None,
+    hubness_sample: Annotated[
+        int | None,
+        typer.Option("--hubness-sample", help="Sample size for hubness metric."),
+    ] = None,
+    k_hub: Annotated[
+        int | None,
+        typer.Option("--k-hub", help="k nearest neighbors for hubness."),
+    ] = None,
+    hubness_source: Annotated[
+        str | None,
+        typer.Option(
+            "--hubness-source", help="Hubness reference source ('truth' or 'engine')."
+        ),
+    ] = None,
+    seed: Annotated[
+        int | None,
+        typer.Option("--seed", help="Random seed for sampling."),
+    ] = None,
+    config: Annotated[
+        Path | None,
+        typer.Option("--config", help="Path to custom audit configuration file."),
+    ] = None,
+    no_progress: Annotated[
+        bool,
+        typer.Option("--no-progress", help="Disable progress reporting to stderr."),
+    ] = False,
+) -> None:
+    """Capture current audit of a target index as a baseline report JSON file."""
+    try:
+        _baseline_record_impl(
+            target_opt=target_opt,
+            target_pos=target_pos,
+            output=output,
+            queries=queries,
+            queries_count=queries_count,
+            k=k,
+            hubness_sample=hubness_sample,
+            k_hub=k_hub,
+            hubness_source=hubness_source,
+            seed=seed,
+            config=config,
+            no_progress=no_progress,
+        )
+    except VhecfsckError as exc:
+        abort(handle_uncaught(exc, debug=_DEBUG))
+
+
+def _baseline_record_impl(
+    target_opt: str | None,
+    target_pos: str | None,
+    output: Path,
+    queries: int | None,
+    queries_count: int | None,
+    k: int | None,
+    hubness_sample: int | None,
+    k_hub: int | None,
+    hubness_source: str | None,
+    seed: int | None,
+    config: Path | None,
+    no_progress: bool,
+) -> None:
+    _ = no_progress
+    raw_target = target_opt or target_pos
+    if not raw_target:
+        raise UsageError(
+            "target index URI or path is required",
+            hint=(
+                "Specify --target <uri> (e.g. synthetic://healthy or "
+                "lance:///path/data.lance)."
+            ),
+        )
+    cli_overrides: dict[str, Any] = {}
+    if seed is not None:
+        cli_overrides["seed"] = seed
+    num_queries = queries_count if queries_count is not None else queries
+    if num_queries is not None:
+        cli_overrides["queries"] = num_queries
+    if k is not None:
+        cli_overrides["k"] = k
+    if hubness_sample is not None:
+        cli_overrides["hubness_sample_size"] = hubness_sample
+    if k_hub is not None:
+        cli_overrides["k_hub"] = k_hub
+    if hubness_source is not None:
+        if hubness_source not in {"truth", "engine"}:
+            raise UsageError(
+                f"invalid --hubness-source {hubness_source!r}",
+                hint="Use 'truth' or 'engine'.",
+            )
+        cli_overrides["hubness_source"] = hubness_source
+
+    effective_config = load_config(config_path=config, cli_overrides=cli_overrides)
+    adapter = open_target(raw_target)
+    try:
+        report = run_audit(adapter, effective_config)
+    finally:
+        adapter.close()
+
+    if report.verdict != Verdict.OK or report.warnings:
+        warn_text = (
+            f"[baseline] Warning: recording baseline from an index with "
+            f"verdict {report.verdict.value} or warnings. Existing "
+            "degradation will be baked into the baseline as normal.\n"
+        )
+        sys.stderr.write(warn_text)
+        sys.stderr.flush()
+
+    rendered = render_json(report)
+    output.write_text(rendered, encoding="utf-8")
+    exit_code = verdict_to_exit_code(report.verdict)
+    abort(exit_code)
