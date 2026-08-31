@@ -15,7 +15,8 @@ def test_cli_audit_help_exits_zero() -> None:
     assert "--target" in result.stdout
     assert "--format" in result.stdout
     assert "--only" in result.stdout
-    assert "--skip" in result.stdout
+    assert "--filter" in result.stdout
+    assert "--group-by" in result.stdout
 
 
 def test_cli_audit_missing_target_exits_usage() -> None:
@@ -47,6 +48,30 @@ def test_cli_audit_both_only_and_skip_exits_usage() -> None:
             "--skip",
             "dfi",
         ],
+    )
+    assert result.exit_code == 4
+
+
+def test_cli_audit_filter_and_group_by_exits_usage() -> None:
+    result = CliRunner().invoke(
+        app,
+        [
+            "audit",
+            "--target",
+            "synthetic://tiny",
+            "--filter",
+            "tenant_id=t0",
+            "--group-by",
+            "tenant_id",
+        ],
+    )
+    assert result.exit_code == 4
+
+
+def test_cli_audit_invalid_filter_exits_usage() -> None:
+    result = CliRunner().invoke(
+        app,
+        ["audit", "--target", "synthetic://tiny", "--filter", "noequals"],
     )
     assert result.exit_code == 4
 
@@ -110,7 +135,7 @@ def test_cli_audit_format_json() -> None:
     )
     assert result.exit_code == 0
     data = json.loads(result.stdout)
-    assert data["schema_version"] == "1.0"
+    assert data["schema_version"] == "1.1"
     assert data["verdict"] == "OK"
     assert "metrics" in data
 

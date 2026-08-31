@@ -83,10 +83,10 @@ def _sample_report() -> Report:
 
 
 def test_schema_version_constant() -> None:
-    """schema_version matches recorded constant (1.0)."""
-    assert SCHEMA_VERSION == "1.0"
+    """schema_version matches recorded constant (1.1)."""
+    assert SCHEMA_VERSION == "1.1"
     report = _sample_report()
-    assert report.schema_version == "1.0"
+    assert report.schema_version == "1.1"
 
 
 def test_report_round_trip() -> None:

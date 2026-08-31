@@ -60,6 +60,9 @@ class SearchParams(TypedDict, total=False):
     ef_search: int
     refine_factor: float
     exact: bool
+    # Equality filter for engines that opt into ``Capabilities.filtered_search``.
+    # Shape: ``{"key": "<payload field>", "value": <scalar>}``.
+    filter: dict[str, object]
 
 
 @runtime_checkable

@@ -164,7 +164,7 @@ def test_report_schema_fields() -> None:
             load_config(),
             search_params=opened.spec.default_search_params,  # type: ignore[arg-type]
         )
-        assert report.schema_version == "1.0"
+        assert report.schema_version == "1.1"
         assert report.tool_version
         assert report.run.stage_timings
         assert "ground_truth" in report.run.stage_timings

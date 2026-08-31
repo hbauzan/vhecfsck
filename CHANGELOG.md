@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- P7-07 cross-engine hubness suite: same `SeedSpec` on synthetic, LanceDB, Qdrant, and pgvector; hub share / anti-hub agree (delta 0 on the measured corpus). Table: `docs/engines/cross-engine.md`.
+- P7-03 filtered / group-by canary recall (`--filter` / `--group-by`) with per-group `canary_groups` on the report (schema 1.1). Qdrant opts into `filtered_search`. Scenario: `docs/scenarios/qdrant-7147.md`.
+- P7-05 reproduce `pgvector#244`: harness seeds HNSW + dead-tuple churn with autovacuum off; canary FAIL / DFI FAIL recover after operator `VACUUM`. Docs: `docs/scenarios/pgvector-244.md`.
 - P7-06 HNSW graph statistics evaluation: documented unavailability of HNSW graph introspection APIs for Qdrant (v1.19.0) and pgvector (0.8.x) in `docs/engines/graph-stats.md`, and wired `adapter.graph_stats()` entrypoint_tombstoned escalation to DFI `FAIL` in the audit pipeline.
 - P7-01 container integration harness: session-scoped `testcontainers` fixtures for Qdrant and PostgreSQL+pgvector, pinned image tags, health-gated startup, and a shared deterministic seeder in `tests/` (ADR-0018: `testcontainers` in the `dev` group, not a product extra). On-demand: `uv run pytest tests/integration -q --no-cov`.
 - P8-08 hypothesis property-based fuzzing test suite (`tests/property/test_fuzz.py`) covering numeric core entry points, 3D projection, report schema deserialization, and binary scene codec. ADR-0017: `hypothesis` as a dev dependency.
