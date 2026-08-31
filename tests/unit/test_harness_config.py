@@ -95,6 +95,7 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_build_hook.py",
     "tests/unit/test_calibration_harness.py",
     "tests/unit/test_baseline.py",
+    "tests/unit/test_clean_orphans.py",
 )
 
 # Nightly core-floor subprocess (P0-04 / lesson 35). Keep in sync with
