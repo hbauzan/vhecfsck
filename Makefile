@@ -62,8 +62,8 @@ layers:  ## import-layering contracts (P0-08)
 readonly:  ## AST read-only guard (P0-09 / ADR-0001)
 	uv run python scripts/check_readonly.py
 
-mutation:  ## mutation testing (stub until a later phase owns it)
-	@echo "mutation: deferred (stub ok)"
+mutation:  ## mutation testing on core verdict logic (P8-07)
+	uv run pytest tests/unit/test_mutation_core.py -q
 
 web-build:  ## front-end bundle (P4-11)
 	@if command -v npm >/dev/null 2>&1; then \
