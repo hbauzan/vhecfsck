@@ -26,7 +26,7 @@ las dos por reflejo.
 **HEAD de referencia al handoff:** merge de `feat/p4-visualizer-spa` en `main` (`make verify` verde: 464 tests + 5 vitest tests).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
-**Gate único:** `make verify` (lint + format-check + typecheck + test + coverage + layers + readonly).
+**Gate único:** `make verify` (lint + format-check + typecheck + coverage + layers + readonly). `coverage` is the suite; `make test` is the inner loop.
 **CI:** `.github/workflows/ci.yml` + `nightly.yml`. Sync en CI = `uv sync --group dev` (**nunca** `--all-extras`).
 
 Stack en `main` (además de P0/P1):
@@ -108,9 +108,9 @@ Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, 
 
 **Problem:** Agents invent ad-hoc verify command lists or skip steps.
 
-**Solution:** P0-04 owns `Makefile` / `make verify` = lint + format-check + typecheck + test + coverage (80 overall / 90 `core/`) + `layers` (import-linter) + `readonly` (AST guard). `verify-full` adds slow marks + mutation stub.
+**Solution:** P0-04 owns `Makefile` / `make verify` = lint + format-check + typecheck + **coverage** (one instrumented pytest; 80 overall / 90 `core/`) + `layers` (import-linter) + `readonly` (AST guard). `make test` is the uninstrumented inner loop, not a verify prerequisite. `verify-full` adds slow marks + mutation stub.
 
-**Invariant:** Leave every ticket with `make verify` green. No shadow gate. No “green except …”.
+**Invariant:** Leave every ticket with `make verify` green **once**. No shadow gate. No “green except …”. Do not list `test` and `coverage` as sibling prerequisites — that runs the suite twice.
 
 ## 9. Copyright credit is `hbauzan`; GitHub stays private; PyPI claim is owner-gated
 
@@ -334,7 +334,7 @@ Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, 
 
 **Solution:** Those two tests are `@pytest.mark.slow` (`verify-full` / nightly). Default `make test` is `--no-cov`. `make coverage` is **one** instrumented pytest (`fail_under=80`) plus `coverage report --include='vhecfsck/core/*' --fail-under=90` on the same `.coverage` data. Fast contracts keep the floors and the target lists honest without re-entering pytest.
 
-**Invariant:** Do not re-introduce nested pytest-cov in the default gate. Do not lower 80/90. Do not drop the static completeness scan when adding `core/` tests.
+**Invariant:** Do not re-introduce nested pytest-cov in the default gate. Do not lower 80/90. Do not drop the static completeness scan when adding `core/` tests. Do not also run `make test` as a sibling of `coverage` inside `verify`.
 
 ## 37. `size="tiny"` is a real cardinality, not a synonym of `small`
 
@@ -367,6 +367,20 @@ Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, 
 **Solution:** Vite + TypeScript in `strict` mode with Vitest + `happy-dom` (`vhecfsck/web`). Bundled static output in `vhecfsck/web/dist` is packaged inside Python wheel/sdist. `dist/` is not committed to git repository; `make web-build` builds locally for dev checkout, while `vhecfsck serve` returns an actionable error if `dist/` is missing.
 
 **Invariant:** All visualizer assets (fonts, icons, Three.js shaders) must be bundled locally with zero egress. Python end-users must never need Node.js.
+
+## 41. Three test moments — do not collapse them into `make verify`
+
+**Problem:** Agents treated `make verify` as the only legal verb: on every pull of `main` and
+again at ticket close. Combined with `verify` listing both `test` and `coverage`, the UI
+sat on “waiting for make verify” for ~10 min (suite twice: ~3:40 + ~6:22) and looked like a
+loop. `AwaitShell` with a 4 min timeout made it worse.
+
+**Solution:** Inner loop = the test you are writing (`make test` if you want the whole
+uninstrumented default suite). Merge gate = `make verify` **once**; `coverage` is that suite.
+Version tag = `make verify-full`. Recorded in `AGENTS.md` and the playbook.
+
+**Invariant:** Do not add `test` back as a verify prerequisite. Do not run `make verify` just
+because `main` was updated. Do not invent a fourth command for “related tests”.
 
 ---
 

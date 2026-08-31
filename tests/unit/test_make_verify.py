@@ -67,3 +67,18 @@ def test_coverage_recipe_measures_both_floors_from_one_pytest_run() -> None:
     assert "coverage report" in block
     assert "--fail-under=$(COV_CORE)" in block
     assert "--include=" in block
+
+
+def _verify_prereqs(makefile: str) -> list[str]:
+    match = re.search(r"^verify:\s+(.+?)(?:\s+##|$)", makefile, flags=re.MULTILINE)
+    assert match is not None, "Makefile missing verify recipe header"
+    return match.group(1).split()
+
+
+def test_verify_runs_default_suite_once_via_coverage() -> None:
+    """Gate must not pay for a no-cov pytest plus a cov pytest (A)."""
+    prereqs = _verify_prereqs((ROOT / "Makefile").read_text(encoding="utf-8"))
+    assert "coverage" in prereqs
+    assert "test" not in prereqs
+    for name in ("lint", "format-check", "typecheck", "layers", "readonly"):
+        assert name in prereqs, f"verify missing {name}"
