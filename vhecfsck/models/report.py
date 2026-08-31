@@ -47,6 +47,7 @@ class RunContext(BaseModel):
     deterministic: bool
     stage_timings: dict[str, float]
     host: dict[str, Any]
+    peak_rss_mb: float | None = None
 
 
 class Report(BaseModel):
@@ -245,6 +246,9 @@ def report_from_dict(data: Mapping[str, Any]) -> Report:
         deterministic=bool(run_data["deterministic"]),
         stage_timings=dict(run_data["stage_timings"]),
         host=dict(run_data["host"]),
+        peak_rss_mb=float(run_data["peak_rss_mb"])
+        if run_data.get("peak_rss_mb") is not None
+        else None,
     )
 
     target = TargetDescriptor(

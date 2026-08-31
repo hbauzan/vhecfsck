@@ -83,6 +83,16 @@ class InconclusiveError(VhecfsckError):
     )
 
 
+class ResourceError(VhecfsckError):
+    """Resource ceiling exceeded or minimum viable sample exceeds memory limit."""
+
+    exit_code = ExitCode.USAGE
+    code = "resource_limit"
+    default_hint = (
+        "Increase --max-memory-mb or --max-seconds, or audit a smaller subset."
+    )
+
+
 class InternalError(VhecfsckError):
     """Unexpected internal failure (maps to sysexits EX_SOFTWARE)."""
 
