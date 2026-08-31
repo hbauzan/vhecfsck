@@ -241,11 +241,23 @@ def _norm_p99_ratio(vectors: NDArray[np.float32]) -> float:
     return p99 / med
 
 
-def _histogram_bucketed(
+def bucketed_histogram(
     n_k: NDArray[np.int64],
     *,
     max_buckets: int = 64,
 ) -> list[dict[str, int]]:
+    """Bucket an in-degree sample for the report and the visualizer charts.
+
+    This is the single definition of the histogram: the charts panel renders
+    exactly what the report publishes, so the two can never disagree.
+
+    Args:
+        n_k: In-degree counts for the hubness sample.
+        max_buckets: Upper bound on bucket count; wider buckets above it.
+
+    Returns:
+        Buckets as ``{"lo", "hi", "count"}`` dicts in ascending order.
+    """
     mx = int(np.max(n_k)) if n_k.size else 0
     if mx <= max_buckets:
         return [
@@ -319,7 +331,7 @@ def _build_diagnostics(
         "max_nk": int(np.max(n_k)) if n_k.size else 0,
         "p99_nk": float(np.quantile(n_k, 0.99)) if n_k.size else 0.0,
         "median_nk": float(np.median(n_k)) if n_k.size else 0.0,
-        "histogram": _histogram_bucketed(n_k),
+        "histogram": bucketed_histogram(n_k),
         "hub_outlier_count": _mad_outlier_count(n_k, multiplier=mad_multiplier),
         "hub_ids": _offender_ids(n_k, sample_ids, top=True),
         "antihub_ids": _offender_ids(n_k, sample_ids, top=False),

@@ -264,6 +264,66 @@
       background: rgba(30, 41, 59, 0.9);
       border-color: #475569;
     }
+
+    .btn:focus-visible,
+    .legend-item:focus-visible,
+    select:focus-visible {
+      outline: 2px solid #F0E442;
+      outline-offset: 2px;
+    }
+
+    #progress-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      background: #56B4E9;
+    }
+
+    #progress-label, #legend-palette, #colourby-reason, #partition-unavailable {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .hud-select {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 6px 8px;
+    }
+
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    canvas.chart {
+      width: 100%;
+      height: 72px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 4px;
+    }
+
+    #probe-panel s.dead-id { color: var(--text-dim); }
+    #probe-panel .missed { color: #CC79A7; }
+    #probe-panel .returned { color: #56B4E9; }
+
+    #tombstone-badge {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -285,6 +345,14 @@
       Loading scene payload...
     </div>
 
+    <div>
+      <div class="section-title">Audit progress</div>
+      <div id="progress-bar" role="progressbar" aria-label="Audit progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="progress-fill"></div>
+      </div>
+      <div id="progress-label">idle</div>
+    </div>
+
     <div id="variance-banner" class="banner banner-warning">
       <strong>3D Projection Caveat:</strong> PCA 3D projection is a lossy sketch of high-dimensional space.
     </div>
@@ -294,10 +362,38 @@
       <div id="metrics-list" class="metrics-list"></div>
     </div>
 
+    <label class="section-title" for="colourby-select">Colour by</label>
+    <select id="colourby-select" class="hud-select" aria-label="Colour-by mode">
+      <option value="class">class</option>
+      <option value="partition">partition</option>
+      <option value="nk">nk</option>
+      <option value="distance-to-centroid">distance-to-centroid</option>
+    </select>
+    <div id="colourby-reason"></div>
+
+    <label class="section-title" for="palette-select">Palette</label>
+    <select id="palette-select" class="hud-select" aria-label="Colour palette">
+      <option value="default">default</option>
+      <option value="deuteranopia">deuteranopia</option>
+    </select>
+    <div id="legend-palette">Palette: default</div>
+
     <div>
       <div class="section-title">Point Classes & Layers</div>
       <div id="legend-grid" class="legend-grid"></div>
+      <div id="tombstone-badge"></div>
     </div>
+
+    <div>
+      <div class="section-title">Distributions</div>
+      <div class="charts-row">
+        <canvas id="nk-chart" class="chart" width="180" height="72" aria-label="N_k histogram"></canvas>
+        <canvas id="partition-chart" class="chart" width="180" height="72" aria-label="Partition size histogram"></canvas>
+      </div>
+      <div id="partition-unavailable"></div>
+    </div>
+
+    <div id="probe-panel" hidden></div>
 
     <div class="shortcuts-guide">
       <span><kbd>H</kbd> Hubs</span>
@@ -309,7 +405,13 @@
   </div>
 
   <div id="controls-panel">
-    <button id="reset-cam-btn" class="btn">Reset View</button>
+    <button id="reset-cam-btn" class="btn" aria-label="Reset camera">Reset View</button>
+    <button id="tour-btn" class="btn" aria-label="Start guided tour">Tour</button>
+    <button id="tour-skip-btn" class="btn" aria-label="Skip guided tour">Skip tour</button>
+    <button class="btn" data-preset="overview" aria-label="Overview camera">Overview</button>
+    <button class="btn" data-preset="hub-cluster" aria-label="Hub cluster camera">Hubs</button>
+    <button class="btn" data-preset="antihub-periphery" aria-label="Anti-hub camera">Anti-hubs</button>
+    <button class="btn" data-preset="worst-partition" aria-label="Worst partition camera">Worst cell</button>
   </div>
 
   <script type="module" src="/src/main.ts"></script>

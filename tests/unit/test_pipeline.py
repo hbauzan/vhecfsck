@@ -171,3 +171,30 @@ def test_report_schema_fields() -> None:
         assert len(report.metrics) == 5
     finally:
         opened.adapter.close()
+
+
+def test_on_metric_fires_once_per_metric_as_each_resolves() -> None:
+    """Live progress can paint values incrementally, not all at the end."""
+    seen: list[str] = []
+
+    def _capture(metric: object) -> None:
+        seen.append(metric.id)  # type: ignore[attr-defined]
+
+    opened = open_scenario("tiny")
+    try:
+        run_audit(
+            opened.adapter,
+            load_config(),
+            search_params=opened.spec.default_search_params,  # type: ignore[arg-type]
+            on_metric=_capture,
+        )
+    finally:
+        opened.adapter.close()
+
+    assert seen == [
+        CANARY_METRIC_ID,
+        HUB_SHARE_METRIC_ID,
+        ANTIHUB_METRIC_ID,
+        DFI_METRIC_ID,
+        PARTITION_CV_METRIC_ID,
+    ]
