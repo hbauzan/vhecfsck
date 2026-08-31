@@ -31,7 +31,8 @@ def _make_adapter(n: int = 400, d: int = 16, seed: int = 1) -> SyntheticAdapter:
 class FailingAdapter(SyntheticAdapter):
     """Synthetic adapter that simulates target crash / network drop during search."""
 
-    def search(self, _queries: Any, _k: int, _params: Any = None) -> Any:
+    def search(self, queries: Any, k: int, params: Any = None) -> Any:
+        del queries, k, params
         msg = "Connection reset by peer"
         raise ConnectionError(msg)
 
