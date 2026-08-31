@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import importlib
+import warnings
 from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
@@ -30,6 +31,43 @@ from vhecfsck.models import (
 
 FloatMatrix = NDArray[np.float32]
 
+SUPPORTED_LANCE_MIN = (0, 11, 0)
+SUPPORTED_LANCE_MAX = (12, 0, 0)
+SUPPORTED_LANCEDB_MIN = (0, 37, 1)
+SUPPORTED_LANCEDB_MAX = (1, 0, 0)
+
+_VERSION_WARNING_EMITTED = False
+
+
+def _parse_version_tuple(ver_str: str) -> tuple[int, ...]:
+    clean = ver_str.split("-")[0].split("+")[0].split(".dev")[0]
+    parts: list[int] = []
+    for p in clean.split("."):
+        if p.isdigit():
+            parts.append(int(p))
+        else:
+            break
+    return tuple(parts)
+
+
+def check_lancedb_version_compatibility(lance_ver: str, lancedb_ver: str) -> str | None:
+    """Check if runtime lance and lancedb versions are within tested range."""
+    l_tuple = _parse_version_tuple(lance_ver)
+    ldb_tuple = _parse_version_tuple(lancedb_ver)
+
+    if l_tuple and (l_tuple < SUPPORTED_LANCE_MIN or l_tuple >= SUPPORTED_LANCE_MAX):
+        return (
+            f"Lance version '{lance_ver}' is outside tested range (>=0.11.0, <12.0.0)"
+        )
+    if ldb_tuple and (
+        ldb_tuple < SUPPORTED_LANCEDB_MIN or ldb_tuple >= SUPPORTED_LANCEDB_MAX
+    ):
+        return (
+            f"LanceDB version '{lancedb_ver}' is outside tested range "
+            f"(>=0.37.1, <1.0.0)"
+        )
+    return None
+
 
 class LanceDBAdapter(IndexAdapter):
     """Read-only window onto a Lance / LanceDB dataset."""
@@ -51,15 +89,24 @@ class LanceDBAdapter(IndexAdapter):
         Raises:
             UsageError: If lancedb/pylance extra is missing or dataset is invalid.
         """
+        global _VERSION_WARNING_EMITTED
         try:
             lance = importlib.import_module("lance")
-            importlib.import_module("lancedb")
+            lancedb = importlib.import_module("lancedb")
         except ImportError as exc:
             safe = redact_secrets(target)
             raise UsageError(
                 f"LanceDB support is not installed (target={safe})",
                 hint='pip install "vhecfsck[lancedb]"',
             ) from exc
+
+        if not _VERSION_WARNING_EMITTED:
+            l_ver = str(getattr(lance, "__version__", "0.0.0"))
+            ldb_ver = str(getattr(lancedb, "__version__", "0.0.0"))
+            warn_msg = check_lancedb_version_compatibility(l_ver, ldb_ver)
+            if warn_msg:
+                warnings.warn(warn_msg, UserWarning, stacklevel=2)
+            _VERSION_WARNING_EMITTED = True
 
         # Parse query params if present in URI
         raw_target = target

@@ -107,10 +107,10 @@ atomically.
 | P5-04 | Vector enumeration and random access | M | P5-01 | done |
 | P5-05 | Engine search | M | P5-01 | done |
 | P5-06 | IVF partition introspection | M | P5-01 | done |
-| P5-07 | Read-only verification harness | M | P5-04, P5-05 | todo |
-| P5-08 | Version compatibility matrix | S | P5-01 | todo |
-| P5-09 | Reproduce `lance#4164` | M | P5-05, P5-06 | todo |
-| P5-10 | LanceDB user guide | S | P5-09 | todo |
+| P5-07 | Read-only verification harness | M | P5-04, P5-05 | done |
+| P5-08 | Version compatibility matrix | S | P5-01 | done |
+| P5-09 | Reproduce `lance#4164` | M | P5-05, P5-06 | done |
+| P5-10 | LanceDB user guide | S | P5-09 | done |
 
 ## P6 — Visualizer depth · [phase file](phases/phase-6-visualizer-depth.md)
 

@@ -78,3 +78,25 @@ def test_invalid_dataset_version_raises_usage_error() -> None:
 
     with pytest.raises(UsageError, match="version"):
         LanceDBAdapter(tmp, dataset_version=9999)
+
+
+def test_version_compatibility_checker() -> None:
+    from vhecfsck.adapters.lancedb_adapter import (
+        _parse_version_tuple,
+        check_lancedb_version_compatibility,
+    )
+
+    assert _parse_version_tuple("0.11.0") == (0, 11, 0)
+    assert _parse_version_tuple("11.0.0-beta1") == (11, 0, 0)
+    assert _parse_version_tuple("0.37.1.dev0") == (0, 37, 1)
+
+    # In-range
+    assert check_lancedb_version_compatibility("11.0.0", "0.37.1") is None
+
+    # Out of range lance
+    warn_lance = check_lancedb_version_compatibility("0.1.0", "0.37.1")
+    assert warn_lance is not None and "Lance version" in warn_lance
+
+    # Out of range lancedb
+    warn_ldb = check_lancedb_version_compatibility("11.0.0", "0.0.1")
+    assert warn_ldb is not None and "LanceDB version" in warn_ldb
