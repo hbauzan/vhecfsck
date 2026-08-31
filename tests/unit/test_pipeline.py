@@ -198,3 +198,28 @@ def test_on_metric_fires_once_per_metric_as_each_resolves() -> None:
         DFI_METRIC_ID,
         PARTITION_CV_METRIC_ID,
     ]
+
+
+def test_proxy_deleted_counts_flag_dfi_estimated() -> None:
+    """Postgres-like capabilities: DFI is proxy+estimated, not exact tombstones."""
+    from tests.unit.test_postgres_adapter import FakePostgres
+    from vhecfsck.adapters.postgres_adapter import PostgresAdapter
+    from vhecfsck.models import EvidenceStrength
+
+    adapter = PostgresAdapter(
+        "postgres://alice:s3cret@localhost:5432/vectors?table=items&column=embedding",
+        connection=FakePostgres(dim=4, n=16, dead=4),
+    )
+    try:
+        report = run_audit(
+            adapter,
+            load_config(),
+            search_params={"nprobe": 1, "ef_search": 8},
+        )
+        dfi = metric_by_id(report, DFI_METRIC_ID)
+        assert dfi is not None
+        assert dfi.detail["proxy"] is True
+        assert dfi.detail["estimated"] is True
+        assert dfi.evidence_strength is EvidenceStrength.MEDIUM
+    finally:
+        adapter.close()

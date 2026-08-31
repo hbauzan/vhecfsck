@@ -9,8 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- P8-08 hypothesis property-based fuzzing test suite (`tests/property/test_fuzz.py`) covering numeric core entry points, 3D projection, report schema deserialization, and binary scene codec.
-- ADR-0017 documenting `hypothesis` as a dev dependency for core fuzzing.
+- P8-08 hypothesis property-based fuzzing test suite (`tests/property/test_fuzz.py`) covering numeric core entry points, 3D projection, report schema deserialization, and binary scene codec. ADR-0017: `hypothesis` as a dev dependency.
+- Phase 7 Qdrant and pgvector adapters (P7-02 / P7-04): read-only `QdrantAdapter`
+  (`qdrant://`, local/embedded `:memory:` and `path=`) with honest deleted-count
+  capabilities (segment telemetry only — never `points_count` vs
+  `indexed_vectors_count`), and read-only `PostgresAdapter` (`postgres://` /
+  `postgresql://`) with server-enforced `default_transaction_read_only`, catalog
+  introspection, and an EXPLAIN guard against sequential scans. Optional extras
+  `[qdrant]` (`qdrant-client`) and `[postgres]` (`psycopg[binary]`, `pgvector`)
+  are declared (ADR-0016). Tests: `tests/unit/test_qdrant_adapter.py`,
+  `tests/unit/test_postgres_adapter.py`, `tests/integration/test_qdrant_*.py`,
+  `tests/integration/test_postgres_*.py`.
 
 ### Changed
 

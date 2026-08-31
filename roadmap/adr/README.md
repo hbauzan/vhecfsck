@@ -37,6 +37,8 @@ revisited because its stated conditions changed.
 | [0013](0013-adapter-protocol.md) | Structural Protocol with honest capabilities | Accepted | P1, P5, P7 |
 | [0014](0014-synthetic-adapter-first.md) | Synthetic adapter before any real engine | Accepted | P1 |
 | [0015](0015-axe-core-playwright.md) | @axe-core/playwright for Visualizer Accessibility E2E Testing | Accepted | P4, P6, P9 |
+| [0016](0016-qdrant-postgres-extras.md) | Optional extras for Qdrant and Postgres / pgvector | Accepted | P7 |
+| [0017](0017-hypothesis-fuzzing-dev-dependency.md) | Hypothesis as a dev dependency for core fuzzing | Accepted | P8 |
 
 ## Template
 

@@ -1,7 +1,8 @@
 """Target URI → adapter resolution (registration table, no if/elif chain).
 
 Schemes: ``synthetic://``, ``lance://`` (and bare ``*.lance`` paths),
-``qdrant://``, ``postgres://``. Engine SDKs load only inside openers.
+``qdrant://``, ``postgres://`` / ``postgresql://``. Engine SDKs load only
+inside openers.
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ SUPPORTED_SCHEMES: tuple[str, ...] = (
     "lance",
     "qdrant",
     "postgres",
+    "postgresql",
 )
 
 
@@ -151,6 +153,7 @@ def _register_builtins() -> None:
     register("lance", adapter_class=LanceDBAdapter, opener=_open_lance)
     register("qdrant", adapter_class=QdrantAdapter, opener=_open_qdrant)
     register("postgres", adapter_class=PostgresAdapter, opener=_open_postgres)
+    register("postgresql", adapter_class=PostgresAdapter, opener=_open_postgres)
 
 
 _register_builtins()

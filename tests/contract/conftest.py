@@ -10,6 +10,8 @@ from collections.abc import Callable, Iterator
 
 import pytest
 from vhecfsck.adapters.base import IndexAdapter
+from vhecfsck.adapters.postgres_adapter import PostgresAdapter
+from vhecfsck.adapters.qdrant_adapter import QdrantAdapter
 from vhecfsck.adapters.synthetic_adapter import SyntheticAdapter
 from vhecfsck.models import MetricSpace
 from vhecfsck.synthetic.generator import generate_corpus
@@ -77,11 +79,28 @@ def _synthetic_ivf_tombstoned() -> IndexAdapter:
     )
 
 
+def _qdrant_injected() -> IndexAdapter:
+    from tests.unit.test_qdrant_adapter import _FakeClient
+
+    return QdrantAdapter("qdrant://memory/col", client=_FakeClient(dim=8))
+
+
+def _postgres_injected() -> IndexAdapter:
+    from tests.unit.test_postgres_adapter import FakePostgres
+
+    return PostgresAdapter(
+        "postgres://alice:s3cret@localhost:5432/vectors?table=items&column=embedding",
+        connection=FakePostgres(dim=8, n=24),
+    )
+
+
 # Append new engines here only — the contract suite stays unmodified.
 ADAPTER_REGISTRY: list[tuple[str, AdapterFactory]] = [
     ("synthetic_exact", _synthetic_exact),
     ("synthetic_ivf", _synthetic_ivf),
     ("synthetic_ivf_tombstoned", _synthetic_ivf_tombstoned),
+    ("qdrant_injected", _qdrant_injected),
+    ("postgres_injected", _postgres_injected),
 ]
 
 

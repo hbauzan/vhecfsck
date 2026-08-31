@@ -40,11 +40,18 @@ lancedb = [
     "lancedb>=0.37.1",
     "pylance>=11.0.0",
 ]
-qdrant = []
-postgres = []
+qdrant = [
+    "qdrant-client>=1.12.0,<2",
+]
+postgres = [
+    "psycopg[binary]>=3.2",
+    "pgvector>=0.3",
+]
 server = []
 dev = []
-all = []
+all = [
+    "vhecfsck[lancedb,qdrant,postgres,server]",
+]
 
 [project.scripts]
 vhecfsck = "vhecfsck.cli:main"
@@ -194,7 +201,18 @@ disallow_untyped_defs = false
 check_untyped_defs = false
 
 [[tool.mypy.overrides]]
-module = ["fastapi", "fastapi.*", "uvicorn", "uvicorn.*"]
+module = [
+    "fastapi",
+    "fastapi.*",
+    "uvicorn",
+    "uvicorn.*",
+    "qdrant_client",
+    "qdrant_client.*",
+    "psycopg",
+    "psycopg.*",
+    "pgvector",
+    "pgvector.*",
+]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

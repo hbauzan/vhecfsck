@@ -63,6 +63,10 @@ def test_qdrant_and_postgres_resolve_class_without_sdk() -> None:
         resolve_class("postgres://u:p@localhost:5432/db?table=t&column=v")
         is PostgresAdapter
     )
+    assert (
+        resolve_class("postgresql://u:p@localhost:5432/db?table=t&column=v")
+        is PostgresAdapter
+    )
     if not before_q:
         assert "qdrant_client" not in sys.modules
     if not before_pg:

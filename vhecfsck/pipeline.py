@@ -481,11 +481,12 @@ def run_audit(
 
     def _dfi() -> MetricResult:
         th = effective.thresholds[DFI_METRIC_ID]
+        proxy = bool(caps.report_deleted_counts and not caps.deleted_counts_exact)
         return compute_dfi(
             counts,
             report_deleted_counts=caps.report_deleted_counts,
-            estimated=not counts.exact,
-            proxy=False,
+            estimated=(not counts.exact) or proxy,
+            proxy=proxy,
             warn=th.warn,
             fail=th.fail,
         )

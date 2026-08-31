@@ -73,8 +73,15 @@ class Report(BaseModel):
 
     @model_validator(mode="after")
     def _validate_no_secrets(self) -> Self:
-        """Reject fields containing secret tokens or credentials."""
-        serialized = str(self.model_dump_dict())
+        """Reject fields containing secret tokens or credentials.
+
+        ``redact_secrets`` rewrites passwords and query keys to the token
+        ``REDACTED``. That placeholder still matches ``user:pass@`` and
+        ``api_key=`` scanners, so strip it before scanning: a redacted
+        ``postgres://u:REDACTED@host`` location is allowed; a live password
+        is not.
+        """
+        serialized = str(self.model_dump_dict()).replace("REDACTED", "")
         for pat in _SECRET_PATTERNS:
             if pat.search(serialized):
                 msg = (
