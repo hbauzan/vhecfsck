@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- P7-08 Engine guides and capability matrix: published Qdrant engine guide (`docs/engines/qdrant.md`), pgvector engine guide (`docs/engines/pgvector.md`), and consolidated capability matrix (`docs/engines/capability-matrix.md`) detailing metric exactness, proxy estimates, and feature availability per engine. Updated `README.md` with `uv` extra installation commands and capability matrix links.
 - P7-06 HNSW graph statistics evaluation: documented unavailability of HNSW graph introspection APIs for Qdrant (v1.19.0) and pgvector (0.8.x) in `docs/engines/graph-stats.md`, and wired `adapter.graph_stats()` entrypoint_tombstoned escalation to DFI `FAIL` in the audit pipeline.
 - P7-01 container integration harness: session-scoped `testcontainers` fixtures for Qdrant and PostgreSQL+pgvector, pinned image tags, health-gated startup, and a shared deterministic seeder in `tests/` (ADR-0018: `testcontainers` in the `dev` group, not a product extra). On-demand: `uv run pytest tests/integration -q --no-cov`.
 - P8-08 hypothesis property-based fuzzing test suite (`tests/property/test_fuzz.py`) covering numeric core entry points, 3D projection, report schema deserialization, and binary scene codec. ADR-0017: `hypothesis` as a dev dependency.
