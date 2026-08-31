@@ -249,6 +249,20 @@ def audit(
             help="Path to custom audit configuration file.",
         ),
     ] = None,
+    dataset_version: Annotated[
+        int | None,
+        typer.Option(
+            "--dataset-version",
+            help="Dataset version/snapshot to pin for LanceDB.",
+        ),
+    ] = None,
+    column: Annotated[
+        str | None,
+        typer.Option(
+            "--column",
+            help="Vector column name for multi-vector datasets.",
+        ),
+    ] = None,
     no_progress: Annotated[
         bool,
         typer.Option(
@@ -279,6 +293,8 @@ def audit(
             only=only,
             skip=skip,
             config=config,
+            dataset_version=dataset_version,
+            column=column,
             no_progress=no_progress,
         )
     except VhecfsckError as exc:
@@ -305,6 +321,8 @@ def _audit_impl(
     only: str | None,
     skip: str | None,
     config: Path | None,
+    dataset_version: int | None,
+    column: str | None,
     no_progress: bool,
 ) -> None:
     raw_target = target_opt or target_pos
@@ -316,6 +334,15 @@ def _audit_impl(
                 "lance:///path/data.lance)."
             ),
         )
+
+    if dataset_version is not None or column is not None:
+        sep = "&" if "?" in raw_target else "?"
+        params = []
+        if dataset_version is not None:
+            params.append(f"dataset_version={dataset_version}")
+        if column is not None:
+            params.append(f"column={column}")
+        raw_target = f"{raw_target}{sep}{'&'.join(params)}"
 
     # 1. Handle metric selection (--only / --skip)
     metrics_enabled: dict[str, bool] | None = None
