@@ -48,3 +48,21 @@ Please include:
 We will acknowledge the report and coordinate disclosure. Ordinary bugs, false
 positives, and feature requests belong in the public issue templates — see
 [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Supply Chain & Dependency Policy
+
+`vhecfsck` enforces strict supply chain security standards for infrastructure environments:
+
+- **Lean Base Footprint**: Direct runtime dependencies are restricted to `numpy`, `pydantic`, and `typer`. Engine SDKs are optional extras (`[lancedb]`, `[qdrant]`, `[postgres]`).
+- **No Unapproved Dependencies**: Any new direct or transitive dependency requires an Architectural Decision Record (ADR) per Guardrail 2.
+- **Lockfile Enforcement**: Root `uv.lock` and `vhecfsck/web/package-lock.json` are committed to guarantee reproducible builds.
+- **Security Audits**:
+  - Python: `uv run pip-audit` (or `pip-audit`).
+  - Web UI: `npm audit --prefix vhecfsck/web`.
+  - Workflow: `.github/workflows/security.yml` (`workflow_dispatch` trigger).
+  - Dependabot: `.github/dependabot.yml` configured with grouped updates.
+- **Release Software Bill of Materials (SBOM)**:
+  - Release engineering (`P9-05`) generates an SPDX/CycloneDX SBOM using `syft` prior to release:
+    ```bash
+    uvx syft packages:. -o spdx-json=sbom.spdx.json
+    ```
