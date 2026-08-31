@@ -13,8 +13,8 @@ It must never:
 - run remediation commands on the operator's behalf
 
 This is enforced structurally (adapter protocol), statically (AST guards), at the
-session level where engines allow it, and empirically in tests. See
-[ADR-0001](roadmap/adr/0001-read-only-by-default.md).
+session level where engines allow it, and empirically in tests (`tests/integration/test_readonly_all.py`). See
+[ADR-0001](roadmap/adr/0001-read-only-by-default.md) and [docs/read-only.md](docs/read-only.md).
 
 **A hypothetical or observed write path is a security vulnerability**, not an
 ordinary bug. Do not file it as a public GitHub issue.
