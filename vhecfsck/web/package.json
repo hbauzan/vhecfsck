@@ -10,6 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:visual": "vitest run tests/visual",
+    "test:perf": "vitest run tests/perf",
     "lint": "eslint src/ tests/ --ext .ts",
     "format": "prettier --write \"src/**/*.{ts,html,css}\" \"tests/**/*.ts\""
   },

@@ -42,6 +42,7 @@ Requires [uv](https://docs.astral.sh/uv/) and Python ≥ 3.11. On macOS:
 ```bash
 ./setup.sh          # contributor panel: sync deps, run make verify when available
 make verify         # single quality gate
+make demo-gif       # regenerate docs/assets/vhecfsck-demo.gif
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).

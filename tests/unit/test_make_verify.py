@@ -36,6 +36,7 @@ def test_makefile_declares_required_targets() -> None:
         "clean:",
         "web-build:",
         "demo:",
+        "demo-gif:",
     ):
         assert target in text, f"Makefile missing target {target}"
 
