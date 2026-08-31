@@ -15,7 +15,7 @@ SLOW_MARKS ?= slow or integration or perf
 
 .DEFAULT_GOAL := help
 .PHONY: help verify verify-full lint format-check fmt typecheck test test-fast \
-        coverage layers readonly mutation web-build web-test web-test-e2e demo demo-gif clean
+        coverage layers readonly mutation web-build web-test web-test-e2e demo demo-gif calibrate clean
 
 help:  ## show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -98,6 +98,9 @@ demo:  ## local demo scenario (P3-05)
 
 demo-gif:  ## deterministic README GIF (P6-07)
 	uv run python scripts/record_demo.py
+
+calibrate:  ## P8-01 reference calibration (downloads public corpora on demand)
+	uv run python scripts/calibrate.py --profile reference --out docs/calibration
 
 clean:  ## remove caches and build artefacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache .coverage htmlcov dist build

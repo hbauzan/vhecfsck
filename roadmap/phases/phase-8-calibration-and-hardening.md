@@ -43,9 +43,9 @@ make verify-full     # includes slow, integration, perf, mutation testing
 - Output a committed CSV plus a short report per dataset, regenerable with one command.
 
 **Acceptance criteria**
-- [ ] Every reference dataset's licence permits this use and is recorded.
-- [ ] Healthy baselines published for all five metrics across all reference corpora.
-- [ ] Sampling sensitivity curves published for the hubness metrics.
+- [x] Every reference dataset's licence permits this use and is recorded.
+- [x] Healthy baselines published for all five metrics across all reference corpora.
+- [x] Sampling sensitivity curves published for the hubness metrics.
 
 ---
 

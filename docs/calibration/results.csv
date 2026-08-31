@@ -1,0 +1,16 @@
+kind,family,dataset_id,n,dimension,metric_space,index_kind,hubness_sample_size,k_hub,k,queries,n_lists,metric_id,state,value,unavailable_reason,evidence_strength,verdict,seed,profile
+baseline,gaussian,gaussian-16,1200,16,L2,IVF,1000,5,10,16,35,antihub_fraction,OK,0.139,,low,OK,1337,smoke
+baseline,gaussian,gaussian-16,1200,16,L2,IVF,1000,5,10,16,35,canary_recall,OK,0.9,,low,OK,1337,smoke
+baseline,gaussian,gaussian-16,1200,16,L2,IVF,1000,5,10,16,35,dfi,OK,0,,high,OK,1337,smoke
+baseline,gaussian,gaussian-16,1200,16,L2,IVF,1000,5,10,16,35,hub_share_top1pct,OK,0.0528,,low,OK,1337,smoke
+baseline,gaussian,gaussian-16,1200,16,L2,IVF,1000,5,10,16,35,partition_size_cv,OK,0.3601022231,,medium,OK,1337,smoke
+baseline,synthetic,synthetic-hubby,1218,16,L2,FLAT,1000,5,10,16,0,antihub_fraction,OK,0.11,,low,INCONCLUSIVE,1337,smoke
+baseline,synthetic,synthetic-hubby,1218,16,L2,FLAT,1000,5,10,16,0,canary_recall,OK,0.9,,low,INCONCLUSIVE,1337,smoke
+baseline,synthetic,synthetic-hubby,1218,16,L2,FLAT,1000,5,10,16,0,dfi,OK,0,,high,INCONCLUSIVE,1337,smoke
+baseline,synthetic,synthetic-hubby,1218,16,L2,FLAT,1000,5,10,16,0,hub_share_top1pct,OK,0.0532,,low,INCONCLUSIVE,1337,smoke
+baseline,synthetic,synthetic-hubby,1218,16,L2,FLAT,1000,5,10,16,0,partition_size_cv,UNAVAILABLE,,not_applicable,low,INCONCLUSIVE,1337,smoke
+baseline,synthetic,synthetic-tombstoned,780,16,L2,IVF,780,5,10,16,8,antihub_fraction,UNAVAILABLE,,|S|=780 < 1000 (hubness sample too small),low,FAIL,1337,smoke
+baseline,synthetic,synthetic-tombstoned,780,16,L2,IVF,780,5,10,16,8,canary_recall,WARN,0.59375,,low,FAIL,1337,smoke
+baseline,synthetic,synthetic-tombstoned,780,16,L2,IVF,780,5,10,16,8,dfi,FAIL,0.35,,high,FAIL,1337,smoke
+baseline,synthetic,synthetic-tombstoned,780,16,L2,IVF,780,5,10,16,8,hub_share_top1pct,UNAVAILABLE,,|S|=780 < 1000 (hubness sample too small),low,FAIL,1337,smoke
+baseline,synthetic,synthetic-tombstoned,780,16,L2,IVF,780,5,10,16,8,partition_size_cv,OK,0.3967322141,,medium,FAIL,1337,smoke

@@ -1,0 +1,3 @@
+family,dataset_id,n,dimension,hubness_sample_size,k_hub,hub_share_top1pct,hub_share_state,hub_share_reason,antihub_fraction,antihub_state,antihub_reason,seed,profile
+gaussian,gaussian-16,1200,16,1000,10,0.0544,OK,,0.054,OK,,1337,smoke
+gaussian,gaussian-16,1200,16,1000,5,0.0528,OK,,0.139,OK,,1337,smoke
