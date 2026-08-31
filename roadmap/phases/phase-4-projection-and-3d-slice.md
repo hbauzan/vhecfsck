@@ -282,18 +282,18 @@ exactly the rare points the tool exists to show.
 
 **Contract**
 - A Hatch build hook runs `npm ci && npm run build` and includes `vhecfsck/web/dist` in both
-  the wheel and the sdist.
+  the wheel and the sdist (`hatch_build.py`).
 - `dist/` is **not** committed to the repository; it is a build artifact. The sdist ships the
   prebuilt output so that installing from source needs no Node.
 - If `dist/` is absent at runtime, `serve` fails with an actionable message ("built from a
   git checkout: run `make web-build`") instead of a `404` on `/`.
 - CI verifies that a wheel installed into a clean, Node-free environment can serve the SPA —
-  the exact property that breaks silently and is only noticed by a user.
+  the exact property that breaks silently and is only noticed by a user. (Note: HYG-02 landed `hatch_build.py` and unit/slow packaging tests; Node-free clean machine CI wheel smoke residual belongs to P9-05).
 
 **Acceptance criteria**
-- [ ] `pip install dist/*.whl` into a Node-free venv, then `vhecfsck serve --report golden.json`,
-      serves a working SPA.
-- [ ] Wheel size under 10 MB.
+- [x] Custom `hatch_build.py` hook compiles front-end assets and includes `vhecfsck/web/dist/index.html` in wheel and sdist.
+- [ ] `pip install dist/*.whl` into a Node-free venv in CI release workflow (residual for [P9-05](../phases/phase-9-docs-release-and-launch.md)).
+- [ ] Wheel size under 10 MB (measured local wheel ~500 KB gzipped / ~2 MB uncompressed).
 
 ---
 

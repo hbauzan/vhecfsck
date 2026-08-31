@@ -38,6 +38,8 @@ See [roadmap/00-vision-and-scope.md](roadmap/00-vision-and-scope.md) and
 
 For a complete comparison of engine capabilities and metric exactness, see the [Consolidated Capability Matrix](docs/engines/capability-matrix.md).
 
+To run the 3D visualizer server (`vhecfsck serve`), users install `pip install "vhecfsck[server]"` (or `uv sync --extra server`); contributor checkouts include server dependencies automatically via `uv sync --group dev`.
+
 ## Status
 
 Pre-alpha status: P0–P7 complete in `main` (including Qdrant, pgvector, and LanceDB adapters, container harness, graph stats evaluation, issue guards `qdrant#7147`, `pgvector#244`, and `lance#4164`, engine guides, and capability matrix). Hardening tickets P8-08, P8-09, and P8-11 are done. Next critical path is P8-01 calibration. Note: `docs/assets/vhecfsck-demo.gif` is a 320×180 deterministic NumPy raster stand-in; the launch hero GIF and full launch README land in [P9-01](roadmap/phases/phase-9-docs-release-and-launch.md). The `qdrant#7147` integration test serves as a regression guard (aggregate vs. grouped recall contrast is unit-tested in `test_canary_groups.py`; launch P9-04 relies on `pgvector#244` and `lance#4164`).
