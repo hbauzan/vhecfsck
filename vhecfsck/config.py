@@ -54,6 +54,14 @@ DIMENSION_PROFILES: dict[str, dict[str, tuple[float, float, Direction]]] = {
     },
 }
 
+_SPEC_DELTA_THRESHOLD_TABLE: dict[str, tuple[float, float, Direction]] = {
+    "canary_recall": (-0.05, -0.10, "lower_is_worse"),
+    "hub_share_top1pct": (0.05, 0.10, "higher_is_worse"),
+    "antihub_fraction": (0.05, 0.10, "higher_is_worse"),
+    "dfi": (0.05, 0.10, "higher_is_worse"),
+    "partition_size_cv": (0.20, 0.40, "higher_is_worse"),
+}
+
 _METRIC_IDS: tuple[str, ...] = tuple(_SPEC_THRESHOLD_TABLE)
 
 
@@ -99,6 +107,16 @@ def _default_thresholds() -> dict[str, Threshold]:
 
 
 DEFAULT_THRESHOLDS: Mapping[str, Threshold] = _default_thresholds()
+
+
+def _default_delta_thresholds() -> dict[str, Threshold]:
+    return {
+        metric_id: Threshold(warn=warn, fail=fail, direction=direction)
+        for metric_id, (warn, fail, direction) in _SPEC_DELTA_THRESHOLD_TABLE.items()
+    }
+
+
+DEFAULT_DELTA_THRESHOLDS: Mapping[str, Threshold] = _default_delta_thresholds()
 
 
 def get_profile_name_for_dimension(dimension: int) -> str:
@@ -168,10 +186,14 @@ class AuditConfig:
     group_by: str | None = None
     filter_field: str | None = None
     filter_value: str | None = None
+    gate_mode: str = "both"
     metrics_enabled: Mapping[str, bool] = field(
         default_factory=_default_metrics_enabled
     )
     thresholds: Mapping[str, Threshold] = field(default_factory=_default_thresholds)
+    delta_thresholds: Mapping[str, Threshold] = field(
+        default_factory=_default_delta_thresholds
+    )
 
     def to_dict(self) -> dict[str, Any]:
         """Serialise the effective config for embedding in the report."""
@@ -179,6 +201,10 @@ class AuditConfig:
         data["thresholds"] = {
             key: value.to_dict() if isinstance(value, Threshold) else value
             for key, value in self.thresholds.items()
+        }
+        data["delta_thresholds"] = {
+            key: value.to_dict() if isinstance(value, Threshold) else value
+            for key, value in self.delta_thresholds.items()
         }
         data["metrics_enabled"] = dict(self.metrics_enabled)
         return data
@@ -199,6 +225,7 @@ _SCALAR_KEYS = frozenset(
         "group_by",
         "filter_field",
         "filter_value",
+        "gate_mode",
     }
 )
 
@@ -275,6 +302,7 @@ def _apply_mapping(
 ) -> AuditConfig:
     kwargs: dict[str, Any] = {}
     thresholds = dict(cfg.thresholds)
+    delta_thresholds = dict(cfg.delta_thresholds)
     metrics_enabled = dict(cfg.metrics_enabled)
 
     for key, value in updates.items():
@@ -285,6 +313,14 @@ def _apply_mapping(
                     hint="Example: [vhecfsck.thresholds.canary_recall]",
                 )
             thresholds = _merge_thresholds(thresholds, value, source=source)
+            continue
+        if key == "delta_thresholds":
+            if not isinstance(value, dict):
+                raise UsageError(
+                    f"delta_thresholds in {source} must be a table",
+                    hint="Example: [vhecfsck.delta_thresholds.canary_recall]",
+                )
+            delta_thresholds = _merge_thresholds(delta_thresholds, value, source=source)
             continue
         if key in {"metrics_enabled", "metrics"}:
             if not isinstance(value, dict):
@@ -311,6 +347,8 @@ def _apply_mapping(
 
     if thresholds != cfg.thresholds:
         kwargs["thresholds"] = thresholds
+    if delta_thresholds != cfg.delta_thresholds:
+        kwargs["delta_thresholds"] = delta_thresholds
     if metrics_enabled != cfg.metrics_enabled:
         kwargs["metrics_enabled"] = metrics_enabled
     return replace(cfg, **kwargs) if kwargs else cfg

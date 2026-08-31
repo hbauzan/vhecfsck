@@ -94,6 +94,7 @@ _COVERAGE_TARGETS = (
     "tests/e2e/test_cli_serve.py",
     "tests/unit/test_build_hook.py",
     "tests/unit/test_calibration_harness.py",
+    "tests/unit/test_baseline.py",
 )
 
 # Nightly core-floor subprocess (P0-04 / lesson 35). Keep in sync with
@@ -126,6 +127,7 @@ _CORE_COVERAGE_TARGETS = (
     "tests/unit/test_qdrant_adapter.py",
     "tests/unit/test_postgres_adapter.py",
     "tests/unit/test_calibration_harness.py",
+    "tests/unit/test_baseline.py",
 )
 
 _COVERAGE_SCAN_SKIP = frozenset(
