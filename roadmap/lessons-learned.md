@@ -26,6 +26,7 @@ las dos por reflejo.
 **P6 completo** en `main` (P6-01…P6-09 — progressive LOD, live
 progress, query probe, partition views, tombstone layer, camera tour, README GIF,
 accessible palettes, visual regression).
+**Playwright Visualizer E2E slice completo** en `main` (WebGL2, screenshot regression, WS resilience, probe interaction, axe accessibility, colour-by baselines).
 **Próximo critical path:** **P7** (Qdrant / pgvector) unless the owner reorders.
 **HEAD de referencia al handoff:** `main` after P6 (branched from `4d93e20`).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
@@ -418,6 +419,16 @@ fps is P8-04's job. Progressive chunks reuse one projection (`AssembledScene`).
 **Invariant:** Never invent tombstone coordinates. Never write a frame-rate into docs
 that nobody measured. Front end renders buffers computed in `core/`; it does not
 derive metrics.
+
+---
+
+## 45. Playwright E2E browser tests are dev-only and isolated from `make verify`
+
+**Problem:** Including a browser test runner in `make verify` or committing `dist/` outputs causes merge inflation, slow gate times, or Node runtime requirements for Python users.
+
+**Solution:** Playwright + `@axe-core/playwright` tests live in `vhecfsck/web/tests/e2e/*.spec.ts` with `testMatch: '**/*.spec.ts'` in `playwright.config.ts`. They run via `npm --prefix vhecfsck/web run test:e2e` (`make web-test-e2e`). Python gate `make verify` remains browser-free and fast.
+
+**Invariant:** Playwright tests are strictly devDependencies. `make verify` does not invoke the browser.
 
 ---
 

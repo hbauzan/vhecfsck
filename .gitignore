@@ -45,6 +45,10 @@ yarn-error.log*
 dist-web/
 *.tsbuildinfo
 .vite/
+playwright-report/
+test-results/
+vhecfsck/web/playwright-report/
+vhecfsck/web/test-results/
 
 # Editors / local
 .idea/
