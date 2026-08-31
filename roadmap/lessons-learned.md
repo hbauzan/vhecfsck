@@ -22,9 +22,12 @@ las dos por reflejo.
 **P2 completo** en `main` (P2-01…P2-11 `done`).
 **P3 completo** en `main` (P3-01…P3-09 `done`).
 **P4 completo** en `main` (P4-01…P4-11 `done` — 3D projection, binary transport, FastAPI server, SPA visualizer).
-**P5 completo** en `main` (P5-01…P5-10 `done` — dataset discovery, snapshot version pinning, deletion accounting, vector streaming, native search, IVF partition introspection, read-only harness, compatibility matrix, lance#4164 repro, user guide).
-**Próximo critical path:** **P6-01** (Scale to a 1M-point corpus) → P6-02…P6-09 (Visualizer depth).
-**HEAD de referencia al handoff:** merge de `feat/p5-lancedb-adapter` en `main` (`make verify` verde: 475 tests Python + 5 vitest tests).
+**P5 completo** en `main` (P5-01…P5-10 `done` — LanceDB adapter).
+**P6 completo** en `main` (P6-01…P6-09 — progressive LOD, live
+progress, query probe, partition views, tombstone layer, camera tour, README GIF,
+accessible palettes, visual regression).
+**Próximo critical path:** **P7** (Qdrant / pgvector) unless the owner reorders.
+**HEAD de referencia al handoff:** `main` after P6 (branched from `4d93e20`).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + coverage + layers + readonly). `coverage` is the suite; `make test` is the inner loop.
@@ -398,6 +401,23 @@ because `main` was updated. Do not invent a fourth command for “related tests�
 **Solution:** In `tests/integration/test_readonly_lancedb.py` (P5-07), `DirectorySnapshot` records size, mtime, and SHA-256 for all files. Additionally, the audit runs against a dataset mounted read-only (`chmod -R a-w`).
 
 **Invariant:** File-backed engine read-only tests must combine hash/mtime snapshot diffing with a `chmod -R a-w` read-only mount execution.
+
+---
+
+## 44. Visualizer never fabricates tombstone positions; fps is not a guessed constant
+
+**Problem:** A translucent grey cloud of "deleted" points that nobody read would look
+exactly like evidence. Asserting "60 fps" in docs without a named-machine measurement
+would violate the empirical-metrics rule the same way.
+
+**Solution:** `resolve_tombstone_layer` plus `assert_no_fabricated_tombstones` refuse to
+emit class=TOMBSTONE points unless coordinates were actually read. The display budget
+lives in `core.lod`; `docs/perf/visualizer.md` records the constant and that wall-clock
+fps is P8-04's job. Progressive chunks reuse one projection (`AssembledScene`).
+
+**Invariant:** Never invent tombstone coordinates. Never write a frame-rate into docs
+that nobody measured. Front end renders buffers computed in `core/`; it does not
+derive metrics.
 
 ---
 

@@ -15,7 +15,7 @@ SLOW_MARKS ?= slow or integration or perf
 
 .DEFAULT_GOAL := help
 .PHONY: help verify verify-full lint format-check fmt typecheck test test-fast \
-        coverage layers readonly mutation web-build demo clean
+        coverage layers readonly mutation web-build demo demo-gif clean
 
 help:  ## show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -87,7 +87,10 @@ web-test:  ## front-end unit tests (P4-07)
 	fi
 
 demo:  ## local demo scenario (P3-05)
-	@echo "demo: deferred to P3-05 (stub ok)"
+	uv run vhecfsck demo
+
+demo-gif:  ## deterministic README GIF (P6-07)
+	uv run python scripts/record_demo.py
 
 clean:  ## remove caches and build artefacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache .coverage htmlcov dist build

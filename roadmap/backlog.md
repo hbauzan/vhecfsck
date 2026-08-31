@@ -116,15 +116,15 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| P6-01 | Scale to a 1M-point corpus | L | P4-03, P4-08 | todo |
-| P6-02 | Live audit progress | M | P4-05 | todo |
-| P6-03 | Interactive query probe | L | P6-01 | todo |
-| P6-04 | Partition and distribution views | M | P6-01 | todo |
-| P6-05 | Tombstone layer | M | P6-01 | todo |
-| P6-06 | Camera presets and guided tour | M | P6-04, P6-05 | todo |
-| P6-07 | Deterministic capture for the README asset | M | P6-06 | todo |
-| P6-08 | Accessibility and palette review | S | P6-04 | todo |
-| P6-09 | Expanded visual regression coverage | M | P6-04, P6-05, P6-08 | todo |
+| P6-01 | Scale to a 1M-point corpus | L | P4-03, P4-08 | done |
+| P6-02 | Live audit progress | M | P4-05 | done |
+| P6-03 | Interactive query probe | L | P6-01 | done |
+| P6-04 | Partition and distribution views | M | P6-01 | done |
+| P6-05 | Tombstone layer | M | P6-01 | done |
+| P6-06 | Camera presets and guided tour | M | P6-04, P6-05 | done |
+| P6-07 | Deterministic capture for the README asset | M | P6-06 | done |
+| P6-08 | Accessibility and palette review | S | P6-04 | done |
+| P6-09 | Expanded visual regression coverage | M | P6-04, P6-05, P6-08 | done |
 
 ## P7 — Qdrant and pgvector adapters · [phase file](phases/phase-7-qdrant-and-pgvector-adapters.md)
 

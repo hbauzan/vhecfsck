@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import numpy as np
+import pytest
 from vhecfsck.models.scene import LodMetadata, PointClass, ScenePayload
 from vhecfsck.report.scene_codec import (
     decode_scene_binary,
@@ -86,3 +87,90 @@ def test_scene_codec_json_debug_format() -> None:
     assert len(parsed["positions"]) == 20
     assert len(parsed["classes"]) == 20
     assert len(parsed["ids"]) == 20
+
+
+# --- P6 header extensions ----------------------------------------------------
+
+
+def _header(binary: bytes) -> dict:
+    header_len = int(np.frombuffer(binary[:4], dtype=np.uint32)[0])
+    return json.loads(binary[4 : 4 + header_len].decode("utf-8"))
+
+
+def test_header_names_the_active_palette_and_ships_every_palette() -> None:
+    """The legend must always be able to state which palette is active."""
+    header = _header(encode_scene_binary(_make_sample_scene(), palette="deuteranopia"))
+
+    assert header["palette"] == "deuteranopia"
+    assert header["legend"]["HUB"] == "#D55E00"
+    assert set(header["palettes"]) == {"default", "deuteranopia"}
+    assert header["palettes"]["default"]["HUB"] == "#FF4D4D"
+
+
+def test_header_ships_the_non_hue_channels() -> None:
+    header = _header(encode_scene_binary(_make_sample_scene()))
+
+    assert len(set(header["markers"].values())) == len(PointClass)
+    assert header["size_scale"]["HUB"] > header["size_scale"]["HEALTHY"]
+
+
+def test_header_carries_chunk_position_and_tombstone_verdict() -> None:
+    scene = _make_sample_scene()
+    chunked = ScenePayload(
+        positions=scene.positions,
+        classes=scene.classes,
+        ids=scene.ids,
+        lod=LodMetadata(
+            requested_budget=200,
+            actual_count=20,
+            decimation_method="class-stratified+voxel-grid",
+            complete=False,
+            has_tombstones=False,
+            chunk_index=2,
+            chunk_count=5,
+            total_available=1_000_000,
+            tombstone_count=4_812,
+            tombstone_reason="count only",
+        ),
+    )
+
+    decoded = decode_scene_binary(encode_scene_binary(chunked))
+
+    assert decoded.lod == chunked.lod
+
+
+def test_distance_to_centroid_buffer_round_trips() -> None:
+    scene = _make_sample_scene()
+    with_distance = ScenePayload(
+        positions=scene.positions,
+        classes=scene.classes,
+        ids=scene.ids,
+        lod=scene.lod,
+        dist_centroid=np.linspace(0.0, 1.0, 20).astype(np.float32),
+    )
+
+    decoded = decode_scene_binary(encode_scene_binary(with_distance))
+
+    assert decoded.dist_centroid is not None
+    assert decoded.dist_centroid.tobytes() == with_distance.dist_centroid.tobytes()
+
+
+def test_absent_optional_buffers_stay_absent() -> None:
+    scene = _make_sample_scene()
+    bare = ScenePayload(
+        positions=scene.positions,
+        classes=scene.classes,
+        ids=scene.ids,
+        lod=scene.lod,
+    )
+
+    decoded = decode_scene_binary(encode_scene_binary(bare))
+
+    assert decoded.partition_id is None
+    assert decoded.nk is None
+    assert decoded.dist_centroid is None
+
+
+def test_an_unknown_palette_is_rejected_rather_than_silently_defaulted() -> None:
+    with pytest.raises(KeyError, match="deuteranopia"):
+        encode_scene_binary(_make_sample_scene(), palette="chartreuse")
