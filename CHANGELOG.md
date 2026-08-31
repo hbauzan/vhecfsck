@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- P8-09 Error message audit: table-driven error message test suite (`tests/e2e/test_error_messages.py`) dynamically auditing all `VhecfsckError` subclasses to enforce non-empty distinct human hints, unique machine codes, valid exit codes, descriptive `UNAVAILABLE` reasons, and credential redaction safety. Added default hints to error taxonomy classes in `vhecfsck/errors.py`.
 - P7-08 Engine guides and capability matrix: published Qdrant engine guide (`docs/engines/qdrant.md`), pgvector engine guide (`docs/engines/pgvector.md`), and consolidated capability matrix (`docs/engines/capability-matrix.md`) detailing metric exactness, proxy estimates, and feature availability per engine. Updated `README.md` with `uv` extra installation commands and capability matrix links.
 - P7-06 HNSW graph statistics evaluation: documented unavailability of HNSW graph introspection APIs for Qdrant (v1.19.0) and pgvector (0.8.x) in `docs/engines/graph-stats.md`, and wired `adapter.graph_stats()` entrypoint_tombstoned escalation to DFI `FAIL` in the audit pipeline.
 - P7-01 container integration harness: session-scoped `testcontainers` fixtures for Qdrant and PostgreSQL+pgvector, pinned image tags, health-gated startup, and a shared deterministic seeder in `tests/` (ADR-0018: `testcontainers` in the `dev` group, not a product extra). On-demand: `uv run pytest tests/integration -q --no-cov`.

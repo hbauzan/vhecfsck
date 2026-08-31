@@ -29,11 +29,12 @@ class VhecfsckError(Exception):
 
     exit_code: ExitCode = ExitCode.INTERNAL
     code: str = "internal"
+    default_hint: str = "Consult documentation or re-run with --debug for details."
 
     def __init__(self, message: str, *, hint: str = "") -> None:
         """Attach a human hint alongside the exception message."""
         super().__init__(message)
-        self.hint: Final[str] = hint
+        self.hint: Final[str] = hint or getattr(self, "default_hint", "")
 
     @property
     def message(self) -> str:
@@ -46,6 +47,9 @@ class UsageError(VhecfsckError):
 
     exit_code = ExitCode.USAGE
     code = "usage"
+    default_hint = (
+        "Check CLI usage and flags with --help, or consult the documentation."
+    )
 
 
 class TargetConnectionError(VhecfsckError):
@@ -53,6 +57,10 @@ class TargetConnectionError(VhecfsckError):
 
     exit_code = ExitCode.USAGE
     code = "target_connection"
+    default_hint = (
+        "Verify target URI syntax, hostname reachability, service status, "
+        "and credentials."
+    )
 
 
 class CapabilityError(VhecfsckError):
@@ -60,6 +68,9 @@ class CapabilityError(VhecfsckError):
 
     exit_code = ExitCode.INCONCLUSIVE
     code = "capability"
+    default_hint = (
+        "Verify target engine version, required engine extras, and role privileges."
+    )
 
 
 class InconclusiveError(VhecfsckError):
@@ -67,6 +78,9 @@ class InconclusiveError(VhecfsckError):
 
     exit_code = ExitCode.INCONCLUSIVE
     code = "inconclusive"
+    default_hint = (
+        "Verify audit config, increase sample size/queries, or adjust thresholds."
+    )
 
 
 class InternalError(VhecfsckError):
@@ -74,6 +88,10 @@ class InternalError(VhecfsckError):
 
     exit_code = ExitCode.INTERNAL
     code = "internal"
+    default_hint = (
+        "Re-run with --debug for a traceback and report an issue at "
+        "https://github.com/hbauzan/vhecfsck/issues"
+    )
 
 
 def abort(code: ExitCode) -> None:
