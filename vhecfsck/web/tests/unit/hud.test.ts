@@ -71,6 +71,10 @@ describe('ReportHud', () => {
     const mockScene = {
       n_points: 100,
       legend: { HEALTHY: '#808080' },
+      palette: 'default',
+      palettes: { default: { HEALTHY: '#808080' } },
+      markers: { HEALTHY: 0 },
+      size_scale: { HEALTHY: 1 },
       lod: {
         requested_budget: 200000,
         actual_count: 100,

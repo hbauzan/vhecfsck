@@ -32,6 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Phase 6 Visualizer Depth (P6-01..P6-09): progressive LOD chunking for 1M-point corpora
+  (`GET /api/scene?budget=&chunk=`), live audit progress (`WS`/`GET /api/progress`),
+  interactive query probe (`POST /api/probe`) with hub cannibalisation, colour-by
+  partition/nk/distance views and canvas histograms, tombstone layer that never
+  fabricates positions, report-derived camera presets and a frame-deterministic
+  guided tour, `make demo-gif` README capture, deuteranopia palette plus marker/size
+  encoding, and expanded visual regression coverage. The SPA still computes no metric.
+
 - Phase 5 LanceDB Adapter (P5-01..P5-10 complete): Read-only `LanceDBAdapter` for Lance / LanceDB datasets (`vhecfsck/adapters/lancedb_adapter.py`). Features dataset discovery and descriptor construction (P5-01), immutable snapshot version pinning `--dataset-version N` (P5-02), exact per-fragment deletion accounting (P5-03), vector streaming scan and random access `_rowid` lookup with float16-to-float32 upcasting (P5-04), native k-NN batched search with `nprobe`/`refine_factor` effective parameter propagation (P5-05), IVF cell partition introspection (P5-06), generic read-only verification harness with SHA-256/mtime tree snapshotting and `chmod -R a-w` read-only mount verification (`tests/integration/test_readonly_lancedb.py`, P5-07), version compatibility matrix checking with one-time runtime warning (P5-08), automated reproduction test for `lancedb/lance#4164` unindexed appended data pathology (`tests/integration/test_repro_lance_4164.py`, `docs/scenarios/lance-4164.md`, P5-09), and LanceDB user guide documentation (`docs/engines/lancedb.md`, P5-10).
 
 - Phase 4 SPA Front-End Visualizer (`vhecfsck/web/`): Vite + TypeScript scaffold,

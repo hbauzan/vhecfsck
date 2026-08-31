@@ -29,6 +29,6 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     globals: true,
-    include: ['tests/unit/**/*.test.ts']
+    include: ['tests/unit/**/*.test.ts', 'tests/visual/**/*.test.ts', 'tests/perf/**/*.test.ts']
   }
 });

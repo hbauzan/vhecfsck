@@ -44,6 +44,7 @@ from vhecfsck.models import (
 from vhecfsck.models.report import SCHEMA_VERSION, Report, RunContext
 
 ProgressCallback = Callable[[str, float], None]
+MetricCallback = Callable[[MetricResult], None]
 ExactKnnFn = Callable[..., KnnResult]
 _StageT = TypeVar("_StageT")
 
@@ -231,9 +232,10 @@ def _run_metric(
     *,
     config: AuditConfig,
     enabled: bool,
+    on_metric: MetricCallback | None = None,
 ) -> MetricResult:
     if not enabled:
-        return MetricResult(
+        result = MetricResult(
             id=metric_id,
             state=MetricState.DISABLED,
             value=None,
@@ -243,14 +245,18 @@ def _run_metric(
             detail={},
             evidence_strength=EvidenceStrength.LOW,
         )
-    try:
-        return fn()
-    except Exception as exc:
-        return _unavailable_metric(
-            metric_id,
-            f"{type(exc).__name__}: {exc}",
-            config=config,
-        )
+    else:
+        try:
+            result = fn()
+        except Exception as exc:
+            result = _unavailable_metric(
+                metric_id,
+                f"{type(exc).__name__}: {exc}",
+                config=config,
+            )
+    if on_metric is not None:
+        on_metric(result)
+    return result
 
 
 def _collect_warnings(
@@ -283,6 +289,7 @@ def run_audit(
     *,
     search_params: SearchParams | None = None,
     on_progress: ProgressCallback | None = None,
+    on_metric: MetricCallback | None = None,
     exact_knn_fn: ExactKnnFn | None = None,
 ) -> Report:
     """Run a full audit and return a versioned :class:`Report`.
@@ -291,6 +298,9 @@ def run_audit(
     ----------
     search_params:
         Engine knobs forwarded to ``adapter.search`` (IVF nprobe, etc.).
+    on_metric:
+        Called once per metric as soon as it resolves, so a live feed can
+        paint values incrementally rather than all at once at the end.
     exact_knn_fn:
         Injectable ground-truth backend (defaults to ``exact_knn``). Tests
         may replace this to count invocations.
@@ -405,6 +415,7 @@ def run_audit(
         _canary,
         config=effective,
         enabled=effective.metrics_enabled.get(CANARY_METRIC_ID, True),
+        on_metric=on_metric,
     )
 
     _emit_progress(on_progress, "hubness", 0.55)
@@ -454,12 +465,14 @@ def run_audit(
         lambda: _hubness_once()[0],
         config=effective,
         enabled=effective.metrics_enabled.get(HUB_SHARE_METRIC_ID, True),
+        on_metric=on_metric,
     )
     antihub = _run_metric(
         ANTIHUB_METRIC_ID,
         lambda: _hubness_once()[1],
         config=effective,
         enabled=effective.metrics_enabled.get(ANTIHUB_METRIC_ID, True),
+        on_metric=on_metric,
     )
 
     _emit_progress(on_progress, "dfi", 0.7)
@@ -482,6 +495,7 @@ def run_audit(
         _dfi,
         config=effective,
         enabled=effective.metrics_enabled.get(DFI_METRIC_ID, True),
+        on_metric=on_metric,
     )
 
     _emit_progress(on_progress, "partitions", 0.85)
@@ -502,6 +516,7 @@ def run_audit(
         _partitions,
         config=effective,
         enabled=effective.metrics_enabled.get(PARTITION_CV_METRIC_ID, True),
+        on_metric=on_metric,
     )
 
     metrics = (canary, hub_share, antihub, dfi, partition_cv)
