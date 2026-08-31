@@ -28,9 +28,9 @@ progress, query probe, partition views, tombstone layer, camera tour, README GIF
 accessible palettes, visual regression).
 **Playwright Visualizer E2E slice completo** en `main` (WebGL2, screenshot regression, WS resilience, probe interaction, axe accessibility, colour-by baselines).
 **P7 completo** en `main` (P7-01…P7-08 `done` — container harness, Qdrant/Postgres adapters, qdrant#7147, pgvector#244, graph stats UNAVAILABLE, lance#4164, engine matrix & guides).
-**P8-08 / P8-09 / P8-11** `done` en `main` (fuzzing, error message audit, security hardening).
-**Próximo critical path:** **P8-01** (calibración).
-**HEAD de referencia al handoff:** `main` post HYG-02 (HYG-03 cierra residuals de HYG-01/02 en rama `fix/hyg-03-gate-and-hook`).
+**P8-01 / P8-02 / P8-08 / P8-09 / P8-11** `done` en `main` (calibration harness, dimension-aware threshold profiles, fuzzing, error audit, security review).
+**Próximo critical path:** **P8-03** (baseline y delta mode).
+**HEAD de referencia al handoff:** `main` post P8-02 (commit `d8f03cb`).
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + coverage + layers + readonly). `coverage` is the suite; `make test` is the inner loop.
@@ -491,6 +491,16 @@ derive metrics.
 **Solution:** `tests/integration/conftest.py` drops `not integration` from `markexpr` when every arg is under that directory. No Docker → skip with an actionable message; `CI` / `GITHUB_ACTIONS` → `pytest.fail`. Images pinned in `tests/integration/containers.py`; wait strategies, not `sleep`. `SeedPlan` in `tests/integration/seeding.py` is shared. `CREATE EXTENSION vector` **before** `register_vector`. The session Postgres fixture exports `VHECFSCK_POSTGRES_DSN` so DSN-gated tests in that directory run against the throwaway server.
 
 **Invariant:** `testcontainers` is `dev` (ADR-0018), never a product extra. Do not bind fixed host ports. Do not put churn SQL in `adapters/` or `core/`.
+
+---
+
+## 52. Hubness & partition variance scale with dimension d
+
+**Problem:** Absolute static thresholds for `hub_share_top1pct` (0.20) and `antihub_fraction` (0.25) derived from source specs produce 100% false-positive rates on isotropic Gaussian controls for $d \ge 128$ because hubness naturally increases with dimension $d$.
+
+**Solution:** In `vhecfsck/config.py`, threshold resolution applies per-dimensionality profiles (`low` $d \le 64$, `medium` $d \le 384$, `high` $d \le 1024$, `ultra_high` $d > 1024$). `vhecfsck/pipeline.py` calls `resolve_thresholds_for_dimension(effective, dimension)` while strictly preserving explicit user overrides (`AuditConfig.thresholds`). Measurements and error analyses are documented in `docs/calibration/thresholds.md` and ADR-0011.
+
+**Invariant:** Never compare hubness metrics across different dimensions or sample sizes without applying dimension-calibrated profiles or checking comparability rules (`P8-03`).
 
 ---
 
