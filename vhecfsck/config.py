@@ -96,6 +96,9 @@ class AuditConfig:
     max_memory_mb: float | None = None  # no memory cap until CLI sets one
     block_working_set_mb: int = 256  # architecture §5 (~256 MB blocks)
     strict_unavailable: bool = False
+    group_by: str | None = None
+    filter_field: str | None = None
+    filter_value: str | None = None
     metrics_enabled: Mapping[str, bool] = field(
         default_factory=_default_metrics_enabled
     )
@@ -124,6 +127,9 @@ _SCALAR_KEYS = frozenset(
         "max_memory_mb",
         "block_working_set_mb",
         "strict_unavailable",
+        "group_by",
+        "filter_field",
+        "filter_value",
     }
 )
 

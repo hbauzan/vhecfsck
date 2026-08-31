@@ -91,6 +91,17 @@ def postgres_service() -> Iterator[object]:
                 os.environ["VHECFSCK_POSTGRES_DSN"] = previous
 
 
+@pytest.fixture
+def postgres_repro_service() -> Iterator[object]:
+    """Dedicated pgvector container for P7-05 dead-tuple churn.
+
+    Extra server so autovacuum-off UPDATE/DELETE does not contaminate the
+    session fixture used by catalog/readonly tests (lesson 50).
+    """
+    with postgres_container_session() as service:
+        yield service
+
+
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:

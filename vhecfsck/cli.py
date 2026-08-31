@@ -59,6 +59,23 @@ _DEBUG = False
 _QUIET = False
 
 
+def parse_filter_option(raw: str) -> tuple[str, str]:
+    """Parse ``--filter field=value`` into a payload equality clause."""
+    if "=" not in raw:
+        raise UsageError(
+            f"invalid --filter {raw!r}",
+            hint="Expected field=value, e.g. --filter tenant_id=t0",
+        )
+    key, _, value = raw.partition("=")
+    key, value = key.strip(), value.strip()
+    if not key or not value:
+        raise UsageError(
+            f"invalid --filter {raw!r}",
+            hint="Expected field=value, e.g. --filter tenant_id=t0",
+        )
+    return key, value
+
+
 class FormatChoice(str, Enum):
     """Output format choices for audit report."""
 
@@ -270,6 +287,20 @@ def audit(
             help="Disable progress reporting to stderr.",
         ),
     ] = False,
+    filter_clause: Annotated[
+        str | None,
+        typer.Option(
+            "--filter",
+            help="Restrict canary recall to payload equality (field=value).",
+        ),
+    ] = None,
+    group_by: Annotated[
+        str | None,
+        typer.Option(
+            "--group-by",
+            help="Per-group canary breakdown on a payload field.",
+        ),
+    ] = None,
 ) -> None:
     """Perform a topological health audit on a vector index target."""
     try:
@@ -296,6 +327,8 @@ def audit(
             dataset_version=dataset_version,
             column=column,
             no_progress=no_progress,
+            filter_clause=filter_clause,
+            group_by=group_by,
         )
     except VhecfsckError as exc:
         abort(handle_uncaught(exc, debug=_DEBUG))
@@ -324,6 +357,8 @@ def _audit_impl(
     dataset_version: int | None,
     column: str | None,
     no_progress: bool,
+    filter_clause: str | None = None,
+    group_by: str | None = None,
 ) -> None:
     raw_target = target_opt or target_pos
     if not raw_target:
@@ -399,6 +434,19 @@ def _audit_impl(
         cli_overrides["strict_unavailable"] = strict_unavailable
     if metrics_enabled is not None:
         cli_overrides["metrics_enabled"] = metrics_enabled
+    if group_by is not None:
+        cli_overrides["group_by"] = group_by.strip()
+    if filter_clause is not None:
+        field, value = parse_filter_option(filter_clause)
+        cli_overrides["filter_field"] = field
+        cli_overrides["filter_value"] = value
+    if group_by is not None and filter_clause is not None:
+        raise UsageError(
+            "cannot combine --filter and --group-by",
+            hint=(
+                "Use --filter for one payload equality, or --group-by for a breakdown."
+            ),
+        )
 
     effective_config = load_config(config_path=config, cli_overrides=cli_overrides)
 

@@ -12,9 +12,10 @@ import time
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
-from typing import TypeVar
+from typing import TypeVar, cast
 
 import numpy as np
+from numpy.random import default_rng
 from numpy.typing import NDArray
 
 from vhecfsck import __version__
@@ -283,6 +284,44 @@ def _collect_warnings(
     return tuple(unique)
 
 
+def _payload_map(adapter: IndexAdapter, field: str) -> dict[int, object] | None:
+    fn = getattr(adapter, "payload_values", None)
+    if not callable(fn):
+        return None
+    return {int(key): value for key, value in dict(fn(field)).items()}
+
+
+def _values_match(left: object, right: object) -> bool:
+    if left == right or str(left) == str(right):
+        return True
+    try:
+        return int(str(left)) == int(str(right))
+    except ValueError:
+        return False
+
+
+def _ids_with_value(labels: dict[int, object], value: object) -> NDArray[np.int64]:
+    matched = sorted(i for i, v in labels.items() if _values_match(v, value))
+    if not matched:
+        return np.empty(0, dtype=np.int64)
+    return np.ascontiguousarray(np.array(matched, dtype=np.int64))
+
+
+def _sample_id_subset(ids: NDArray[np.int64], n: int, seed: int) -> NDArray[np.int64]:
+    if ids.shape[0] == 0 or n < 1:
+        return np.empty(0, dtype=np.int64)
+    take = min(int(n), int(ids.shape[0]))
+    if take == int(ids.shape[0]):
+        return np.ascontiguousarray(ids)
+    rng = default_rng(seed)
+    chosen = rng.choice(ids, size=take, replace=False)
+    return np.ascontiguousarray(np.asarray(chosen, dtype=np.int64))
+
+
+def _filter_spec(field: str, value: object) -> dict[str, object]:
+    return {"key": field, "value": value}
+
+
 def run_audit(
     adapter: IndexAdapter,
     config: AuditConfig,
@@ -345,7 +384,33 @@ def run_audit(
         warnings.append("sampling_degraded_for_memory_budget")
 
     _emit_progress(on_progress, "queries", 0.1)
+    caps = adapter.capabilities
+    group_by = effective.group_by
+    filter_field = effective.filter_field
+    filter_value = effective.filter_value
+    if group_by and (filter_field is not None or filter_value is not None):
+        raise UsageError(
+            "cannot combine --filter and --group-by",
+            hint=(
+                "Use --filter for one payload equality, or --group-by for a breakdown."
+            ),
+        )
+
     query_ids = adapter.sample_ids(effective.queries, seed=effective.seed)
+    filter_keep: frozenset[int] | None = None
+    if filter_field:
+        if not caps.filtered_search:
+            warnings.append("filter_ignored_filtered_search_unsupported")
+        else:
+            labels = _payload_map(adapter, filter_field)
+            if labels is None:
+                warnings.append("filter_ignored_payload_unavailable")
+            else:
+                keep_arr = _ids_with_value(labels, filter_value)
+                filter_keep = frozenset(int(i) for i in keep_arr.tolist())
+                query_ids = _sample_id_subset(
+                    keep_arr, effective.queries, effective.seed
+                )
     query_batch = adapter.fetch_vectors(query_ids)
     if int(query_batch.vectors.shape[0]) > 0:
         qdim = int(query_batch.vectors.shape[1])
@@ -385,10 +450,19 @@ def run_audit(
     _emit_progress(on_progress, "canary", 0.4)
 
     def _canary() -> MetricResult:
+        if filter_field and not caps.filtered_search:
+            return _unavailable_metric(
+                CANARY_METRIC_ID,
+                "filtered_search not supported by this engine",
+                config=effective,
+            )
+        canary_params: SearchParams = cast("SearchParams", {**params})
+        if filter_field and caps.filtered_search:
+            canary_params["filter"] = _filter_spec(filter_field, filter_value)
         search = adapter.search(
             query_batch.vectors,
             effective.k,
-            params=params,
+            params=canary_params,
         )
         th = effective.thresholds[CANARY_METRIC_ID]
         return compute_canary_recall(
@@ -401,13 +475,14 @@ def run_audit(
             query_source_ids=query_ids,
             self_exclude=True,
             query_source="corpus",
-            search_params=dict(params),
+            search_params=dict(canary_params),
             working_set_mb=ws_mb,
             bootstrap_seed=effective.seed,
             live_ids_at_start=snapshot.live_ids,
             ground_truth_truncated=truncated_gt,
             warn=th.warn,
             fail=th.fail,
+            eligible_ids=filter_keep,
         )
 
     canary = _run_metric(
@@ -417,6 +492,77 @@ def run_audit(
         enabled=effective.metrics_enabled.get(CANARY_METRIC_ID, True),
         on_metric=on_metric,
     )
+
+    canary_groups: dict[str, MetricResult] | None = None
+    if group_by:
+        if not caps.filtered_search:
+            warnings.append("group_by_ignored_filtered_search_unsupported")
+        else:
+            group_field = group_by
+            labels = _payload_map(adapter, group_field)
+            if labels is None:
+                warnings.append("group_by_ignored_payload_unavailable")
+            else:
+                grouped: dict[str, MetricResult] = {}
+                group_names = sorted({str(v) for v in labels.values()})
+                th = effective.thresholds[CANARY_METRIC_ID]
+                for gi, gname in enumerate(group_names):
+                    g_ids = _ids_with_value(labels, gname)
+                    g_keep = frozenset(int(i) for i in g_ids.tolist())
+                    g_qids = _sample_id_subset(
+                        g_ids, effective.queries, effective.seed + 17 + gi
+                    )
+
+                    def _group_canary(
+                        *,
+                        _gname: str = gname,
+                        _g_keep: frozenset[int] = g_keep,
+                        _g_qids: NDArray[np.int64] = g_qids,
+                        _g_seed: int = effective.seed + 17 + gi,
+                        _g_field: str = group_field,
+                    ) -> MetricResult:
+                        if _g_qids.shape[0] == 0:
+                            return _unavailable_metric(
+                                CANARY_METRIC_ID,
+                                f"no live vectors in group {_gname!r}",
+                                config=effective,
+                            )
+                        g_batch = adapter.fetch_vectors(_g_qids)
+                        g_params: SearchParams = cast("SearchParams", {**params})
+                        g_params["filter"] = _filter_spec(_g_field, _gname)
+                        g_search = adapter.search(
+                            g_batch.vectors,
+                            effective.k,
+                            params=g_params,
+                        )
+                        return compute_canary_recall(
+                            corpus_ids=snapshot.ids,
+                            corpus_vectors=snapshot.vectors,
+                            queries=g_batch.vectors,
+                            returned_ids=g_search.ids,
+                            metric_space=metric_space,
+                            k=effective.k,
+                            query_source_ids=_g_qids,
+                            self_exclude=True,
+                            query_source="corpus",
+                            search_params=dict(g_params),
+                            working_set_mb=ws_mb,
+                            bootstrap_seed=_g_seed,
+                            live_ids_at_start=snapshot.live_ids,
+                            ground_truth_truncated=False,
+                            warn=th.warn,
+                            fail=th.fail,
+                            eligible_ids=_g_keep,
+                        )
+
+                    grouped[gname] = _run_metric(
+                        CANARY_METRIC_ID,
+                        _group_canary,
+                        config=effective,
+                        enabled=effective.metrics_enabled.get(CANARY_METRIC_ID, True),
+                        on_metric=None,
+                    )
+                canary_groups = grouped
 
     _emit_progress(on_progress, "hubness", 0.55)
 
@@ -477,8 +623,6 @@ def run_audit(
 
     _emit_progress(on_progress, "dfi", 0.7)
 
-    caps = adapter.capabilities
-
     def _dfi() -> MetricResult:
         th = effective.thresholds[DFI_METRIC_ID]
         proxy = bool(caps.report_deleted_counts and not caps.deleted_counts_exact)
@@ -526,9 +670,13 @@ def run_audit(
     )
 
     metrics = (canary, hub_share, antihub, dfi, partition_cv)
-    all_warnings = _collect_warnings(metrics, warnings)
+    group_metrics = tuple(canary_groups.values()) if canary_groups else ()
+    all_warnings = _collect_warnings((*metrics, *group_metrics), warnings)
 
-    verdict = aggregate(metrics, strict_unavailable=effective.strict_unavailable)
+    verdict = aggregate(
+        (*metrics, *group_metrics),
+        strict_unavailable=effective.strict_unavailable,
+    )
     _ = verdict_to_exit_code(verdict)
 
     duration = time.monotonic() - started_mono
@@ -568,4 +716,5 @@ def run_audit(
         config=effective.to_dict(),
         degenerate=degenerate,
         offending_vector_ids=offending,
+        canary_groups=canary_groups,
     )
