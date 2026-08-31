@@ -105,8 +105,10 @@ demo` stays fast.
 **Depends on:** P0-02, P0-03 · **Size:** S · **Touches:** `Makefile`
 
 **Contract**
-- `make verify` = `lint` + `format-check` + `typecheck` + `test` + `coverage` + `layers`.
-  This is the one command every ticket must leave green, and the one command CI runs.
+- `make verify` = `lint` + `format-check` + `typecheck` + `coverage` + `layers` +
+  `readonly`. `coverage` **is** the default suite (one instrumented pytest; floors 80
+  overall / 90 `core/`). `make test` stays as the uninstrumented inner-loop target and
+  is not a verify prerequisite. This is the one command every ticket must leave green.
 - `make verify-full` additionally runs `slow`, `integration`, `perf` and mutation testing
   (targets may be stubs that exit zero until the owning phase lands them).
 - Also: `make fmt`, `make test-fast`, `make clean`, `make web-build`, `make demo`.
