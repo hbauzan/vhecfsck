@@ -77,6 +77,9 @@ class FakePostgres:
         self.info = type("Info", (), {"server_version": 160004})()
         self.writes: list[str] = []
 
+    def rollback(self) -> None:
+        return
+
     def cursor(self, _name: str | None = None) -> _FakeCursor:
         return _FakeCursor(self)
 
@@ -116,20 +119,23 @@ class FakePostgres:
             node = "Seq Scan" if self.seq_scan else "Index Scan"
             plan = [{"Plan": {"Node Type": node}}]
             return [(plan,)]
-        if low.startswith("declare"):
-            self._fetch_pending = True
-            self._last_declare = low
-            return []
-        if low.startswith("close"):
-            self._fetch_pending = False
-            return []
-        if low.startswith("fetch"):
-            if not self._fetch_pending:
-                return []
-            self._fetch_pending = False
-            if "embedding" not in self._last_declare:
-                return [(row[0],) for row in self.rows]
-            return list(self.rows)
+        knn_ops = ("<->", "<=>", "<#>")
+        if "order by" in low and not any(op in low for op in knn_ops):
+            rows = self.rows
+            if "where" in low and isinstance(params, tuple) and params:
+                last = int(params[0])
+                rows = [row for row in rows if int(row[0]) > last]
+            limit = 512
+            if "limit" in low:
+                try:
+                    limit = int(low.rsplit("limit", 1)[1].split()[0])
+                except ValueError:
+                    limit = 512
+            rows = rows[:limit]
+            select_head = low.split("order by", 1)[0]
+            if "embedding" in select_head:
+                return list(rows)
+            return [(row[0],) for row in rows]
         if "order by" in low:
             return [(row[0],) for row in self.rows]
         if "= any" in low:

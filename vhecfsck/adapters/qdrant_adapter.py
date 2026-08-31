@@ -210,7 +210,7 @@ class QdrantAdapter:
             partition_live_counts=False,
             report_graph_stats=False,
             search_params_settable=True,
-            filtered_search=False,
+            filtered_search=True,
         )
 
     def _connect(self, parsed: QdrantTarget) -> tuple[Any, str, str]:
@@ -435,12 +435,13 @@ class QdrantAdapter:
         limit: int,
         offset: object | None,
         vectors: bool,
+        payload: bool = False,
     ) -> tuple[list[Any], object | None]:
         kwargs: dict[str, Any] = {
             "collection_name": self._collection,
             "limit": limit,
             "with_vectors": vectors,
-            "with_payload": False,
+            "with_payload": payload,
         }
         if offset is not None:
             kwargs["offset"] = offset
@@ -549,6 +550,14 @@ class QdrantAdapter:
         out_ids = np.full((qn, k), -1, dtype=np.int64)
         out_dist = np.full((qn, k), np.nan, dtype=np.float32)
         search_kwargs = self._search_kwargs(ef_search)
+        filt = params.get("filter")
+        if filt:
+            if not isinstance(filt, dict):
+                raise UsageError(
+                    "search filter must be a dict with key and value",
+                    hint='pass filter={"key": "tenant_id", "value": "t0"}',
+                )
+            search_kwargs["query_filter"] = self._as_query_filter(filt)
         for qi in range(qn):
             hits = self._query_one(queries[qi], k, search_kwargs)
             for hi, hit in enumerate(hits[:k]):
@@ -563,6 +572,8 @@ class QdrantAdapter:
         }
         if self._hnsw_ef_construct is not None:
             effective["ef_construct"] = self._hnsw_ef_construct
+        if filt:
+            effective["filter"] = dict(filt)
         return SearchResult(
             ids=out_ids,
             distances=out_dist,
@@ -581,6 +592,53 @@ class QdrantAdapter:
         if self._vector_name:
             kwargs["using"] = self._vector_name
         return kwargs
+
+    def _as_query_filter(self, spec: dict[str, object]) -> Any:
+        key = str(spec.get("key", ""))
+        if not key:
+            raise UsageError(
+                "search filter requires a payload field name",
+                hint='pass filter={"key": "tenant_id", "value": "t0"}',
+            )
+        try:
+            models = importlib.import_module("qdrant_client.http.models")
+            return models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key=key,
+                        match=models.MatchValue(value=spec.get("value")),
+                    )
+                ]
+            )
+        except Exception:
+            return {"key": key, "value": spec.get("value")}
+
+    def payload_values(self, field: str) -> dict[int, object]:
+        """Map encoded live ids to ``field`` payload values (scroll, read-only)."""
+        self._ensure_open()
+        if not field:
+            raise UsageError(
+                "payload field name must be non-empty",
+                hint="example: tenant_id",
+            )
+        out: dict[int, object] = {}
+        offset: object | None = None
+        while True:
+            records, offset = self._scroll(
+                limit=256, offset=offset, vectors=False, payload=True
+            )
+            if not records:
+                break
+            for rec in records:
+                payload = getattr(rec, "payload", None) or {}
+                if not isinstance(payload, dict):
+                    continue
+                if field not in payload:
+                    continue
+                out[self._encode_id(getattr(rec, "id", None))] = payload[field]
+            if offset is None:
+                break
+        return out
 
     def _query_one(
         self, query: np.ndarray, k: int, search_kwargs: dict[str, Any]

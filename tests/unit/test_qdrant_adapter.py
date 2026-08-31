@@ -38,10 +38,17 @@ _MUTATING_SNIPPETS = (
 
 
 class _FakePoint:
-    def __init__(self, pid: int, vector: list[float], score: float = 0.1) -> None:
+    def __init__(
+        self,
+        pid: object,
+        vector: list[float],
+        score: float = 0.1,
+        payload: dict[str, object] | None = None,
+    ) -> None:
         self.id = pid
         self.vector = vector
         self.score = score
+        self.payload = payload or {}
 
 
 class _FakeClient:
@@ -76,6 +83,7 @@ class _FakeClient:
             indexed_vectors_count=len(points) if indexed is None else indexed,
         )
         self.closed = False
+        self.last_query_filter: object | None = None
 
     def get_collection(self, name: str) -> object:
         assert name == "col"
@@ -127,9 +135,11 @@ class _FakeClient:
         **_kwargs: object,
     ) -> object:
         assert collection_name == "col"
+        self.last_query_filter = _kwargs.get("query_filter")
         q = np.asarray(query, dtype=np.float32)
+        pool = [p for p in self.points if _fake_filter_keeps(p, self.last_query_filter)]
         ranked = sorted(
-            self.points,
+            pool,
             key=lambda p: sum(
                 (float(a) - float(b)) ** 2
                 for a, b in zip(q.tolist(), p.vector, strict=True)
@@ -139,6 +149,25 @@ class _FakeClient:
 
     def close(self) -> None:
         self.closed = True
+
+
+def _fake_filter_keeps(point: _FakePoint, query_filter: object) -> bool:
+    if query_filter is None:
+        return True
+    key: object
+    value: object
+    if isinstance(query_filter, dict) and "key" in query_filter:
+        key = query_filter.get("key")
+        value = query_filter.get("value")
+    else:
+        must = getattr(query_filter, "must", None)
+        if not must:
+            return True
+        cond = must[0]
+        key = getattr(cond, "key", None)
+        match = getattr(cond, "match", None)
+        value = getattr(match, "value", None)
+    return (point.payload or {}).get(key) == value
 
 
 def _adapter(client: _FakeClient | None = None, **kwargs: object) -> QdrantAdapter:
@@ -580,5 +609,36 @@ def test_uuid_ids_round_trip() -> None:
         assert len(ids) == 2
         fetched = adapter.fetch_vectors(np.array(ids, dtype=np.int64))
         assert fetched.vectors.shape == (2, 4)
+    finally:
+        adapter.close()
+
+
+def test_filtered_search_capability_and_payload_filter() -> None:
+    rng = np.random.default_rng(0)
+    points = [
+        _FakePoint(
+            i,
+            rng.normal(size=4).astype(np.float32).tolist(),
+            payload={"tenant_id": "t0" if i < 5 else "t1"},
+        )
+        for i in range(10)
+    ]
+    client = _FakeClient(points=points)
+    adapter = _adapter(client)
+    try:
+        assert adapter.capabilities.filtered_search is True
+        labels = adapter.payload_values("tenant_id")
+        assert set(labels.values()) == {"t0", "t1"}
+        q = np.zeros((1, 4), dtype=np.float32)
+        result = adapter.search(
+            q,
+            3,
+            params={"ef_search": 8, "filter": {"key": "tenant_id", "value": "t0"}},
+        )
+        assert client.last_query_filter is not None
+        returned = [int(x) for x in result.ids[0] if int(x) >= 0]
+        assert returned
+        assert all(labels[i] == "t0" for i in returned)
+        assert result.effective_params["filter"]["key"] == "tenant_id"
     finally:
         adapter.close()

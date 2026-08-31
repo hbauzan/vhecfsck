@@ -31,7 +31,7 @@ def test_cli_demo_format_json() -> None:
     assert result.exit_code == 2
     data = json.loads(result.stdout)
     assert data["verdict"] == "FAIL"
-    assert data["schema_version"] == "1.0"
+    assert data["schema_version"] == "1.1"
     assert "metrics" in data
 
 

@@ -14,7 +14,7 @@ from vhecfsck.pipeline import run_audit
 from vhecfsck.report.json_report import generate_report_schema, render_json
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
-_SCHEMA_PATH = _PROJECT_ROOT / "schema" / "report-1.0.json"
+_SCHEMA_PATH = _PROJECT_ROOT / "schema" / "report-1.1.json"
 _GOLDEN_DIR = _PROJECT_ROOT / "tests" / "fixtures" / "golden"
 
 
@@ -27,8 +27,8 @@ def test_json_schema_drift() -> None:
     rendered_current = json.dumps(current_schema, indent=2, ensure_ascii=False) + "\n"
 
     assert committed_content == rendered_current, (
-        "Report Pydantic model and committed schema/report-1.0.json have diverged! "
-        "Update schema/report-1.0.json to match."
+        "Report Pydantic model and committed schema/report-1.1.json have diverged! "
+        "Update schema/report-1.1.json to match."
     )
 
 
