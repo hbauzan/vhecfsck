@@ -1,6 +1,6 @@
 [project]
 name = "vhecfsck"
-version = "0.1.0.dev0"
+version = "0.1.1"
 description = "Topological audit and health diagnostics for vector indexes."
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
@@ -24,6 +24,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "click>=8.0",
     "numpy>=1.26",
     "pydantic>=2.0",
     "typer>=0.12",
