@@ -106,12 +106,15 @@ def _rate_limiter(request: Request) -> RateLimiter:
 def _report_dict(request: Request) -> dict[str, Any] | None:
     cached = getattr(request.app.state, "last_report", None)
     if isinstance(cached, dict):
+        if getattr(request.app.state, "progress_event", None) is None:
+            _publish(request, ProgressTracker().finish())
         return cached
     report_path = getattr(request.app.state, "report_path", None)
     if report_path and Path(report_path).exists():
         text = Path(report_path).read_text(encoding="utf-8")
         loaded: dict[str, Any] = json.loads(text)
         request.app.state.last_report = loaded
+        _publish(request, ProgressTracker().finish())
         return loaded
     return None
 
@@ -177,10 +180,19 @@ def get_report(request: Request) -> dict[str, Any]:
     target_uri = getattr(request.app.state, "target_uri", None)
     if target_uri:
         adapter = open_target(target_uri)
+        tracker = ProgressTracker()
+
+        def _on_progress(stage: str, fraction: float) -> None:
+            mapped = map_pipeline_stage(stage)
+            if mapped:
+                evt = tracker.advance(mapped, fraction)
+                _publish(request, evt)
+
         try:
-            report = run_audit(adapter, load_config())
+            report = run_audit(adapter, load_config(), on_progress=_on_progress)
             payload = report_to_dict(report)
             request.app.state.last_report = payload
+            _publish(request, tracker.finish())
             return payload
         finally:
             _close(adapter)

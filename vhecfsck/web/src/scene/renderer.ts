@@ -29,7 +29,7 @@ void main() {
   vMarker = aMarker;
   vColor = color;
   vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-  gl_PointSize = max(2.0, aSize * (180.0 / -mvPosition.z));
+  gl_PointSize = max(2.0, aSize * (12.0 / -mvPosition.z));
   gl_Position = projectionMatrix * mvPosition;
 }
 `;

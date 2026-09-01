@@ -65,6 +65,9 @@ vhecfsck/web/test-results/
 # MkDocs
 site/
 
+# Dump
+vhecfsck.txt
+
 # OS
 Thumbs.db
 .worktrees/

@@ -33,6 +33,7 @@ REQUIRED_LABELS = (
     "Forty-two",
     "Heart of Gold",
     "Point-of-View Gun",
+    "Total Perspective Vortex",
     EXIT_LINE,
 )
 
@@ -95,6 +96,10 @@ def test_help_puts_actions_before_hitchhiker_quotes() -> None:
         ("uv run vhecfsck demo", "Forty-two"),
         ("uv run vhecfsck serve", "Heart of Gold"),
         ("kill orphaned pytest processes for this checkout", "Point-of-View Gun"),
+        (
+            "dump codebase context to vhecfsck.txt for AI agents",
+            "Total Perspective Vortex",
+        ),
         ("Exit the panel", EXIT_LINE),
     )
     for action, quote in pairs:
@@ -108,6 +113,35 @@ def test_clean_verb_exits_ok() -> None:
     assert result.returncode == EXIT_OK, result.stderr + result.stdout
     assert "Point-of-View Gun" in result.stdout
     assert "skipping process cleanup" in result.stdout
+
+
+def test_dump_verb_generates_context_dump(tmp_path: Path) -> None:
+    # Setup dummy checkout in tmp_path
+    sh_code = SETUP.read_text(encoding="utf-8")
+    (tmp_path / "setup.sh").write_text(sh_code, encoding="utf-8")
+    (tmp_path / "setup.sh").chmod(0o755)
+    (tmp_path / "pyproject.toml").write_text(
+        "[project]\nname = 'test-pkg'\n", encoding="utf-8"
+    )
+    scripts_dir = tmp_path / "scripts"
+    scripts_dir.mkdir()
+    (scripts_dir / "dump_context.py").write_text(
+        (ROOT / "scripts" / "dump_context.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    # Pre-create old vhecfsck.txt
+    dump_file = tmp_path / "vhecfsck.txt"
+    dump_file.write_text("old content", encoding="utf-8")
+
+    result = run_setup("dump", cwd=tmp_path)
+    assert result.returncode == EXIT_OK, result.stderr + result.stdout
+    assert "Total Perspective Vortex" in result.stdout
+    assert dump_file.is_file()
+    content = dump_file.read_text(encoding="utf-8")
+    assert "old content" not in content
+    assert "VHECFSCK CODEBASE CONTEXT DUMP" in content
+    assert "FILE: pyproject.toml" in content
 
 
 def test_clean_scopes_kill_to_this_checkout() -> None:
