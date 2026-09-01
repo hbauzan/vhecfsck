@@ -170,6 +170,15 @@ atomically.
 | P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | todo |
 | P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | todo |
 
+## TH — Test Harness Optimization · [plan file](plan_optimizacion_test_harness.md)
+
+| ID | Title | Size | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TH-01 | BLAS GEMM (`q @ c.T`) vectorization for `exact_knn` and `compute_hubness` | M | P2-04, P2-06 | todo |
+| TH-02 | Force `coverage.py` C-extension tracer build verification in `.venv` | S | P0-03 | todo |
+| TH-03 | Audit unit test fixtures to enforce $N \le 100$ (`size="tiny"`) for non-perf tests | M | P0-03, P1-08 | todo |
+| TH-04 | Decouple/cache coverage in default `make verify` for sub-30s local dev gate | M | P0-04 | todo |
+
 ---
 
 ## Critical path to the MVP

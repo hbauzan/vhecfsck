@@ -37,6 +37,7 @@ criteria, not by elapsed time.
 | [`release-plan.md`](release-plan.md) | Versioning, packaging, CI/CD, PyPI, launch | Yes (release) |
 | [`agent-playbook.md`](agent-playbook.md) | Execution protocol and guardrails for AI agents | Yes (process) |
 | [`lessons-learned.md`](lessons-learned.md) | Durable handoff memory between agents (invariants) | Process |
+| [`plan_optimizacion_test_harness.md`](plan_optimizacion_test_harness.md) | Test harness empirical benchmarks and optimization roadmap | Tracking only |
 | [`dev-protocol-followups.md`](dev-protocol-followups.md) | Queued work on the dev-protocol pack itself | Tracking only |
 | [`glossary.md`](glossary.md) | HNSW, IVF, tombstone, hubness, DFI, and friends | Reference |
 
