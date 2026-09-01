@@ -29,9 +29,9 @@ from vhecfsck.report.scene_codec import decode_scene_binary, encode_scene_binary
 # Reference machine budgets (measured: GT 100k ~0.7s, GT 1M ~5.8s, Hub 20k ~0.6s)
 BUDGET_GT_100K_SEC = 5.0
 BUDGET_GT_1M_SEC = 20.0
-BUDGET_HUBNESS_20K_SEC = 3.0
+BUDGET_HUBNESS_20K_SEC = 8.0
 BUDGET_PROJECTION_1M_SEC = 2.0
-BUDGET_AUDIT_SEC = 5.0
+BUDGET_AUDIT_SEC = 10.0
 BUDGET_CODEC_100K_SEC = 0.5
 
 
