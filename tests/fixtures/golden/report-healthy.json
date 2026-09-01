@@ -19572,7 +19572,7 @@
     "location": "synthetic://healthy",
     "metric_space": "L2"
   },
-  "tool_version": "0.1.0.dev0",
+  "tool_version": "0.1.1",
   "verdict": "OK",
   "warnings": [
     "thresholds_uncalibrated_for_sample_size"
