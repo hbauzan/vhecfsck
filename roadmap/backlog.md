@@ -162,11 +162,11 @@ atomically.
 | P9-01 | README | M | P6-07, P8-04 | done |
 | P9-02 | Documentation site | M | P9-01 | done |
 | P9-03 | CI integration recipes | M | P3-08 | done |
-| P9-04 | Verify the anchor issues and write the launch post | M | P5-09, P7-03, P7-05 | todo |
-| P9-05 | Release engineering | M | P4-11, P8-11 | todo |
-| P9-06 | Pre-launch review pass | M | P9-01, P9-02, P9-03 | todo |
-| P9-07 | Launch | M | P9-04, P9-05, P9-06 | todo |
-| P9-08 | Post-launch triage window | M | P9-07 | todo |
+| P9-04 | Verify the anchor issues and write the launch post | M | P5-09, P7-03, P7-05 | done |
+| P9-05 | Release engineering | M | P4-11, P8-11 | done |
+| P9-06 | Pre-launch review pass | M | P9-01, P9-02, P9-03 | done |
+| P9-07 | Launch | M | P9-04, P9-05, P9-06 | done |
+| P9-08 | Post-launch triage window | M | P9-07 | done |
 | P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | todo |
 | P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | todo |
 
