@@ -269,7 +269,7 @@
     "location": "synthetic://tiny",
     "metric_space": "L2"
   },
-  "tool_version": "0.1.1",
+  "tool_version": "0.1.2",
   "verdict": "INCONCLUSIVE",
   "warnings": []
 }
