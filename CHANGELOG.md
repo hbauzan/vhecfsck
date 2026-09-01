@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Improved
+
+- Contributor console (`setup.sh`): updated option descriptions, added ANSI progress bar rendering, autocurative virtual environment synchronization (`uv sync --group dev --extra lancedb`), and full non-interactive verb support (`sync`, `verify`, `demo`, `serve`, `clean`, `dump`).
+
 ## [0.1.2] - 2026-09-01
 
 ### Fixed

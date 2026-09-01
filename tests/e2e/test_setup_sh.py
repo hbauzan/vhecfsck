@@ -212,8 +212,13 @@ def test_sync_invokes_uv_sync_without_all_extras(tmp_path: Path) -> None:
     )
     assert result.returncode == EXIT_OK, result.stderr + result.stdout
     recorded = log.read_text(encoding="utf-8")
-    assert "sync" in recorded.split()
-    assert "--all-extras" not in recorded
+    words = recorded.split()
+    assert "sync" in words
+    assert "--group" in words
+    assert "dev" in words
+    assert "--extra" in words
+    assert "lancedb" in words
+    assert "--all-extras" not in words
 
 
 def test_verify_without_makefile_is_inconclusive(tmp_path: Path) -> None:
