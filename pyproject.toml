@@ -1,13 +1,24 @@
 [project]
 name = "vhecfsck"
 version = "0.1.1"
-description = "Topological audit and health diagnostics for vector indexes."
+description = "Read-only, empirical, offline auditor for vector indexes (LanceDB, Qdrant, pgvector)."
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 authors = [{ name = "hbauzan" }]
-keywords = ["vector", "hnsw", "ivf", "audit", "fsck", "embeddings"]
+keywords = [
+    "vector-database",
+    "pgvector",
+    "qdrant",
+    "lancedb",
+    "hnsw",
+    "embeddings",
+    "rag",
+    "data-engineering",
+    "audit",
+    "cli",
+]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Environment :: Console",

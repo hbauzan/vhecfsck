@@ -2335,9 +2335,10 @@ wheels = [
 
 [[package]]
 name = "vhecfsck"
-version = "0.1.0.dev0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pydantic" },
@@ -2393,6 +2394,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.0" },
     { name = "fastapi", marker = "extra == 'server'", specifier = ">=0.115.0,<1.0.0" },
     { name = "lancedb", marker = "extra == 'lancedb'", specifier = ">=0.37.1" },
     { name = "numpy", specifier = ">=1.26" },
