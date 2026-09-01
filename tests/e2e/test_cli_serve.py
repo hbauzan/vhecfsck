@@ -94,3 +94,27 @@ def test_spa_static_serving_fallback_when_dist_missing(
     response = client.get("/")
     assert response.status_code == 500
     assert "make web-build" in response.text
+
+
+def test_get_report_publishes_progress_event() -> None:
+    """GET /api/report triggers audit progress updates and finishes at 100%."""
+    pytest = __import__("pytest")
+    pytest.importorskip("fastapi")
+    from fastapi.testclient import TestClient
+    from vhecfsck.server.app import create_app
+
+    server_app = create_app(target_uri="synthetic://healthy")
+    client = TestClient(server_app)
+
+    # Initial progress before report fetch is idle
+    progress_before = client.get("/api/progress").json()
+    assert progress_before["stage"] == "idle"
+
+    # Fetch report to trigger audit
+    report_res = client.get("/api/report")
+    assert report_res.status_code == 200
+
+    # Progress after report fetch must be terminal (100%)
+    progress_after = client.get("/api/progress").json()
+    assert progress_after["fraction"] == 1.0
+    assert progress_after["terminal"] is True

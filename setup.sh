@@ -25,6 +25,7 @@ LABEL_VERIFY="The mice would like a word"
 LABEL_DEMO="Forty-two"
 LABEL_SERVE="Heart of Gold"
 LABEL_CLEAN="Point-of-View Gun"
+LABEL_DUMP="Total Perspective Vortex"
 LABEL_EXIT="So long, and thanks for all the fish"
 LABEL_INVALID="I think you ought to know I'm feeling very depressed."
 THURSDAY="This must be Thursday. I never could get the hang of Thursdays."
@@ -83,6 +84,8 @@ print_options() {
         "uv run vhecfsck serve — inconclusive until P4-06; foreground" "${LABEL_SERVE}"
     printf "  ${C_CYAN}[5]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
         "kill orphaned pytest processes for this checkout" "${LABEL_CLEAN}"
+    printf "  ${C_CYAN}[6]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
+        "dump codebase context to vhecfsck.txt for AI agents" "${LABEL_DUMP}"
     printf "  ${C_WHITE}[0]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
         "Exit the panel" "${LABEL_EXIT}"
 }
@@ -91,7 +94,7 @@ print_help() {
     print_banner
     printf "\n"
     print_options
-    printf "\n${C_DIM}Non-interactive verbs: help | sync | verify | demo | serve | clean${C_RESET}\n"
+    printf "\n${C_DIM}Non-interactive verbs: help | sync | verify | demo | serve | clean | dump${C_RESET}\n"
     printf "${C_DIM}The product is the CLI. This panel does not supervise processes.${C_RESET}\n"
 }
 
@@ -217,6 +220,14 @@ cmd_clean() {
     return $?
 }
 
+cmd_dump() {
+    log_info "${LABEL_DUMP}: generating codebase context dump (vhecfsck.txt)"
+    local root
+    root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    python3 "${root}/scripts/dump_context.py" "${PWD}"
+    return $?
+}
+
 pause_if_tty() {
     if [ -t 0 ]; then
         printf "\n${C_DIM}Press Enter to return to the panel.${C_RESET}"
@@ -232,7 +243,7 @@ show_menu() {
         print_banner
         printf "\n"
         print_options
-        printf "\n${C_BOLD}Select [0-5]: ${C_RESET}"
+        printf "\n${C_BOLD}Select [0-6]: ${C_RESET}"
         read -r option || exit "${EXIT_OK}"
         case "${option}" in
             1)
@@ -253,6 +264,10 @@ show_menu() {
                 ;;
             5)
                 cmd_clean
+                pause_if_tty
+                ;;
+            6)
+                cmd_dump
                 pause_if_tty
                 ;;
             0)
@@ -298,9 +313,13 @@ case "${1:-}" in
         cmd_clean
         exit $?
         ;;
+    dump|context|dump-context)
+        cmd_dump
+        exit $?
+        ;;
     *)
         printf '%s\n' "${LABEL_INVALID}" >&2
-        printf 'Usage: ./setup.sh [help|sync|verify|demo|serve|clean]\n' >&2
+        printf 'Usage: ./setup.sh [help|sync|verify|demo|serve|clean|dump]\n' >&2
         exit "${EXIT_USAGE}"
         ;;
 esac
