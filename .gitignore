@@ -65,8 +65,16 @@ vhecfsck/web/test-results/
 # MkDocs
 site/
 
-# Dump
+# Agent / Context / Internal handoffs
+.agents/
+.claude/
 vhecfsck.txt
+vhectorlab-context.txt
+roadmap/handoff-*.md
+roadmap/agent-playbook.md
+CONTEXT.md
+CONTEXT.blueprint.md
+scratch/
 
 # OS
 Thumbs.db
