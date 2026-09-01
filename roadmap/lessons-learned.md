@@ -534,6 +534,46 @@ derive metrics.
 
 ---
 
+### Lesson 56 (P9-02 MkDocs Strict Mode & External GitHub Links)
+
+**Context:** `mkdocs build --strict` treats any unmapped `.md` file or broken relative link (e.g. `../../roadmap/adr/`) as a fatal build error.
+
+**Solution:** Navigation structure in `mkdocs.yml` maps all documentation pages. Markdown files in `docs/` citing files in `roadmap/adr/` or `roadmap/phases/` use absolute GitHub URLs (`https://github.com/hbauzan/vhecfsck/blob/main/...`).
+
+**Invariant:** All cross-document links in `docs/` pointing to root/roadmap files must use absolute GitHub URLs; `mkdocs build --strict` must build with 0 warnings.
+
+---
+
+### Lesson 57 (P9-02 YAML Hash Escaping in Nav Titles)
+
+**Context:** Navigation titles in `mkdocs.yml` containing `#` (e.g., `Qdrant #7147`) are parsed as YAML inline comments if unquoted, corrupting the navigation key.
+
+**Solution:** Quote any navigation title containing `#` as a string literal (e.g., `"Qdrant #7147"`).
+
+**Invariant:** `mkdocs.yml` navigation keys containing hash characters must be quoted string literals.
+
+---
+
+### Lesson 58 (P9-02 Auto-formatting Generated Documentation Output)
+
+**Context:** Programmatic reference generators (`generate_cli_docs.py`, `generate_schema_docs.py`, `generate_metrics_docs.py`) output code blocks inside markdown files. `test_lint_typing_config.py` runs `ruff format --check .` over the repository. Unformatted code blocks in generated `.md` files trigger test failures.
+
+**Solution:** Reference generators invoke `subprocess.run(["uv", "run", "ruff", "format", str(OUTPUT_PATH)])` after writing their target markdown file.
+
+**Invariant:** Documentation generator scripts must format their generated `.md` files using `ruff format` before exit.
+
+---
+
+### Lesson 59 (P9-03 Syncing Dependencies for `make verify`)
+
+**Context:** Running `uv sync --group dev --group docs` without `--extra lancedb` removes `pyarrow` from the virtual environment, causing collection import errors in LanceDB integration tests during `make verify`.
+
+**Solution:** Always include `--extra lancedb` when syncing dependency groups (`uv sync --group dev --group docs --extra lancedb`).
+
+**Invariant:** Verification gate execution environment must preserve required extra dependencies for integration tests.
+
+---
+
 ## 5. Protocolo de Mantenimiento de Lecciones Aprendidas
 
 Este archivo es caro de leer y fácil de arruinar. Si se lee por reflejo, se paga en cada sesión; si se escribe por reflejo, se llena de ruido y deja de servir para lo único que sirve: que la próxima IA arranque donde terminó la anterior.
