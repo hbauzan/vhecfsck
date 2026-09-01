@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-01
+
+### Fixed
+
+- Updated README hero GIF asset generator (`scripts/record_demo.py`) with frequency-based unique palette sampling and complete WebGUI UI layout rendering.
+- Added raw GitHub CDN URLs for hero GIF asset in `README.md` and `docs/index.md` for PyPI (`https://pypi.org/project/vhecfsck/`) and GitHub Pages compatibility.
+- Added PNG fallback asset export (`docs/assets/vhecfsck-demo.png`).
+
 ## [0.1.0] - 2026-09-01
 
 ### Added
