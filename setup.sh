@@ -17,6 +17,7 @@ C_CYAN="${ESC_SEQ}1;36m"
 C_GREEN="${ESC_SEQ}1;32m"
 C_YELLOW="${ESC_SEQ}1;33m"
 C_RED="${ESC_SEQ}1;31m"
+C_PURPLE="${ESC_SEQ}1;35m"
 C_WHITE="${ESC_SEQ}1;37m"
 
 BANNER="DON'T PANIC — Vector Index"
@@ -40,6 +41,24 @@ log_info() { printf "${C_CYAN}[INFO]${C_RESET} %s\n" "$1"; }
 log_ok()   { printf "${C_GREEN}[ OK ]${C_RESET} %s\n" "$1"; }
 log_warn() { printf "${C_YELLOW}[WARN]${C_RESET} %s\n" "$1"; }
 log_fail() { printf "${C_RED}[FAIL]${C_RESET} %s\n" "$1" >&2; }
+
+show_progress_bar() {
+    local percent="$1"
+    local title="$2"
+    local quote="${3:-"Don't Panic"}"
+    local width=20
+    local filled=$(( percent * width / 100 ))
+    local empty=$(( width - filled ))
+    local bar=""
+    local i
+    for ((i=0; i<filled; i++)); do bar="${bar}█"; done
+    for ((i=0; i<empty; i++)); do bar="${bar}░"; done
+    printf "${C_PURPLE}[BUSY]${C_RESET} %s [${C_GREEN}%s${C_RESET}] %3d%%  ${C_DIM}(%s)${C_RESET}\r" \
+        "${title}" "${bar}" "${percent}" "${quote}"
+    if [ "${percent}" -ge 100 ]; then
+        printf "\n"
+    fi
+}
 
 command_exists() {
     command -v "$1" >/dev/null 2>&1
@@ -75,13 +94,13 @@ print_banner() {
 print_options() {
     printf "${C_BOLD}${C_WHITE}OPTIONS:${C_RESET}\n"
     printf "  ${C_CYAN}[1]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
-        "detect uv, then uv sync — base install, never all extras" "${LABEL_BOOTSTRAP}"
+        "detect uv, then uv sync — base install + dev group, never all extras" "${LABEL_BOOTSTRAP}"
     printf "  ${C_CYAN}[2]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
-        "make verify — inconclusive until the gate exists" "${LABEL_VERIFY}"
+        "make verify — run strict quality gate (lint, mypy, pytest, coverage)" "${LABEL_VERIFY}"
     printf "  ${C_CYAN}[3]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
-        "uv run vhecfsck demo — inconclusive until P3-05" "${LABEL_DEMO}"
+        "uv run vhecfsck demo — 60s synthetic index audit demo (pgvector #244)" "${LABEL_DEMO}"
     printf "  ${C_CYAN}[4]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
-        "uv run vhecfsck serve — inconclusive until P4-06; foreground" "${LABEL_SERVE}"
+        "uv run vhecfsck serve — launch 3D visualizer web server on :8765" "${LABEL_SERVE}"
     printf "  ${C_CYAN}[5]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
         "kill orphaned pytest processes for this checkout" "${LABEL_CLEAN}"
     printf "  ${C_CYAN}[6]${C_RESET} ${C_BOLD}${C_WHITE}%s${C_RESET}  ${C_DIM}(%s)${C_RESET}\n" \
@@ -148,10 +167,28 @@ ensure_uv() {
     esac
 }
 
+ensure_env_synced() {
+    ensure_uv || return $?
+    if [ ! -f pyproject.toml ]; then
+        return 0
+    fi
+    if [ ! -d ".venv" ] || ! uv run python -c "import vhecfsck, pyarrow" >/dev/null 2>&1; then
+        log_warn "Virtual environment missing or out of sync. Synchronising..."
+        cmd_sync || return $?
+    fi
+    return 0
+}
+
 cmd_sync() {
     ensure_uv || return $?
-    log_info "${LABEL_BOOTSTRAP}: uv sync"
-    if uv sync; then
+    log_info "${LABEL_BOOTSTRAP}: uv sync --group dev --extra lancedb"
+    if [ -t 1 ]; then
+        show_progress_bar 10 "Synchronising development environment..." "${LABEL_BOOTSTRAP}"
+    fi
+    if uv sync --group dev --extra lancedb; then
+        if [ -t 1 ]; then
+            show_progress_bar 100 "Environment synchronised" "${LABEL_BOOTSTRAP}"
+        fi
         log_ok "Environment synchronised — ${MOSTLY_HARMLESS}"
         return "${EXIT_OK}"
     fi
@@ -160,10 +197,12 @@ cmd_sync() {
 }
 
 cmd_verify() {
+    ensure_uv || return $?
     if [ ! -f Makefile ]; then
         log_warn "${THURSDAY} ${LABEL_VERIFY}: make verify is not in this checkout yet (P0-04)."
         return "${EXIT_INCONCLUSIVE}"
     fi
+    ensure_env_synced || return $?
     log_info "${LABEL_VERIFY}: make verify"
     if make verify; then
         log_ok "Gate green — ${MOSTLY_HARMLESS}"
@@ -188,6 +227,7 @@ vhecfsck_has_command() {
 
 cmd_demo() {
     ensure_uv || return $?
+    ensure_env_synced || return $?
     if ! vhecfsck_has_command demo; then
         log_warn "${THURSDAY} ${LABEL_DEMO}: vhecfsck demo is not built yet (P3-05)."
         return "${EXIT_INCONCLUSIVE}"
@@ -199,11 +239,13 @@ cmd_demo() {
 
 cmd_serve() {
     ensure_uv || return $?
+    ensure_env_synced || return $?
     if ! vhecfsck_has_command serve; then
         log_warn "${THURSDAY} ${LABEL_SERVE}: vhecfsck serve is not built yet (P4-06)."
         return "${EXIT_INCONCLUSIVE}"
     fi
     log_info "${LABEL_SERVE}: uv run vhecfsck serve (foreground; Ctrl+C stops it)"
+    log_info "Server URL: http://127.0.0.1:8765"
     uv run vhecfsck serve
     return $?
 }
