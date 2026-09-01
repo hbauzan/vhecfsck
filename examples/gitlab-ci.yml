@@ -1,0 +1,52 @@
+# GitLab CI Recipe for vhecfsck Vector Index Health Audit
+# P9-03 Integration Recipe
+
+stages:
+  - audit
+
+vector_index_audit:
+  stage: audit
+  image: python:3.11-slim
+  script:
+    - pip install uv
+    - |
+      # Execute audit and capture exit code
+      uvx vhecfsck audit "$VECTOR_DB_URI" --format text > audit_output.txt 2>&1 || EXIT_CODE=$?
+      cat audit_output.txt
+      
+      # Handle exit code taxonomy
+      case ${EXIT_CODE:-0} in
+        0)
+          echo "Audit PASSED (verdict: OK)"
+          exit 0
+          ;;
+        1)
+          echo "Audit WARN threshold breached"
+          # Pass build with warning notice
+          exit 0
+          ;;
+        2)
+          echo "Audit FAIL threshold breached"
+          exit 2
+          ;;
+        3)
+          echo "Audit INCONCLUSIVE - check configuration or engine capabilities"
+          exit 3
+          ;;
+        4)
+          echo "Audit USAGE or CONNECTIVITY error"
+          exit 4
+          ;;
+        *)
+          echo "Audit INTERNAL error (code $EXIT_CODE)"
+          exit 70
+          ;;
+      esac
+  artifacts:
+    when: always
+    paths:
+      - audit_output.txt
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "web"

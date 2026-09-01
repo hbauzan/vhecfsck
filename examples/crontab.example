@@ -1,0 +1,13 @@
+# Crontab Example Recipe for vhecfsck
+# Periodically audits local/remote vector indexes and exports to Prometheus textfile collector
+# P9-03 Integration Recipe
+
+# Path configuration
+PATH=/usr/local/bin:/usr/bin:/bin:$HOME/.cargo/bin
+SHELL=/bin/bash
+
+# Audit PostgreSQL / pgvector index every 6 hours
+0 */6 * * * uvx vhecfsck audit postgres://vuser:vpass@127.0.0.1:5432/vectordb --format prometheus > /var/lib/node_exporter/textfile_collector/vhecfsck_pgvector.prom.tmp && mv /var/lib/node_exporter/textfile_collector/vhecfsck_pgvector.prom.tmp /var/lib/node_exporter/textfile_collector/vhecfsck_pgvector.prom
+
+# Audit LanceDB dataset daily at 03:00 AM
+0 3 * * * uvx vhecfsck audit lancedb:///var/data/lancedb_vectors --format prometheus > /var/lib/node_exporter/textfile_collector/vhecfsck_lance.prom.tmp && mv /var/lib/node_exporter/textfile_collector/vhecfsck_lance.prom.tmp /var/lib/node_exporter/textfile_collector/vhecfsck_lance.prom

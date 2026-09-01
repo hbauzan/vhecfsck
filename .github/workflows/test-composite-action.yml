@@ -1,0 +1,37 @@
+name: Test Composite Action
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-composite-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Audit on Synthetic Healthy Target
+        uses: ./.github/actions/vhecfsck
+        with:
+          target: 'synthetic://healthy'
+          options: '--only canary_recall,dfi'
+          export-summary: 'true'
+
+      - name: Run Audit on Synthetic Tombstoned Target (Expected Fail)
+        id: test-tombstoned
+        continue-on-error: true
+        uses: ./.github/actions/vhecfsck
+        with:
+          target: 'synthetic://tombstoned'
+          options: '--only dfi'
+          export-summary: 'true'
+
+      - name: Verify Tombstoned Exit Code Was Failure
+        run: |
+          if [ "${{ steps.test-tombstoned.outputs.exit-code }}" != "2" ]; then
+            echo "Expected exit code 2 for tombstoned target, got ${{ steps.test-tombstoned.outputs.exit-code }}"
+            exit 1
+          fi

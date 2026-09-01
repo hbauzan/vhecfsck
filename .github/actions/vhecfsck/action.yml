@@ -1,0 +1,103 @@
+name: 'vhecfsck Vector Index Audit'
+description: 'Empirical, read-only auditor for vector indexes (LanceDB, Qdrant, pgvector, Synthetic)'
+author: 'hbauzan'
+
+inputs:
+  target:
+    description: 'Target index URI (e.g. synthetic://healthy, lancedb:///data/idx, postgres://user:pass@host:5432/db)'
+    required: true
+  options:
+    description: 'Additional audit options (e.g. --only canary_recall,dfi --strict-unavailable)'
+    required: false
+    default: ''
+  fail-on-warn:
+    description: 'Treat WARN status (exit code 1) as build failure (true|false)'
+    required: false
+    default: 'false'
+  export-summary:
+    description: 'Export markdown report to GitHub Step Summary (true|false)'
+    required: false
+    default: 'true'
+
+outputs:
+  exit-code:
+    description: 'Audit process exit code (0=OK, 1=WARN, 2=FAIL, 3=INCONCLUSIVE, 4=USAGE, 70=INTERNAL)'
+    value: ${{ steps.run-audit.outputs.exit-code }}
+  verdict:
+    description: 'Audit verdict (OK, WARN, FAIL, INCONCLUSIVE)'
+    value: ${{ steps.run-audit.outputs.verdict }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install uv
+      shell: bash
+      run: |
+        if ! command -v uv &> /dev/null; then
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        fi
+
+    - name: Run vhecfsck Audit
+      id: run-audit
+      shell: bash
+      run: |
+        set +e
+        TARGET="${{ inputs.target }}"
+        OPTIONS="${{ inputs.options }}"
+        FAIL_ON_WARN="${{ inputs.fail-on-warn }}"
+        EXPORT_SUMMARY="${{ inputs.export-summary }}"
+
+        # Run text report to stdout and JSON report to temporary file
+        REPORT_TMP=$(mktemp)
+        uvx vhecfsck audit "$TARGET" $OPTIONS --format json > "$REPORT_TMP"
+        EXIT_CODE=$?
+
+        echo "exit-code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+
+        # Determine verdict from JSON if possible
+        if [ -s "$REPORT_TMP" ]; then
+          VERDICT=$(python3 -c "import json; data=json.load(open('$REPORT_TMP')); print(data.get('verdict', 'INCONCLUSIVE'))" 2>/dev/null || echo "INCONCLUSIVE")
+        else
+          VERDICT="INCONCLUSIVE"
+        fi
+        echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
+
+        # Export markdown summary if requested
+        if [ "$EXPORT_SUMMARY" = "true" ] && [ -s "$REPORT_TMP" ]; then
+          echo "## Vector Index Audit Report" >> $GITHUB_STEP_SUMMARY
+          uvx vhecfsck export "$REPORT_TMP" --format markdown >> $GITHUB_STEP_SUMMARY 2>/dev/null || true
+        fi
+
+        rm -f "$REPORT_TMP"
+
+        # Evaluate exit codes according to fail-on-warn setting
+        if [ "$EXIT_CODE" -eq 0 ]; then
+          echo "::notice ::vhecfsck audit PASSED (verdict: OK)"
+          exit 0
+        elif [ "$EXIT_CODE" -eq 1 ]; then
+          if [ "$FAIL_ON_WARN" = "true" ]; then
+            echo "::error ::vhecfsck audit WARN threshold breached (fail-on-warn=true)"
+            exit 1
+          else
+            echo "::warning ::vhecfsck audit WARN threshold breached"
+            exit 0
+          fi
+        elif [ "$EXIT_CODE" -eq 2 ]; then
+          echo "::error ::vhecfsck audit FAIL threshold breached"
+          exit 2
+        elif [ "$EXIT_CODE" -eq 3 ]; then
+          echo "::warning ::vhecfsck audit INCONCLUSIVE (unsupported capability or sample size constraint)"
+          exit 3
+        elif [ "$EXIT_CODE" -eq 4 ]; then
+          echo "::error ::vhecfsck audit USAGE/CONNECTIVITY/RESOURCE error"
+          exit 4
+        else
+          echo "::error ::vhecfsck audit INTERNAL error (exit code: $EXIT_CODE)"
+          exit 70
+        fi
