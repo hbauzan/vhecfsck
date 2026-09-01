@@ -7,8 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-01
+
 ### Added
 
+- P9-08 Post-launch triage window: created GitHub issue templates (`bug_report.md`, `feature_request.md`, `false_positive_report.md`) in `.github/ISSUE_TEMPLATE/` and published post-launch FAQ in `docs/faq.md`.
+- P9-07 Launch execution: validated tag release readiness (`v0.1.0`), launch post content, clean-machine quickstart verification, and community announcement readiness.
+- P9-06 Pre-launch review pass: completed repository-wide audit for secrets (0 committed), documentation links (0 broken on strict build), license compliance (Apache-2.0/MIT compatible), clean-environment demo execution, and code quality (0 TODO/FIXME markers in shipped code).
+- P9-05 Release engineering: created GitHub Actions release workflow (`.github/workflows/release.yml`) for packaging wheel/sdist distributions, executing clean-container smoke tests, publishing to PyPI via Trusted Publishing OIDC, and creating GitHub Releases with build artifacts. Documented release guide in `docs/releasing.md`.
+- P9-04 Anchor issues re-verification & launch post: re-verified upstream anchor issues (`pgvector#244`, `lance#4164`, `qdrant#7147`) on 2026-09-01, updated `roadmap/00-vision-and-scope.md`, and published launch blog article in `docs/blog/silent-recall-decay.md`.
 - P9-03 CI integration recipes: created copy-pasteable integration recipes for GitHub Actions composite action (`.github/actions/vhecfsck/action.yml`), test workflow (`.github/workflows/test-composite-action.yml`), GitLab CI (`examples/gitlab-ci.yml`), Kubernetes CronJob (`examples/k8s-cronjob.yaml`), crontab (`examples/crontab.example`), Apache Airflow DAG (`examples/airflow_dag.py`), and Dagster job (`examples/dagster_job.py`). Updated `docs/ci-integration.md` with GitHub Step Summary markdown export usage and Prometheus alerting rules with staleness alerts (`vhecfsck_metric_unavailable`). Added unit test suite (`tests/unit/test_ci_recipes.py`).
 - P9-02 Documentation site: configured MkDocs Material site (`mkdocs.yml`), GitHub Actions Pages workflow (`.github/workflows/docs.yml`), ADR-0019 (`roadmap/adr/0019-mkdocs-material-docs-site.md`), and programmatic generators for Typer CLI reference (`scripts/generate_cli_docs.py`), Pydantic v1.1 report schema reference (`scripts/generate_schema_docs.py`), and normative metrics reference with spec citations (`scripts/generate_metrics_docs.py`). Enforced zero warnings on `mkdocs build --strict` and automated unit test suite (`tests/unit/test_docs_generation.py`).
 - P9-01 README: published the launch-ready `README.md` featuring the hero GIF asset (`docs/assets/vhecfsck-demo.gif`), one-line quickstart (`uvx vhecfsck demo`), problem statement linking anchor issues (`qdrant#7147`, `pgvector#244`, `lance#4164`), explicit technical limitations, 5-metric threshold table, exit code taxonomy & CI recipe, engine capability matrix, read-only & zero egress guarantees, measured reference performance numbers, and install instructions with extras.

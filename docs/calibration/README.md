@@ -31,7 +31,7 @@ They are **not** committed. `--no-download` skips them with a reason instead of 
 | [hubness_sensitivity.csv](hubness_sensitivity.csv) | Gaussian `S` × `k_hub` sweep |
 | [hubness_sensitivity.md](hubness_sensitivity.md) | Same sweep as a table |
 | [skipped.csv](skipped.csv) | Corpora not measured, with the reason |
-| [reports/](reports/) | Short per-dataset summary |
+| `reports/` | Short per-dataset summary (e.g., [synthetic-healthy.md](reports/synthetic-healthy.md)) |
 
 `UNAVAILABLE` rows have an empty `value` and a non-empty `unavailable_reason`. Never `0.0`.
 

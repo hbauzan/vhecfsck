@@ -80,8 +80,11 @@ nav:
       - "Qdrant #7147": scenarios/qdrant-7147.md
       - "pgvector #244": scenarios/pgvector-244.md
       - "Lance #4164": scenarios/lance-4164.md
+  - Launch Post: blog/silent-recall-decay.md
   - Generated References:
       - CLI Reference: cli-reference.md
       - Report Schema Reference: schema-reference.md
   - Developer Testing: testing.md
+  - Release Process: releasing.md
+  - FAQ: faq.md
   - Contributing: contributing.md
