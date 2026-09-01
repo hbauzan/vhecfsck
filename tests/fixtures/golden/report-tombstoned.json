@@ -13632,7 +13632,7 @@
     "location": "synthetic://tombstoned",
     "metric_space": "L2"
   },
-  "tool_version": "0.1.1",
+  "tool_version": "0.1.2",
   "verdict": "FAIL",
   "warnings": [
     "thresholds_uncalibrated_for_sample_size"
