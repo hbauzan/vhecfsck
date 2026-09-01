@@ -574,13 +574,13 @@ derive metrics.
 
 ---
 
-### Lesson 60 (Hero GIF Asset URL & Palette Sampling)
+### Lesson 60 (Hero GIF/PNG Asset URLs & PyPI Release Metadata)
 
-**Context:** The README GIF generator (`scripts/record_demo.py`) sampled palette colors at fixed pixel strides, causing 100% background color sampling and producing an all-black GIF. Furthermore, relative markdown image links (`docs/assets/...`) break on PyPI (`https://pypi.org/project/vhecfsck/`).
+**Context:** The README GIF generator (`scripts/record_demo.py`) sampled palette colors at fixed pixel strides, causing 100% background color sampling and producing an all-black GIF. Relative markdown image links (`docs/assets/...`) break on PyPI (`https://pypi.org/project/vhecfsck/`). Crucially, PyPI long descriptions are frozen from package metadata generated at build/publish time (`hatch build`) and do not update dynamically from `git push`.
 
-**Solution:** `_palette_from_frames` uses `np.unique` to select UI colors by frequency. `README.md` and `docs/index.md` reference the raw GitHub CDN URL (`https://raw.githubusercontent.com/hbauzan/vhecfsck/main/docs/assets/vhecfsck-demo.gif`) so the hero asset renders consistently on PyPI, GitHub, and GitHub Pages.
+**Solution:** `_palette_from_frames` uses `np.unique` to select UI colors by frequency, and `record_demo.py` exports both `vhecfsck-demo.gif` and `vhecfsck-demo.png`. `README.md` and `docs/index.md` reference the raw GitHub CDN URL (`https://raw.githubusercontent.com/hbauzan/vhecfsck/main/docs/assets/vhecfsck-demo.gif`) so the hero asset renders across PyPI, GitHub, and GitHub Pages (`https://hbauzan.github.io/vhecfsck/`). Updating the PyPI landing page requires publishing the next patch version release (e.g. `v0.1.2`).
 
-**Invariant:** Hero GIF generator must use frequency-based unique color palette selection; public documentation hero GIF references must use absolute raw GitHub CDN URLs.
+**Invariant:** Hero GIF generator must use frequency-based unique color palette selection and export PNG/GIF assets; public documentation hero GIF references must use absolute raw GitHub CDN URLs. PyPI long description updates take effect upon publishing a new package release artifact.
 
 ---
 

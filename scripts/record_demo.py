@@ -32,6 +32,7 @@ from vhecfsck.models.scene import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_GIF = ROOT / "docs" / "assets" / "vhecfsck-demo.gif"
+DEFAULT_PNG = ROOT / "docs" / "assets" / "vhecfsck-demo.png"
 DEFAULT_MP4 = ROOT / "docs" / "assets" / "vhecfsck-demo.mp4"
 SEED = 4
 WIDTH = 640
@@ -524,12 +525,41 @@ def write_gif(
     path.write_bytes(bytes(body))
 
 
+def write_png(frame: NDArray[np.uint8], path: Path) -> None:
+    """Write an RGB numpy image to PNG using stdlib zlib."""
+    import struct
+    import zlib
+
+    h, w, _ = frame.shape
+    raw = bytearray()
+    for y in range(h):
+        raw.append(0)
+        raw.extend(frame[y].tobytes())
+    compressed = zlib.compress(bytes(raw), level=9)
+
+    def _chunk(tag: bytes, data: bytes) -> bytes:
+        return (
+            struct.pack(">I", len(data))
+            + tag
+            + data
+            + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+        )
+
+    header = b"\x89PNG\r\n\x1a\n"
+    ihdr = _chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+    idat = _chunk(b"IDAT", compressed)
+    iend = _chunk(b"IEND", b"")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(header + ihdr + idat + iend)
+
+
 def capture(
     path: Path = DEFAULT_GIF,
     *,
     fps: int = 8,
     width: int = WIDTH,
     height: int = HEIGHT,
+    png_path: Path = DEFAULT_PNG,
 ) -> Path:
     """Render the tour and write ``path``."""
     scene = golden_scene()
@@ -549,6 +579,8 @@ def capture(
             )
         )
     write_gif(frames, path)
+    if frames:
+        write_png(frames[0], png_path)
     return path
 
 
