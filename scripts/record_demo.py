@@ -14,7 +14,15 @@ from pathlib import Path
 
 import numpy as np
 from numpy.typing import NDArray
-from vhecfsck.core.camera import build_tour, derive_presets, sample_tour
+from vhecfsck.core.camera import (
+    ANTIHUB_PERIPHERY,
+    HUB_CLUSTER,
+    OVERVIEW,
+    WORST_PARTITION,
+    build_tour,
+    derive_presets,
+    sample_tour,
+)
 from vhecfsck.models.scene import (
     DEFAULT_COLOR_PALETTE,
     LodMetadata,
@@ -26,8 +34,120 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_GIF = ROOT / "docs" / "assets" / "vhecfsck-demo.gif"
 DEFAULT_MP4 = ROOT / "docs" / "assets" / "vhecfsck-demo.mp4"
 SEED = 4
-WIDTH = 320
-HEIGHT = 180
+WIDTH = 640
+HEIGHT = 360
+
+# 5x7 pixel font for UI text rendering
+FONT_5X7: dict[str, tuple[int, ...]] = {
+    "A": (0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11),
+    "B": (0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E),
+    "C": (0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E),
+    "D": (0x1C, 0x12, 0x11, 0x11, 0x11, 0x12, 0x1C),
+    "E": (0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x1F),
+    "F": (0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x10),
+    "G": (0x0E, 0x11, 0x10, 0x13, 0x11, 0x11, 0x0F),
+    "H": (0x11, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11),
+    "I": (0x0E, 0x04, 0x04, 0x04, 0x04, 0x04, 0x0E),
+    "J": (0x1F, 0x02, 0x02, 0x02, 0x02, 0x12, 0x0C),
+    "K": (0x11, 0x12, 0x14, 0x18, 0x14, 0x12, 0x11),
+    "L": (0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x1F),
+    "M": (0x11, 0x1B, 0x15, 0x15, 0x11, 0x11, 0x11),
+    "N": (0x11, 0x11, 0x19, 0x15, 0x13, 0x11, 0x11),
+    "O": (0x0E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E),
+    "P": (0x1E, 0x11, 0x11, 0x1E, 0x10, 0x10, 0x10),
+    "Q": (0x0E, 0x11, 0x11, 0x11, 0x15, 0x12, 0x0D),
+    "R": (0x1E, 0x11, 0x11, 0x1E, 0x14, 0x12, 0x11),
+    "S": (0x0E, 0x11, 0x10, 0x0E, 0x01, 0x11, 0x0E),
+    "T": (0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04),
+    "U": (0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E),
+    "V": (0x11, 0x11, 0x11, 0x11, 0x11, 0x0A, 0x04),
+    "W": (0x11, 0x11, 0x11, 0x15, 0x15, 0x1B, 0x11),
+    "X": (0x11, 0x11, 0x0A, 0x04, 0x0A, 0x11, 0x11),
+    "Y": (0x11, 0x11, 0x0A, 0x04, 0x04, 0x04, 0x04),
+    "Z": (0x1F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x1F),
+    "0": (0x0E, 0x11, 0x13, 0x15, 0x19, 0x11, 0x0E),
+    "1": (0x04, 0x0C, 0x04, 0x04, 0x04, 0x04, 0x0E),
+    "2": (0x0E, 0x11, 0x01, 0x02, 0x04, 0x08, 0x1F),
+    "3": (0x1F, 0x02, 0x04, 0x02, 0x01, 0x11, 0x0E),
+    "4": (0x02, 0x06, 0x0A, 0x12, 0x1F, 0x02, 0x02),
+    "5": (0x1F, 0x10, 0x1E, 0x01, 0x01, 0x11, 0x0E),
+    "6": (0x06, 0x08, 0x10, 0x1E, 0x11, 0x11, 0x0E),
+    "7": (0x1F, 0x01, 0x02, 0x04, 0x08, 0x08, 0x08),
+    "8": (0x0E, 0x11, 0x11, 0x0E, 0x11, 0x11, 0x0E),
+    "9": (0x0E, 0x11, 0x11, 0x0F, 0x01, 0x02, 0x0C),
+    ".": (0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x0C),
+    ":": (0x00, 0x0C, 0x0C, 0x00, 0x0C, 0x0C, 0x00),
+    "-": (0x00, 0x00, 0x00, 0x1F, 0x00, 0x00, 0x00),
+    "+": (0x00, 0x04, 0x04, 0x1F, 0x04, 0x04, 0x00),
+    "(": (0x02, 0x04, 0x08, 0x08, 0x08, 0x04, 0x02),
+    ")": (0x08, 0x04, 0x02, 0x02, 0x02, 0x04, 0x08),
+    "[": (0x0E, 0x08, 0x08, 0x08, 0x08, 0x08, 0x0E),
+    "]": (0x0E, 0x02, 0x02, 0x02, 0x02, 0x02, 0x0E),
+    "<": (0x02, 0x04, 0x08, 0x10, 0x08, 0x04, 0x02),
+    ">": (0x08, 0x04, 0x02, 0x01, 0x02, 0x04, 0x08),
+    "%": (0x19, 0x19, 0x02, 0x04, 0x08, 0x13, 0x13),
+    "/": (0x01, 0x02, 0x04, 0x08, 0x10, 0x00, 0x00),
+    "=": (0x00, 0x1F, 0x00, 0x1F, 0x00, 0x00, 0x00),
+    " ": (0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+}
+
+
+def _draw_rect(
+    img: NDArray[np.uint8],
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    color: tuple[int, int, int],
+) -> None:
+    h_img, w_img, _ = img.shape
+    x1, x2 = max(0, x), min(w_img, x + w)
+    y1, y2 = max(0, y), min(h_img, y + h)
+    if x1 < x2 and y1 < y2:
+        img[y1:y2, x1:x2] = color
+
+
+def _draw_box(
+    img: NDArray[np.uint8],
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    bg_color: tuple[int, int, int],
+    border_color: tuple[int, int, int] | None = None,
+) -> None:
+    _draw_rect(img, x, y, w, h, bg_color)
+    if border_color is not None:
+        _draw_rect(img, x, y, w, 1, border_color)
+        _draw_rect(img, x, y + h - 1, w, 1, border_color)
+        _draw_rect(img, x, y, 1, h, border_color)
+        _draw_rect(img, x + w - 1, y, 1, h, border_color)
+
+
+def _draw_text(
+    img: NDArray[np.uint8],
+    text: str,
+    x: int,
+    y: int,
+    color: tuple[int, int, int],
+    scale: int = 1,
+) -> None:
+    h_img, w_img, _ = img.shape
+    cur_x = x
+    for ch in text:
+        key = ch.upper() if ch.upper() in FONT_5X7 else " "
+        rows = FONT_5X7.get(key, FONT_5X7[" "])
+        for r, row_bits in enumerate(rows):
+            for c in range(5):
+                if (row_bits >> (4 - c)) & 1:
+                    px = cur_x + c * scale
+                    py = y + r * scale
+                    if 0 <= px < w_img and 0 <= py < h_img:
+                        if scale == 1:
+                            img[py, px] = color
+                        else:
+                            _draw_rect(img, px, py, scale, scale, color)
+        cur_x += 6 * scale
 
 
 def golden_scene() -> ScenePayload:
@@ -88,20 +208,32 @@ def render_frame(
     *,
     width: int = WIDTH,
     height: int = HEIGHT,
+    preset: str = OVERVIEW,
+    caption: str = "",
 ) -> NDArray[np.uint8]:
-    """Splat the scene from ``eye`` looking at ``target`` into an RGB image."""
+    """Splat the scene from ``eye`` looking at ``target`` into an RGB image with WebGUI HUD."""
     projected = _look_at(
         scene.positions,
         np.asarray(eye, dtype=np.float64),
         np.asarray(target, dtype=np.float64),
     )
+    # Dark background matching WebGUI --bg-dark (#0f1117)
     img = np.full((height, width, 3), 15, dtype=np.uint8)
     img[:, :, 1] = 17
     img[:, :, 2] = 23
-    xs = ((projected[:, 0] * 0.45 + 0.5) * (width - 1)).astype(np.int32)
-    ys = ((0.5 - projected[:, 1] * 0.45) * (height - 1)).astype(np.int32)
+
+    # If canvas is wide enough, offset 3D scene center to the right
+    hud_w = min(220, int(width * 0.35)) if width >= 300 and height >= 160 else 0
+    cx = (width + hud_w) / 2.0 if hud_w > 0 else width / 2.0
+    cy = (height - 30) / 2.0 if hud_w > 0 else height / 2.0
+    scale_factor = min(width - hud_w, height) * 0.45
+
+    xs = (cx + projected[:, 0] * scale_factor).astype(np.int32)
+    ys = (cy - projected[:, 1] * scale_factor).astype(np.int32)
     order = np.argsort(-projected[:, 2])
     palette = DEFAULT_COLOR_PALETTE
+
+    # Render 3D point cloud
     for idx in order:
         x = int(xs[idx])
         y = int(ys[idx])
@@ -116,6 +248,181 @@ def render_frame(
         )
         radius = 2 if cls is PointClass.HEALTHY else 3
         img[y - radius : y + radius + 1, x - radius : x + radius + 1] = rgb
+
+    # Draw full WebGUI overlay HUD cards if canvas is sufficiently large
+    if hud_w >= 140 and height >= 160:
+        hud_h = height - 44
+        # Main HUD card container (#161a24 bg, #2d3748 border)
+        _draw_box(
+            img,
+            12,
+            12,
+            hud_w,
+            hud_h,
+            bg_color=(22, 26, 36),
+            border_color=(45, 55, 72),
+        )
+
+        # Header title
+        _draw_text(img, "VHECFSCK AUDIT", 22, 22, color=(226, 232, 240), scale=1)
+
+        # Verdict Badge [FAIL] (red #ef4444)
+        badge_x = 12 + hud_w - 42
+        _draw_box(
+            img,
+            badge_x,
+            20,
+            34,
+            14,
+            bg_color=(239, 68, 68),
+            border_color=(220, 38, 38),
+        )
+        _draw_text(img, "FAIL", badge_x + 5, 24, color=(255, 255, 255), scale=1)
+
+        # Separator line
+        _draw_rect(img, 22, 40, hud_w - 20, 1, color=(45, 55, 72))
+
+        # Caveat alert box (amber border)
+        _draw_box(
+            img,
+            20,
+            46,
+            hud_w - 16,
+            24,
+            bg_color=(30, 41, 59),
+            border_color=(245, 158, 11),
+        )
+        _draw_text(
+            img,
+            "3D SKETCH (PCA)",
+            26,
+            50,
+            color=(245, 158, 11),
+            scale=1,
+        )
+        _draw_text(
+            img,
+            "LOSSY HIGH-D",
+            26,
+            59,
+            color=(148, 163, 184),
+            scale=1,
+        )
+
+        # Audit Metrics Section
+        _draw_text(img, "AUDIT METRICS", 22, 76, color=(148, 163, 184), scale=1)
+
+        metrics = [
+            ("CANARY RECALL", "0.6815 RATIO", True),
+            ("HUB SHARE TOP1", "0.0548 RATIO", False),
+            ("ANTIHUB FRAC", "0.0506 RATIO", False),
+            ("DFI", "0.3500 RATIO", True),
+        ]
+
+        my = 88
+        for title, val, is_fail in metrics:
+            if my + 26 > 12 + hud_h:
+                break
+            b_color = (239, 68, 68) if is_fail else (45, 55, 72)
+            _draw_box(
+                img,
+                20,
+                my,
+                hud_w - 16,
+                22,
+                bg_color=(28, 33, 46),
+                border_color=b_color,
+            )
+            _draw_text(img, title, 25, my + 3, color=(148, 163, 184), scale=1)
+            _draw_text(
+                img,
+                val,
+                25,
+                my + 12,
+                color=(239, 68, 68) if is_fail else (226, 232, 240),
+                scale=1,
+            )
+            my += 26
+
+        # Selectors (COLOUR BY / PALETTE)
+        if my + 32 <= 12 + hud_h:
+            _draw_text(img, "COLOUR BY", 22, my + 4, color=(148, 163, 184))
+            _draw_box(
+                img,
+                20,
+                my + 14,
+                hud_w - 16,
+                16,
+                bg_color=(30, 41, 59),
+                border_color=(45, 55, 72),
+            )
+            _draw_text(img, "CLASS", 26, my + 18, color=(226, 232, 240), scale=1)
+
+        # Bottom Controls Bar
+        bar_y = height - 28
+        bar_x = 12
+        bar_w = width - 24
+        _draw_box(
+            img,
+            bar_x,
+            bar_y,
+            bar_w,
+            20,
+            bg_color=(22, 26, 36),
+            border_color=(45, 55, 72),
+        )
+
+        buttons = [
+            ("RESET", False),
+            ("OVERVIEW", preset == OVERVIEW),
+            ("HUBS", preset == HUB_CLUSTER),
+            ("ANTI-HUBS", preset == ANTIHUB_PERIPHERY),
+            ("WORST CELL", preset == WORST_PARTITION),
+        ]
+
+        bx = bar_x + 6
+        for btn_name, active in buttons:
+            bw = len(btn_name) * 6 + 10
+            if bx + bw > bar_x + bar_w - 6:
+                break
+            bg = (59, 130, 246) if active else (30, 41, 59)
+            border = (147, 197, 253) if active else (51, 65, 85)
+            tc = (255, 255, 255) if active else (148, 163, 184)
+            _draw_box(
+                img,
+                bx,
+                bar_y + 3,
+                bw,
+                14,
+                bg_color=bg,
+                border_color=border,
+            )
+            _draw_text(img, btn_name, bx + 5, bar_y + 6, color=tc, scale=1)
+            bx += bw + 6
+
+    # Render Preset Caption Banner at top right canvas area
+    if caption and width >= 360 and height >= 160:
+        cap_str = caption.upper()
+        cap_w = len(cap_str) * 6 + 16
+        cap_x = int(cx - cap_w / 2)
+        _draw_box(
+            img,
+            cap_x,
+            12,
+            cap_w,
+            18,
+            bg_color=(22, 26, 36),
+            border_color=(59, 130, 246),
+        )
+        _draw_text(
+            img,
+            cap_str,
+            cap_x + 8,
+            17,
+            color=(59, 130, 246),
+            scale=1,
+        )
+
     return img
 
 
@@ -168,14 +475,13 @@ def _palette_from_frames(
     frames: list[NDArray[np.uint8]], colours: int = 32
 ) -> NDArray[np.int16]:
     stacked = np.concatenate([f.reshape(-1, 3) for f in frames], axis=0)
-    rows = [stacked[0]]
-    stride = max(1, stacked.shape[0] // colours)
-    for i in range(0, stacked.shape[0], stride):
-        if len(rows) >= colours:
-            break
-        rows.append(stacked[i])
-    palette = np.vstack(rows).astype(np.int16)
-    while palette.shape[0] < colours:
+    unique, counts = np.unique(stacked, axis=0, return_counts=True)
+    if len(unique) <= colours:
+        palette = unique.astype(np.int16)
+    else:
+        top_indices = np.argsort(-counts)[:colours]
+        palette = unique[top_indices].astype(np.int16)
+    while len(palette) < colours:
         palette = np.vstack([palette, palette[-1]])
     return palette[:colours]
 
@@ -238,6 +544,8 @@ def capture(
                 tour_frame.target,
                 width=width,
                 height=height,
+                preset=tour_frame.preset,
+                caption=tour_frame.caption,
             )
         )
     write_gif(frames, path)
