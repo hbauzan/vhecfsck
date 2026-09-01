@@ -2,7 +2,7 @@
 
 Read-only, empirical, offline auditor for vector indexes that detects silent recall decay and index pathologies before they reach production.
 
-![vhecfsck demo](assets/vhecfsck-demo.gif)
+![vhecfsck demo](https://raw.githubusercontent.com/hbauzan/vhecfsck/main/docs/assets/vhecfsck-demo.gif)
 
 ## Quickstart
 

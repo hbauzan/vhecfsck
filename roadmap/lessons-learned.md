@@ -574,6 +574,16 @@ derive metrics.
 
 ---
 
+### Lesson 60 (Hero GIF Asset URL & Palette Sampling)
+
+**Context:** The README GIF generator (`scripts/record_demo.py`) sampled palette colors at fixed pixel strides, causing 100% background color sampling and producing an all-black GIF. Furthermore, relative markdown image links (`docs/assets/...`) break on PyPI (`https://pypi.org/project/vhecfsck/`).
+
+**Solution:** `_palette_from_frames` uses `np.unique` to select UI colors by frequency. `README.md` and `docs/index.md` reference the raw GitHub CDN URL (`https://raw.githubusercontent.com/hbauzan/vhecfsck/main/docs/assets/vhecfsck-demo.gif`) so the hero asset renders consistently on PyPI, GitHub, and GitHub Pages.
+
+**Invariant:** Hero GIF generator must use frequency-based unique color palette selection; public documentation hero GIF references must use absolute raw GitHub CDN URLs.
+
+---
+
 ## 5. Protocolo de Mantenimiento de Lecciones Aprendidas
 
 Este archivo es caro de leer y fácil de arruinar. Si se lee por reflejo, se paga en cada sesión; si se escribe por reflejo, se llena de ruido y deja de servir para lo único que sirve: que la próxima IA arranque donde terminó la anterior.
