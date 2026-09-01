@@ -98,6 +98,7 @@ _COVERAGE_TARGETS = (
     "tests/unit/test_clean_orphans.py",
     "tests/unit/test_mutation_core.py",
     "tests/unit/test_docs_generation.py",
+    "tests/unit/test_ci_recipes.py",
 )
 
 # Nightly core-floor subprocess (P0-04 / lesson 35). Keep in sync with

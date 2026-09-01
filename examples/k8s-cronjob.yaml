@@ -1,0 +1,58 @@
+# Kubernetes CronJob Recipe for vhecfsck
+# Writes Prometheus metrics to node_exporter textfile collector
+# P9-03 Integration Recipe
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vhecfsck-vector-audit
+  namespace: monitoring
+  labels:
+    app: vhecfsck-auditor
+spec:
+  schedule: "0 */4 * * *" # Every 4 hours
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: vhecfsck-auditor
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: auditor
+            image: python:3.11-slim
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - |
+              pip install --no-cache-dir uv
+              TEMP_FILE="/tmp/vhecfsck_metrics.prom.tmp"
+              FINAL_FILE="/node_exporter/textfile/vhecfsck.prom"
+              
+              # Run audit outputting Prometheus metrics format
+              uvx vhecfsck audit "$VECTOR_DB_URI" --format prometheus > "$TEMP_FILE" || EXIT_CODE=$?
+              
+              # Atomic move to prevent partial scraping by node_exporter
+              mv "$TEMP_FILE" "$FINAL_FILE"
+              
+              echo "Audit process finished with exit code ${EXIT_CODE:-0}"
+              exit 0
+            env:
+            - name: VECTOR_DB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: vector-db-credentials
+                  key: uri
+            volumeMounts:
+            - name: textfile-collector
+              mountPath: /node_exporter/textfile
+          volumes:
+          - name: textfile-collector
+            hostPath:
+              path: /var/lib/node_exporter/textfile_collector
+              type: DirectoryOrCreate

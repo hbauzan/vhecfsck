@@ -161,7 +161,7 @@ atomically.
 | :--- | :--- | :--- | :--- | :--- |
 | P9-01 | README | M | P6-07, P8-04 | done |
 | P9-02 | Documentation site | M | P9-01 | done |
-| P9-03 | CI integration recipes | M | P3-08 | todo |
+| P9-03 | CI integration recipes | M | P3-08 | done |
 | P9-04 | Verify the anchor issues and write the launch post | M | P5-09, P7-03, P7-05 | todo |
 | P9-05 | Release engineering | M | P4-11, P8-11 | todo |
 | P9-06 | Pre-launch review pass | M | P9-01, P9-02, P9-03 | todo |
