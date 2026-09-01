@@ -2,6 +2,7 @@
 name = "vhecfsck"
 version = "0.1.1"
 description = "Topological audit and health diagnostics for vector indexes."
+readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
@@ -75,6 +76,7 @@ artifacts = ["vhecfsck/web/dist"]
 only-include = [
     "vhecfsck",
     "tests",
+    "README.md",
     "CHANGELOG.md",
     "LICENSE",
     "NOTICE",
