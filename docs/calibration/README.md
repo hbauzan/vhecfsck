@@ -39,14 +39,13 @@ They are **not** committed. `--no-download` skips them with a reason instead of 
 
 Read these before quoting a number from here.
 
-**Three of the five metrics have no pathological positive.** `hub_share_top1pct`,
-`antihub_fraction` and `partition_size_cv` are measured only against healthy controls, so
-this run establishes their false-positive rate and says nothing about their false-negative
-rate. The scenarios named for those pathologies do not move them: `synthetic-hubby` reports
-`hub_share 0.0877 OK` / `antihub 0.1126 OK`, and `synthetic-drifted` — the `lance#4164`
-uneven-IVF-cell scenario — reports `partition_size_cv 1.0342 OK`. The defect is in the
-synthetic pathology operators, not in the metric formulas. Tracked as MI-01 / MI-02 in
-[the metric integrity plan](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/plan_integridad_matematica.md).
+**Three of the five metrics had no pathological positive in the last published
+`results.csv`.** `hub_share_top1pct` and `antihub_fraction` now have one: `synthetic-hubby`
+size=small measures `hub_share 0.9297 FAIL` / `antihub 0.6450 FAIL` (MI-02).
+`partition_size_cv` on `synthetic-drifted` measures `0.9160 OK` after the IVF freeze
+(MI-01) — the operator moves the metric, but not past the WARN floor. Republishing FNR
+from a fresh `make calibrate` is MI-07. The previous published `0.0877 OK` / `0.1126 OK` /
+`1.0342 OK` figures described operators that did not induce the gated geometry.
 
 **The `state` and `verdict` columns of `results.csv` predate the per-dimension profiles.**
 They were evaluated against the old static thresholds, which is why healthy Gaussian

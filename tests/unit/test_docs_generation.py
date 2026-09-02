@@ -8,6 +8,14 @@ from pathlib import Path
 from scripts.generate_cli_docs import generate_cli_docs
 from scripts.generate_metrics_docs import generate_metrics_docs
 from scripts.generate_schema_docs import generate_schema_docs
+from scripts.generate_version_docs import (
+    CHANGELOG_DEST,
+    INDEX_PATH,
+    VERSION_BEGIN,
+    VERSION_END,
+    read_project_version,
+    version_markup,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -51,6 +59,19 @@ def test_mkdocs_yml_exists_and_valid() -> None:
     assert "site_name: vhecfsck" in text
     assert "theme:" in text
     assert "material" in text
+    assert "Changelog: changelog.md" in text
+    assert "use_directory_urls: false" in text
+
+
+def test_version_markup_is_derived_from_pyproject() -> None:
+    version = read_project_version()
+    fragment = version_markup(version)
+    assert f"Current release: [{version}]" in fragment
+    assert "changelog.md" in fragment
+    assert f"https://pypi.org/project/vhecfsck/{version}/" in fragment
+    index_text = INDEX_PATH.read_text(encoding="utf-8")
+    assert VERSION_BEGIN in index_text
+    assert VERSION_END in index_text
 
 
 def test_mkdocs_build_strict_smoke() -> None:
@@ -79,6 +100,14 @@ def test_mkdocs_build_strict_smoke() -> None:
     )
     assert gen_metrics.returncode == 0, gen_metrics.stderr
 
+    gen_version = subprocess.run(
+        ["uv", "run", "python", "scripts/generate_version_docs.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+    )
+    assert gen_version.returncode == 0, gen_version.stderr
+
     build = subprocess.run(
         ["uv", "run", "mkdocs", "build", "--strict"],
         cwd=ROOT,
@@ -86,3 +115,13 @@ def test_mkdocs_build_strict_smoke() -> None:
         text=True,
     )
     assert build.returncode == 0, build.stderr
+
+    version = read_project_version()
+    index_html = (ROOT / "site" / "index.html").read_text(encoding="utf-8")
+    assert version in index_html
+
+    changelog_html = ROOT / "site" / "changelog.html"
+    assert changelog_html.is_file()
+    changelog_text = changelog_html.read_text(encoding="utf-8")
+    assert f"[{version}]" in changelog_text or version in changelog_text
+    assert CHANGELOG_DEST.exists()

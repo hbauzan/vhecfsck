@@ -47,7 +47,7 @@ def test_cli_demo_all_scenarios_reachable() -> None:
         "healthy": 0,
         "drifted": 0,
         "tombstoned": 2,
-        "hubby": 3,
+        "hubby": 1,
         "capability_limited": 3,
         "tiny": 3,
     }

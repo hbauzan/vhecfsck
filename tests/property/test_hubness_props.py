@@ -127,7 +127,7 @@ def test_inject_hubs_increases_hub_share() -> None:
     state = corpus_state_from_generated(
         generate_corpus(
             2000,
-            16,
+            64,
             n_clusters=4,
             cluster_std=0.15,
             cluster_size_skew=0.0,
@@ -144,15 +144,17 @@ def test_inject_hubs_increases_hub_share() -> None:
         enforce_min_sample=True,
     )
     with_hubs = inject_hubs(state, n_hubs=5, strength=4.0, seed=16)
+    # Hubness is self-queried on S. Slicing ids[:n] after append drops the
+    # injected hubs (they sit at the tail), so the gated metric cannot move.
     hub2, _ = compute_hubness(
         corpus_ids=with_hubs.ids,
         corpus_vectors=with_hubs.vectors,
-        sample_ids=with_hubs.ids[:2000],
+        sample_ids=with_hubs.ids,
         metric_space=MetricSpace.L2,
         k_hub=5,
         enforce_min_sample=True,
     )
-    assert float(hub2.value) >= float(base_hub.value)
+    assert float(hub2.value) > float(base_hub.value)
 
 
 def test_inject_antihubs_increases_antihub_fraction() -> None:
