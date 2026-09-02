@@ -4,11 +4,11 @@ Isotropic Gaussian N(0, I), d=1536
 
 | Metric | State | Value | Unavailable reason |
 | :--- | :--- | ---: | :--- |
-| `antihub_fraction` | FAIL | 0.43755 | — |
+| `antihub_fraction` | OK | 0.43755 | — |
 | `canary_recall` | OK | 0.9 | — |
 | `dfi` | OK | 0 | — |
-| `hub_share_top1pct` | WARN | 0.312595 | — |
-| `partition_size_cv` | WARN | 1.364714098 | — |
+| `hub_share_top1pct` | OK | 0.312595 | — |
+| `partition_size_cv` | OK | 1.364714098 | — |
 
 Licence: Generated in-process; no third-party corpus.
 

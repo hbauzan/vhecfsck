@@ -1,7 +1,7 @@
 # Calibrated Default Thresholds and Dimensionality Profiles
 
-**Status:** Calibrated in P8-02  
-**Provenance:** Measured across Gaussian controls ($d \in \{16, 64, 128, 384, 768, 1536\}$), synthetic scenario pathologies (`healthy`, `drifted`, `tombstoned`, `hubby`), and public corpora (`sift-128`, `gist-960`, `glove-100`, `sentence-minilm`).  
+**Status:** Calibrated in P8-02; measurements republished in MI-07  
+**Provenance:** Measured across Gaussian controls ($d \in \{64, 128, 384, 768, 1536\}$), synthetic scenario pathologies (`healthy`, `drifted`, `tombstoned`, `hubby`), and public corpora (`sift-128`, `gist-960`, `glove-100`). `sentence-minilm` was skipped (`sentence-minilm.npy` not in cache).  
 **Affects:** `vhecfsck/config.py`, `vhecfsck/pipeline.py`, ADR-0011.
 
 ---
@@ -17,13 +17,14 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes:
 
 > **What this calibration does and does not establish.** Every threshold below is
 > derived from measured healthy controls, so the **false-positive** rates are backed by
-> data. The **false-negative** side is only established for the two metrics that have a
-> pathological positive in the reference run: `canary_recall` (`0.5340` on
-> `synthetic-tombstoned`) and `dfi` (`0.3500` on the same). For
-> `hub_share_top1pct`, `antihub_fraction` and `partition_size_cv` **no pathological
-> positive exists in the calibration**, so their detection sensitivity is unvalidated and
-> is reported as such per metric below. This is a gap in the synthetic pathology
-> operators, not evidence that the metrics fail to detect — see
+> data. The **false-negative** side is established for four of five metrics that have a
+> pathological positive in this reference run: `canary_recall` (`0.5340` FAIL on
+> `synthetic-tombstoned`), `dfi` (`0.3500` FAIL on the same), `hub_share_top1pct`
+> (`0.9297` FAIL on `synthetic-hubby`), and `antihub_fraction` (`0.6450` FAIL on
+> the same). `partition_size_cv` still has no pathological positive past the WARN
+> floor (`synthetic-drifted` `0.9160` OK), so its detection sensitivity stays
+> unvalidated — a gap in the synthetic operator, not evidence that the metric
+> fails to detect. See
 > [`roadmap/archive/plans/plan_integridad_matematica.md`](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/plans/plan_integridad_matematica.md).
 
 ---
@@ -33,7 +34,7 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes:
 ### 1. `canary_recall` (Canary Search Recall)
 - **Gating Direction:** `lower_is_worse` (higher is better)
 - **Calibrated Default:** Warn `< 0.85`, Fail `< 0.70` (Global, All $d$)
-- **Measured Healthy Range:** `0.8935` to `1.0000` (FPR = `0.0%`)
+- **Measured Healthy Range:** `0.8985` to `0.9000` (FPR = `0.0%`; min is `gist-960`, gaussians and the other measured publics are `0.9000`)
 - **Measured Pathological Range:** `0.5340` on `synthetic-tombstoned` 35% churn (FNR = `0.0%` at fail threshold `0.70`)
 - **Invalidation / Boundary Conditions:**
   - Extremely acuminate query filters reducing eligible vector space below $k+1$.
@@ -61,10 +62,12 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes:
   - $d = 768$: `1.1048` (`gaussian-768`)
   - $d = 1536$: `1.3647` (`gaussian-1536`)
 - **Measured FPR:** `0.0%` false positives across all healthy IVF clustering runs when profiled by $d$.
-- **Measured FNR:** **not measured — no pathological positive exists in the reference
-  calibration.** `synthetic-drifted`, the scenario named for appends into existing IVF cells
-  without a centroid refit (`lance#4164`), reports `1.0342 OK`. Detection sensitivity for this
-  metric is therefore unvalidated. Tracked as MI-01 / MI-04.
+- **Measured FNR:** **not measured — no pathological positive past the WARN floor
+  exists in this reference run.** `synthetic-drifted`, the scenario named for appends
+  into existing IVF cells without a centroid refit (`lance#4164`), reports
+  `0.9160 OK` (WARN floor `1.20` at $d=16$). The operator moves the metric relative
+  to a refit, but not past the gate. Detection sensitivity therefore stays
+  unvalidated.
 - **Invalidation / Boundary Conditions:**
   - Non-partitioned indexes (FLAT, HNSW without IVF) return `UNAVAILABLE` / `not_applicable`.
 
@@ -76,17 +79,16 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes:
   - $384 < d \le 1024$ (`high`): Warn `> 0.32`, Fail `> 0.45`
   - $d > 1024$ (`ultra_high`): Warn `> 0.35`, Fail `> 0.48`
 - **Measured Healthy Isotropic Gaussian Control Distribution:**
-  - $d = 16$: `0.0528`
   - $d = 64$: `0.1646`
   - $d = 128$: `0.2278`
   - $d = 384$: `0.2664`
   - $d = 768$: `0.3012`
   - $d = 1536$: `0.3126`
-- **Measured FPR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.20 default for $d \ge 128$).
-- **Measured FNR:** **not yet republished in `results.csv` (MI-07).** MI-02 gave
-  `synthetic-hubby` a real attractor: measured `hub_share_top1pct = 0.9297 FAIL` on
-  size=small. Detection sensitivity against that fixture exists; the calibration
-  artefact still has to be regenerated.
+- **Measured FPR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.20 default for $d \ge 128$). All five gaussian rows in this run are `OK`, including `gaussian-768` `0.3012` against the `high` WARN floor `0.32`.
+- **Measured FNR:** `0.0%` at fail threshold `0.35` (`low`, $d=64$). Pathological
+  positive: `synthetic-hubby` size=small, $n=8020$, `hub_share_top1pct = 0.9297`
+  `FAIL` (`results.csv` value `0.9296758105`). Overall verdict on that row is
+  `WARN` because evidence is `LOW` (`|S| < 10000`), not because the metric missed.
 - **Invalidation / Boundary Conditions:**
   - Hubness sample size $|S| < 1000$ yields `UNAVAILABLE` (ADR-0006).
   - Hubness sampling parameters differing from $S=20000, k_{hub}=10$ set `thresholds_uncalibrated_for_sample_size` flag.
@@ -99,16 +101,16 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes:
   - $384 < d \le 1024$ (`high`): Warn `> 0.43`, Fail `> 0.55`
   - $d > 1024$ (`ultra_high`): Warn `> 0.46`, Fail `> 0.58`
 - **Measured Healthy Isotropic Gaussian Control Distribution:**
-  - $d = 16$: `0.1390`
   - $d = 64$: `0.2226`
   - $d = 128$: `0.2958`
   - $d = 384$: `0.3814`
   - $d = 768$: `0.4177`
   - $d = 1536$: `0.4376`
-- **Measured FPR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.25 default for $d \ge 128$).
-- **Measured FNR:** **not yet republished in `results.csv` (MI-07).** MI-02 measured
-  `synthetic-hubby` `antihub_fraction = 0.6450 FAIL` on size=small. The calibration
-  artefact still has to be regenerated.
+- **Measured FPR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.25 default for $d \ge 128`). All five gaussian rows in this run are `OK`, including `gaussian-768` `0.4177` against the `high` WARN floor `0.43` (that row was `FAIL` under the old static `0.25` floor).
+- **Measured FNR:** `0.0%` at fail threshold `0.40` (`low`, $d=64$). Pathological
+  positive: `synthetic-hubby` size=small, $n=8020$, `antihub_fraction = 0.6450`
+  `FAIL` (`results.csv` value `0.6450124688`). Overall verdict on that row is
+  `WARN` because evidence is `LOW` (`|S| < 10000`), not because the metric missed.
 - **Invalidation / Boundary Conditions:**
   - Hubness sample size $|S| < 1000$ yields `UNAVAILABLE`.
 
