@@ -34,6 +34,7 @@ jobs:
           uv run python scripts/generate_cli_docs.py
           uv run python scripts/generate_schema_docs.py
           uv run python scripts/generate_metrics_docs.py
+          uv run python scripts/generate_version_docs.py
       - name: Build Docs Site (Strict Mode & Link Check)
         run: uv run mkdocs build --strict
       - name: Upload Pages Artifact

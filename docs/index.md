@@ -18,6 +18,11 @@ Or install via `pip`:
 pip install vhecfsck
 ```
 
+<!-- version:begin -->
+Current release: [0.1.3](changelog.md) · [PyPI](https://pypi.org/project/vhecfsck/0.1.3/).
+On GitHub Pages the changelog is `/changelog` (no trailing slash). `/changelog/` 404s, same as `/releasing/` versus `/releasing`.
+<!-- version:end -->
+
 ---
 
 ## Core Principles
