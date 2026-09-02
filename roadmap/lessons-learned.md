@@ -26,18 +26,21 @@ reinicies: un §0 viejo que lo listaba como critical path está stale.
 [`archive/phases/phase-9-docs-release-and-launch.md`](archive/phases/phase-9-docs-release-and-launch.md).
 P9-12 `blocked` (humano: env GitHub `pypi` + publisher PyPI). P9-09 `blocked`
 (go-ahead + Linux real). P9-10 skip (CI Linux × 3.11/3.12/3.13 ya corre).
-**MI-01 / MI-02 `done`.** Hubness self-query + freeze IVF drifted + `inject_hubs`
-concentra ≥1% de masa (d=64). `hubby` size=small: `hub_share 0.9297 FAIL` /
-`antihub 0.6450 FAIL` / overall WARN (evidence LOW, `|S|<10000`).
+**MI-01 / MI-02 / MI-07 `done`.** Hubness self-query + freeze IVF drifted +
+`inject_hubs` concentra ≥1% de masa (d=64). Reference calibration republished:
+`synthetic-hubby` n=8020 `hub_share 0.9297 FAIL` / `antihub 0.6450 FAIL` /
+overall WARN (evidence LOW, `|S|<10000`). `synthetic-drifted`
+`partition_size_cv 0.9160 OK` — FNR still unmeasured. Healthy Gaussians are
+`OK` under per-dimension profiles. `sentence-minilm` skipped (no cache npy).
 **Horizon:** [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md)
 sigue en `roadmap/phases/` (no archivado).
 
 **Critical path activo:** [`next-ticket.md`](next-ticket.md) —
-MI-07 → MI-05 → TH-06 → TH-07 → TH-04 → TH-08 → P9-12.
-No tomes dos. No reabras TH-01/02/03, MI-03/04/06, P8-03.
+MI-05 → TH-06 → TH-07 → TH-04 → TH-08 → P9-12.
+No tomes dos. No reabras TH-01/02/03, MI-03/04/06/07, P8-03.
 
-**HEAD de referencia:** `main` @ merge `3a3e609` (P9-13 + P9-14 + P9-11 + MI-01
-+ MI-02) + dispatcher `fe67f48`. Este archivo se reescribe en el commit de archive.
+**HEAD de referencia:** `main` after merge of `docs/mi-07-recalibrate` onto
+`ca9f333`. Confirm with `git log -1 origin/main`.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PUBLIC** desde P9-07).
 Runners estándar de GitHub Actions son gratis en repo público.
 
@@ -211,11 +214,11 @@ gate. Installing them to "make verify greener" hides import-layering failures.
 
 ### Lesson 56 (P9-02 MkDocs Strict Mode & External GitHub Links)
 
-**Context:** `mkdocs build --strict` treats any unmapped `.md` file or broken relative link (e.g. `../../roadmap/adr/`) as a fatal build error.
+**Context:** `mkdocs build --strict` treats any unmapped `.md` file or broken relative link (e.g. `../../roadmap/adr/`) as a fatal build error. A **nav entry whose file was deleted** is also a `--strict` warning (MI-07: leftover `gaussian-16.md` after `PROFILE_REFERENCE` dropped d=16). Extra pages not listed in nav are INFO only and do not fail the build.
 
-**Solution:** Navigation structure in `mkdocs.yml` maps all documentation pages. Markdown files in `docs/` citing files in `roadmap/adr/` or `roadmap/phases/` use absolute GitHub URLs (`https://github.com/hbauzan/vhecfsck/blob/main/...`).
+**Solution:** Navigation structure in `mkdocs.yml` maps all documentation pages. Markdown files in `docs/` citing files in `roadmap/adr/` or `roadmap/phases/` use absolute GitHub URLs (`https://github.com/hbauzan/vhecfsck/blob/main/...`). When `make calibrate` adds or drops `docs/calibration/reports/*.md`, update the Calibration Data nav in the same ticket.
 
-**Invariant:** All cross-document links in `docs/` pointing to root/roadmap files must use absolute GitHub URLs; `mkdocs build --strict` must build with 0 warnings.
+**Invariant:** All cross-document links in `docs/` pointing to root/roadmap files must use absolute GitHub URLs; `mkdocs build --strict` must build with 0 warnings. A nav key must not point at a missing file.
 
 ---
 

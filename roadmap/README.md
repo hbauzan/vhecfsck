@@ -100,6 +100,6 @@ Each correction has an owning ADR so the reasoning survives.
 ## Status
 
 P0–P9 execution is complete except the residual queue in
-[`next-ticket.md`](next-ticket.md) (MI-07, MI-05, TH-06…TH-08, P9-12). Product on
+[`next-ticket.md`](next-ticket.md) (MI-05, TH-06…TH-08, P9-12). Product on
 `main` is the read-only CLI auditor; hero command `uvx vhecfsck demo`. P10 stays
 unplanned in [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md).
