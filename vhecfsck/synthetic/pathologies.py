@@ -6,6 +6,7 @@ the induced ground truth for oracle tests in later phases.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, replace
 
 import numpy as np
@@ -229,6 +230,13 @@ def apply_churn(
     )
 
 
+def _attractor_count(n_live: int, n_hubs: int) -> int:
+    """At least ``n_hubs``, and at least 1% of live mass (the gated-metric floor)."""
+    if n_live <= 0:
+        return 0
+    return min(n_live, max(n_hubs, math.ceil(0.01 * n_live)))
+
+
 def inject_hubs(
     state: CorpusState,
     *,
@@ -236,7 +244,14 @@ def inject_hubs(
     strength: float,
     seed: int,
 ) -> CorpusState:
-    """Append cannibalising hubs near inter-cluster / dense-core centroids."""
+    """Concentrate live mass onto a tight attractor so ``hub_share_top1pct`` moves.
+
+    Appending a handful of centroid copies does not move the gated metric: the
+    natural top 1% already owns most neighbour-list slots. This operator
+    diffuses the live cloud and collapses at least 1% of it (and at least
+    ``n_hubs`` points) onto a tight ball. IDs are not appended, so the
+    attractor stays inside any sample of the original corpus.
+    """
     if n_hubs < 1:
         msg = "n_hubs must be >= 1"
         raise ValueError(msg)
@@ -244,81 +259,59 @@ def inject_hubs(
         msg = "strength must be > 0"
         raise ValueError(msg)
 
-    rng = default_rng(seed)
-    centroids = _cluster_centroids(state.vectors, state.cluster_ids, state.deleted)
-    n_clusters = int(centroids.shape[0])
-    d = int(state.vectors.shape[1])
     live = [i for i in range(state.ids.shape[0]) if not bool(state.deleted[i])]
-    hubs = np.empty((n_hubs, d), dtype=np.float32)
-    hub_clusters = np.empty(n_hubs, dtype=np.int64)
+    n_live = len(live)
+    if n_live < 1:
+        msg = "inject_hubs requires at least one live vector"
+        raise ValueError(msg)
 
-    # Cluster sizes for assigning hub "home" labels.
-    sizes = [0] * max(n_clusters, 1)
-    for i in live:
-        sizes[int(state.cluster_ids[i])] += 1
-    ranked = sorted(range(len(sizes)), key=lambda c: (-sizes[c], c))
+    rng = default_rng(seed)
+    d = int(state.vectors.shape[1])
+    attractor_n = _attractor_count(n_live, n_hubs)
+    live_idx = np.asarray(live, dtype=np.int64)
+    vectors = np.array(state.vectors, dtype=np.float32, copy=True)
+    live_block = vectors[live_idx]
+    scale = float(np.sqrt(np.mean(live_block * live_block)))
+    if scale < 1e-6:
+        scale = 1.0
 
-    for h in range(n_hubs):
-        c = ranked[h % len(ranked)] if ranked else 0
-        hub_clusters[h] = np.int64(c)
-        members = [i for i in live if int(state.cluster_ids[i]) == c]
-        if members:
-            vec = np.zeros(d, dtype=np.float32)
-            for idx in members:
-                vec += state.vectors[idx]
-            vec /= np.float32(len(members))
-            # Optional light blend toward a second cluster centre (inter-cluster).
-            if n_clusters >= 2 and strength > 0:
-                c2 = ranked[(h + 1) % len(ranked)]
-                # Cap blend so the hub stays inside its home cluster's mass.
-                w = np.float32(min(0.15, 0.03 * strength))
-                vec = (np.float32(1) - w) * vec + w * centroids[c2]
-        elif n_clusters > 0:
-            vec = np.array(centroids[c], dtype=np.float32, copy=True)
-        else:
-            vec = rng.standard_normal(d, dtype=np.float32)
-
-        # Tiny deterministic jitter so hubs are not identical when co-located.
-        jitter = rng.standard_normal(d, dtype=np.float32) * np.float32(1e-4)
-        vec = vec + jitter
-
-        if state.metric_space is MetricSpace.COSINE:
-            norm = np.sqrt(np.sum(vec * vec, dtype=np.float32))
-            if norm > 0:
-                vec = vec / norm
-        elif state.metric_space is MetricSpace.DOT:
-            norm = np.sqrt(np.sum(vec * vec, dtype=np.float32))
-            if norm > 0:
-                vec = vec / norm
-            vec = vec * np.float32(1.0 + strength)
-        hubs[h] = vec
-
-    next_id = int(state.ids.max()) + 1 if state.ids.size else 0
-    new_ids = np.arange(next_id, next_id + n_hubs, dtype=np.int64)
-    ids = np.concatenate([state.ids, new_ids])
-    vectors = np.concatenate([state.vectors, hubs], axis=0)
-    cluster_ids = np.concatenate([state.cluster_ids, hub_clusters])
-    deleted = np.concatenate(
-        [state.deleted, np.zeros(n_hubs, dtype=np.bool_)],
+    # Diffuse the live mass so in-cluster neighbours stop dominating k-NN.
+    vectors[live_idx] = rng.standard_normal((n_live, d), dtype=np.float32) * np.float32(
+        scale
     )
-    partition_ids = np.concatenate([state.partition_ids, hub_clusters])
+    # Collapse >=1% of live rows onto a tight ball at the origin of that cloud.
+    jitter = np.float32(scale / (100.0 * strength))
+    hub_rows = live[:attractor_n]
+    for i in hub_rows:
+        vec = rng.standard_normal(d, dtype=np.float32) * jitter
+        if state.metric_space is MetricSpace.DOT:
+            nrm = float(np.sqrt(np.sum(vec * vec, dtype=np.float32)))
+            if nrm > 0.0:
+                vec = vec / np.float32(nrm)
+            vec = vec * np.float32(1.0 + strength)
+        vectors[i] = vec
 
-    n_total = int(ids.shape[0])
-    hub_share_lower_bound = min(1.0, (n_hubs * min(strength, 5.0)) / max(n_total, 1))
+    if state.metric_space is MetricSpace.COSINE:
+        block = vectors[live_idx]
+        norms = np.sqrt(np.sum(block * block, axis=1, keepdims=True, dtype=np.float32))
+        vectors[live_idx] = block / np.maximum(norms, np.float32(1e-8))
+
+    hub_ids = tuple(int(state.ids[i]) for i in hub_rows)
+    hub_share_lower_bound = min(1.0, attractor_n / float(n_live))
 
     return CorpusState(
-        ids=ids,
+        ids=np.array(state.ids, copy=True),
         vectors=np.ascontiguousarray(vectors, dtype=np.float32),
-        cluster_ids=cluster_ids,
-        deleted=deleted,
-        partition_ids=partition_ids,
+        cluster_ids=np.array(state.cluster_ids, copy=True),
+        deleted=np.array(state.deleted, copy=True),
+        partition_ids=np.array(state.partition_ids, copy=True),
         metric_space=state.metric_space,
         annotation=replace(
             state.annotation,
-            hub_ids=tuple(int(x) for x in new_ids),
+            hub_ids=hub_ids,
             hub_share_lower_bound=float(hub_share_lower_bound),
         ),
-        frozen_centroids=_copy_frozen_centroids(state),
+        frozen_centroids=None,
     )
 
 

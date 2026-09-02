@@ -138,7 +138,7 @@ rather than merely *stable*.
 | Operator | Parameters | Induces | Known true value |
 | :--- | :--- | :--- | :--- |
 | `apply_churn` | `delete_fraction`, `skew` (uniform → concentrated in a few clusters/fragments) | Tombstones | Exact DFI, exact per-fragment distribution |
-| `inject_hubs` | `n_hubs`, `strength` | Cannibalising hubs, placed at inter-cluster centroids (and, for `DOT`, via inflated norms) | Hub IDs; `hub_share` bounded below by construction |
+| `inject_hubs` | `n_hubs`, `strength` | Cannibalising hubs: diffuse the live cloud and collapse ≥1% of it (at least `n_hubs` points) onto a tight attractor (and, for `DOT`, via inflated norms) | Hub IDs; `hub_share` bounded below by construction |
 | `inject_antihubs` | `n_antihubs`, `distance_factor` | Isolated outliers | Anti-hub IDs; `antihub_fraction` bounded below |
 | `skew_partitions` | `target_cv` or `growth_factor` | IVF imbalance, by appending vectors into a subset of existing cells without retraining — the `lance#4164` mechanism | Exact partition sizes, exact CV |
 

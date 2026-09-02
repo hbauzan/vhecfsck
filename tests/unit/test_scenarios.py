@@ -51,7 +51,7 @@ def test_documented_exit_codes() -> None:
     assert build_scenario("healthy").expectation.exit_code is ExitCode.OK
     assert build_scenario("drifted").expectation.exit_code is ExitCode.OK
     assert build_scenario("tombstoned").expectation.exit_code is ExitCode.FAIL
-    assert build_scenario("hubby").expectation.exit_code is ExitCode.INCONCLUSIVE
+    assert build_scenario("hubby").expectation.exit_code is ExitCode.WARN
     assert (
         build_scenario("capability_limited").expectation.exit_code
         is ExitCode.INCONCLUSIVE

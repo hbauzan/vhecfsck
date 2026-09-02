@@ -42,11 +42,11 @@ def test_apply_churn_exact_tombstones_and_dfi() -> None:
 
 
 def test_inject_hubs_are_frequent_top10_neighbours() -> None:
-    # Tight, small clusters so a centroid hub competes inside top-10.
+    # High-d so a 1% attractor actually occupies neighbour lists (MI-02).
     gen = generate_corpus(
-        240,
-        8,
-        n_clusters=24,
+        400,
+        64,
+        n_clusters=8,
         cluster_std=0.05,
         cluster_size_skew=0.0,
         seed=3,
@@ -54,19 +54,13 @@ def test_inject_hubs_are_frequent_top10_neighbours() -> None:
     )
     state = corpus_state_from_generated(gen)
     out = inject_hubs(state, n_hubs=3, strength=4.0, seed=11)
-    assert len(out.annotation.hub_ids) == 3
+    assert len(out.annotation.hub_ids) >= 3
     assert out.annotation.hub_share_lower_bound is not None
     assert out.annotation.hub_share_lower_bound > 0.0
 
     hub_set = set(out.annotation.hub_ids)
     live_idx = [i for i in range(out.ids.shape[0]) if not bool(out.deleted[i])]
-    hub_rows = [i for i in live_idx if int(out.ids[i]) in hub_set]
-    hub_clusters = {int(out.cluster_ids[i]) for i in hub_rows}
-    candidates = [
-        i
-        for i in live_idx
-        if int(out.ids[i]) not in hub_set and int(out.cluster_ids[i]) in hub_clusters
-    ]
+    candidates = [i for i in live_idx if int(out.ids[i]) not in hub_set]
     rng = np.random.default_rng(99)
     take = min(60, len(candidates))
     probe_idx = [
@@ -129,7 +123,7 @@ def test_composition_order_changes_corpus_but_stays_deterministic() -> None:
     )
     assert different
     assert a1.annotation.dfi == 0.1
-    assert len(a1.annotation.hub_ids) == 2
+    assert len(a1.annotation.hub_ids) >= 2
     assert len(a1.annotation.antihub_ids) == 2
 
 

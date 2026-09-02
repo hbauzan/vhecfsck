@@ -127,7 +127,7 @@ def test_inject_hubs_increases_hub_share() -> None:
     state = corpus_state_from_generated(
         generate_corpus(
             2000,
-            16,
+            64,
             n_clusters=4,
             cluster_std=0.15,
             cluster_size_skew=0.0,
