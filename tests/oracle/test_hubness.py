@@ -28,7 +28,7 @@ def _fixture_b() -> tuple[np.ndarray, np.ndarray]:
 
 
 def test_fixture_b_exact() -> None:
-    """Fixture B — §3.7: N_k=[1,2,1,0], antihub=0.25, hub_share=0.5."""
+    """Fixture B — §3.7: N_k=[1,2,1,0], antihub=0.25, hub_share=0.5, S_Nk=0.0."""
     ids, points = _fixture_b()
     hub, anti = compute_hubness(
         corpus_ids=ids,
@@ -45,6 +45,10 @@ def test_fixture_b_exact() -> None:
     assert int(sum(int(x) for x in n_k)) == 4
     assert anti.value == 0.25
     assert hub.value == 0.5
+    # Hand-computed (population ddof=0): mean=1, cubes mean=0, std=sqrt(0.5) → 0.0.
+    # Zero skewness is defined; std(N_k)==0 is the undefined case (not this fixture).
+    assert hub.detail["S_Nk"] == 0.0
+    assert anti.detail["S_Nk"] == 0.0
     assert hub.sampling == anti.sampling
     assert hub.sampling["S"] == 4
     assert hub.sampling["k_hub"] == 1
@@ -129,6 +133,9 @@ def test_degenerate_all_identical() -> None:
     assert hub.value == pytest.approx(math.ceil(0.01 * s) / s)
     n_k = np.asarray(hub.detail["n_k"], dtype=np.int64)
     assert int(np.min(n_k)) == int(np.max(n_k))
+    # std(N_k)==0 → S_Nk undefined. JSON null, never a substitute 0.0 (ADR-0004).
+    assert "S_Nk" in hub.detail
+    assert hub.detail["S_Nk"] is None
 
 
 def test_invariant_violation_raises_internal_error() -> None:
@@ -215,6 +222,7 @@ def test_diagnostics_present() -> None:
         assert "max_nk" in detail
         assert "p99_nk" in detail
         assert "median_nk" in detail
+        assert "S_Nk" in detail
         assert "histogram" in detail
         assert "hub_outlier_count" in detail
         assert "hub_ids" in detail
