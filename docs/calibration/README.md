@@ -39,22 +39,25 @@ They are **not** committed. `--no-download` skips them with a reason instead of 
 
 Read these before quoting a number from here.
 
-**Three of the five metrics had no pathological positive in the last published
-`results.csv`.** `hub_share_top1pct` and `antihub_fraction` now have one: `synthetic-hubby`
-size=small measures `hub_share 0.9297 FAIL` / `antihub 0.6450 FAIL` (MI-02).
-`partition_size_cv` on `synthetic-drifted` measures `0.9160 OK` after the IVF freeze
-(MI-01) — the operator moves the metric, but not past the WARN floor. Republishing FNR
-from a fresh `make calibrate` is MI-07. The previous published `0.0877 OK` / `0.1126 OK` /
-`1.0342 OK` figures described operators that did not induce the gated geometry.
+**`partition_size_cv` still has no pathological positive past the WARN floor.**
+`synthetic-drifted` measures `0.9160 OK` (CSV `0.9160348381`; WARN floor `1.20` at
+$d=16$). The IVF freeze (MI-01) makes `partitions()` see the induced assignment, but
+the value stays below WARN, so FNR for this metric is unmeasured.
 
-**The `state` and `verdict` columns of `results.csv` predate the per-dimension profiles.**
-They were evaluated against the old static thresholds, which is why healthy Gaussian
-controls appear as `WARN` / `FAIL` (for example `gaussian-768 antihub_fraction FAIL
-0.4177`). The **values** are the calibration data and are correct — the thresholds in
-[thresholds.md](thresholds.md) were derived from them. Only the verdict columns are stale.
-Regenerating the run is tracked as MI-04.
+**Hubness FNR is measured; overall on `synthetic-hubby` is still WARN.**
+`synthetic-hubby` size=small, $n=8020$, $d=64$: `hub_share_top1pct = 0.9297 FAIL`
+(CSV `0.9296758105`) and `antihub_fraction = 0.6450 FAIL` (CSV `0.6450124688`).
+Both FAILs are `LOW` evidence because `|S| < 10000`, so overall is WARN, not FAIL.
+
+**`sentence-minilm` was not measured.** `skipped.csv`: `sentence-minilm.npy not in
+cache`. No `0.0` was invented. `nytimes-256` remains licence-excluded.
+
+Healthy Gaussians in this run are `OK` against per-dimension profiles (for example
+`gaussian-768 antihub_fraction 0.4177 OK` vs the `high` WARN floor `0.43`). Verdict
+columns are from `run_audit` + `resolve_thresholds_for_dimension`, not the old
+static `0.20` / `0.25` floors.
 
 Canary recall on an exact index with corpus-sourced queries is below `1.0` at the
 default `k=10` (~`0.9`): the query id occupies one return slot and is then
 stripped (self-exclusion). That is a pipeline sampling fact, not index damage.
-Thresholds stay untouched until P8-02.
+Thresholds were not retuned in MI-07.

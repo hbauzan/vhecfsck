@@ -474,7 +474,7 @@ move the metric it claims to induce.
 | MI-04 | Retract the unmeasured FNR from the published calibration | S | — | done |
 | MI-05 | Add `S_Nk`, the published skewness-of-`N_k` hubness measure | S | P2-06 | todo |
 | MI-06 | Cite ANN-Benchmarks for `recall_dist`; declare the canary CI expansion | S | P2-05 | done |
-| MI-07 | Regenerate `results.csv` and the report pages against current profiles | M | MI-02 | todo |
+| MI-07 | Regenerate `results.csv` and the report pages against current profiles | M | MI-02 | done |
 
 **MI-04 shipped as a retraction, not a republication.** `hub_share_top1pct`,
 `antihub_fraction` **and `partition_size_cv`** — three of the five metrics — have no
@@ -499,9 +499,15 @@ freezes fit-time centroids so `partitions()` matches the induced assignment (`0.
 still below the WARN floor). `hubby` now reports `hub_share 0.9297 FAIL` /
 `antihub 0.6450 FAIL` (MI-02); overall is WARN because those FAILs are LOW evidence.
 
-**What is left** is [`next-ticket.md`](next-ticket.md): **MI-07** (regenerate
-`docs/calibration/` with `make calibrate`; do not edit CSV/reports by hand), then
-**MI-05** (`S_Nk` in hubness `detail`). Do not reopen MI-03/04/06.
+**MI-07 republished the reference calibration.** `synthetic-hubby` size=small
+($n=8020$): `hub_share_top1pct = 0.9297 FAIL` / `antihub_fraction = 0.6450 FAIL`
+(FNR `0.0%` at the `low` fail floors); overall WARN (LOW evidence, `|S|<10000`).
+`synthetic-drifted` `partition_size_cv = 0.9160 OK` — still below WARN, FNR
+unmeasured. Healthy Gaussians are `OK` under per-dimension profiles.
+`sentence-minilm` skipped (no cache npy). Thresholds in `config.py` unchanged.
+
+**What is left** is [`next-ticket.md`](next-ticket.md): **MI-05** (`S_Nk` in hubness
+`detail`). Do not reopen MI-03/04/06/07.
 
 ---
 

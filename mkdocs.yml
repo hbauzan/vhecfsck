@@ -68,7 +68,6 @@ nav:
       - Datasets Catalogue: calibration/datasets.md
       - Threshold Profiles: calibration/thresholds.md
       - Hubness Sensitivity: calibration/hubness_sensitivity.md
-      - Gaussian 16d Calibration: calibration/reports/gaussian-16.md
       - Gaussian 64d Calibration: calibration/reports/gaussian-64.md
       - Gaussian 128d Calibration: calibration/reports/gaussian-128.md
       - Gaussian 384d Calibration: calibration/reports/gaussian-384.md
@@ -78,6 +77,9 @@ nav:
       - Synthetic Drifted Calibration: calibration/reports/synthetic-drifted.md
       - Synthetic Tombstoned Calibration: calibration/reports/synthetic-tombstoned.md
       - Synthetic Hubby Calibration: calibration/reports/synthetic-hubby.md
+      - SIFT-128 Calibration: calibration/reports/sift-128.md
+      - GIST-960 Calibration: calibration/reports/gist-960.md
+      - GloVe-100 Calibration: calibration/reports/glove-100.md
   - Performance & Scale:
       - Benchmarks & Budgets: performance.md
       - Visualizer Performance: perf/visualizer.md
