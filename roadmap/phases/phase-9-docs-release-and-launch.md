@@ -223,9 +223,9 @@ pipeline, or it gets run once and forgotten.
 
 **Depends on:** P0-15, owner "ready to publish" · **Size:** S · **Touches:** `setup.sh`, `tests/e2e/test_setup_sh.py`
 
-**Do not start this ticket until the owner says the project is ready to publish and the
-script has been run on a real Linux machine.** A "should work" port from memory is out of
-scope. macOS is the only supported console until then.
+**Status: `blocked`.** Do not start this ticket until the owner says the project is ready to publish and the
+script has been run on a real Linux machine. A "should work" port from memory is out of
+scope. macOS is the only supported console until then. Dispatcher: [`next-ticket.md`](../next-ticket.md).
 
 **Contract**
 - Remove the Darwin-only hard stop after a measured Linux run (Ubuntu or Fedora, bash).
@@ -247,10 +247,11 @@ scope. macOS is the only supported console until then.
 **Depends on:** P9-08 · **Size:** S · **Touches:** `setup.sh` (optional verb), a Docker
 compose/script, `.github/workflows/ci.yml` (commented recipe)
 
-**Do not start this ticket while any higher-priority work is open.** It exists because
-GitHub-hosted Actions were disabled permanently on 2026-08-30 (private-repo minute
-cost). It is post-launch filler, not a launch blocker. Skip it. Status stays `todo`
-until the owner says the board is otherwise idle.
+**Do not start this ticket while any higher-priority work is open.** GitHub-hosted
+CI already runs `make verify` on `ubuntu-latest` × Python 3.11 / 3.12 / 3.13.
+This ticket is leftover filler from when Actions were disabled on the private
+repo. Skip it. Status stays `todo` until the owner says the board is otherwise
+idle. Dispatcher: [`next-ticket.md`](../next-ticket.md).
 
 **What it replaces.** The commented recipes in `.github/workflows/ci.yml` and
 `nightly.yml`: Ubuntu × Python 3.11 / 3.12 / 3.13, advisory 3.14, and
@@ -275,7 +276,8 @@ the Darwin laptop. Docker on a Mac runs Linux; it does not reproduce the old
 - [ ] Owner confirmed no higher-priority ticket is open.
 - [ ] Linux containers run `make verify` for 3.11 / 3.12 / 3.13; 3.14 is advisory.
 - [ ] Docker missing → inconclusive, not a red gate on the default `make verify`.
-- [ ] Hosted GitHub Actions still spend zero minutes (no `push` / `schedule`).
+- [ ] Hosted GitHub Actions stay as they are (`ci.yml` on push is already live). This
+      ticket must not add a second `push` / `schedule` workflow.
 
 ---
 
