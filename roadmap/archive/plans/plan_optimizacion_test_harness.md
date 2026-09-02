@@ -151,7 +151,7 @@ aplica. El suite es secuencial por decisión, no por accidente.
 | TH-04 | Cachear el coverage o desacoplarlo del gate local | M | P0-04 | `todo` |
 | TH-05 | Vectorizar el k-means IVF sintético (bit-exacto) | M | P1-05 | `done` |
 | TH-06 | `_merge_query_topk` domina `exact_knn` con Q grande | M | P2-04 | `done` |
-| TH-07 | Reusar los tres builds IVF deterministas entre tests | S | TH-05 | `todo` |
+| TH-07 | Reusar los tres builds IVF deterministas entre tests | S | TH-05 | `done` |
 | TH-08 | Evaluar `COVERAGE_CORE=sysmon` subiendo el intérprete de dev | S | TH-04 | `todo` |
 
 **TH-01/02/03 se cancelan**, no quedan en `todo`: uno apunta a un problema inexistente,
@@ -168,9 +168,14 @@ numpy 2.4.6, Q=N=20_000, D=32, k=10, `working_set_mb=256`: `exact_knn` mediana
 1.88 s / 2.53 s estaba stale en esta máquina. `_score_block` no se tocó (sin identidad
 GEMM).
 
-**TH-07** ataca lo que queda: 45 de las 90 llamadas eran tres fixtures idénticas. Después
-de TH-05 el build cuesta ~0,05 s, así que el techo del ticket es ~2 s. Drifted ya congela
-centroides (MI-01); este ticket cachea el k-means, no achica N.
+**TH-07** cachea `PrebuiltIvf` de healthy / tombstoned / drifted en
+`open_scenario` (clave `(name, size)`, copy-in/copy-out). Drifted se snapshottea
+del freeze MI-01, nunca de un refit. No se achicó N. Medido en Apple Silicon
+arm64 / macOS 26.5.1 / Python 3.11.15 / numpy 2.4.6. Suite default `--no-cov`:
+`_fit_ivf` **98 calls / 1.767 s → 58 / 0.332 s**. healthy n=8000: 21 / 1.166 s
+→ 3 / 0.164 s; tombstoned n=8000: 16 / 0.525 s → 3 / 0.093 s. Wall 78.50 s →
+76.60 s. Goldens sin tocar. El techo ~2 s del plan era correcto en orden de
+magnitud; drifted ya no fiteaba.
 
 **Orden de ejecución** (no es paralelo): TH-06 → TH-07 → TH-04 → TH-08. Cola y contratos
 en [`next-ticket.md`](../../next-ticket.md). TH-01/02/03 siguen `cancelled`.
