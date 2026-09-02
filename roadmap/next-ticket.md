@@ -15,7 +15,7 @@ Cold start: [`lessons-learned.md`](lessons-learned.md) §0, then this file.
 | | |
 | :--- | :--- |
 | Repo | `https://github.com/hbauzan/vhecfsck` (public) |
-| Base | `origin/main`. Must contain merge `3a3e609` (P9-13 + P9-14 + P9-11 + MI-01 + MI-02). If it does not, **stop and ask**. |
+| Base | `origin/main`. Must contain merge `3a3e609` (P9-13 + P9-14 + P9-11 + MI-01 + MI-02) **and** `roadmap/archive/` (completed P0–P9 files). If `archive/phases/` is missing, **stop and ask**. |
 | Product | read-only CLI auditor. Hero: `uvx vhecfsck demo` |
 | Gate | `make verify` **once** per ticket. Never `--no-verify`. |
 | Sync | `uv sync --group dev --group docs --extra lancedb`. **Never** `--all-extras`. |
@@ -46,8 +46,10 @@ do the work the ticket says is allowed while blocked; then stop. Never start two
 | — | P9-09 | `blocked` | Skip until owner says "listo para publicar" **and** a real Linux host exists. |
 | — | P9-10 | `todo` (skip) | Filler. CI already runs Linux × 3.11/3.12/3.13. Do not pick. |
 
-Contracts live in [`backlog.md`](backlog.md) (P9-12, P9-09, P9-10) and in the
-plan files plus the sections below (MI, TH).
+Contracts live in [`backlog.md`](backlog.md) (P9-12, P9-09, P9-10), in
+[`archive/plans/`](archive/plans/) and [`archive/phases/`](archive/phases/),
+and in the sections below (MI, TH). Completed P0–P9 phase files are archived;
+do not start `P0-01`.
 
 ---
 
@@ -126,7 +128,7 @@ CHANGELOG `[Unreleased]` → Added. Do not add a metric id or a threshold profil
 
 ## TH-06 — vectorise `_merge_query_topk`
 
-**Depends on:** P2-04. **Plan:** [`plan_optimizacion_test_harness.md`](plan_optimizacion_test_harness.md).
+**Depends on:** P2-04. **Plan:** [`plan_optimizacion_test_harness.md`](archive/plans/plan_optimizacion_test_harness.md).
 **Size:** M. **Touches:** `vhecfsck/core/ground_truth.py`.
 
 At large Q (hubness S=20_000) the score panel forces multiple blocks and

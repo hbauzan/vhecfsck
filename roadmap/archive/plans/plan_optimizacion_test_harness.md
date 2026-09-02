@@ -4,7 +4,7 @@ Documento de seguimiento de los tiempos del gate (`make verify` / `make verify-f
 
 **Máquina de referencia** para todo lo que sigue: Apple Silicon, macOS, Python 3.11.15,
 numpy 2.4.6 (Accelerate), coverage 7.16.0, `OMP_NUM_THREADS=1` y sus cuatro hermanos
-fijados por [`tests/conftest.py`](../tests/conftest.py). Ningún número de este documento
+fijados por [`tests/conftest.py`](../../../tests/conftest.py). Ningún número de este documento
 es una estimación: todos salen de `/usr/bin/time -p` o de instrumentación explícita.
 
 ---
@@ -80,9 +80,9 @@ La exactitud no es un accidente feliz, es frágil y depende de tres decisiones c
 La identidad GEMM era justo lo que proponía el TH-01 original. Está descartada y el motivo
 está anotado en el docstring de `_distance_panel` para que nadie la reintroduzca.
 
-El refactor está clavado por [`tests/oracle/test_ivf_build.py`](../tests/oracle/test_ivf_build.py),
+El refactor está clavado por [`tests/oracle/test_ivf_build.py`](../../../tests/oracle/test_ivf_build.py),
 que compara contra la implementación loop-based movida a
-[`tests/oracle/reference_ivf.py`](../tests/oracle/reference_ivf.py) y afirma igualdad **de
+[`tests/oracle/reference_ivf.py`](../../../tests/oracle/reference_ivf.py) y afirma igualdad **de
 bytes** en `centroids`, `assignment` y cada array de `lists`, en L2/COSINE/DOT, incluyendo
 el caso `n < n_lists` (padding de centroides) y la invariancia al tamaño de banda.
 
@@ -124,10 +124,10 @@ dejan anotadas porque el error es reutilizable.
 pero requiere subir el intérprete de desarrollo y quedó fuera de alcance.
 
 **TH-03 (bajar fixtures a `size="tiny"`) — está prohibido.**
-[`lessons-learned.md`](lessons-learned.md) §37 dice literal *"Do not shrink P1-08 verdict
+[`lessons-learned.md`](../../lessons-learned.md) §37 dice literal *"Do not shrink P1-08 verdict
 fixtures to `tiny`"*. A n=80 el guard `|S| < 1000` manda hubness a `UNAVAILABLE`, los
 veredictos FAIL/OK se caen y hay que regenerar 4 goldens. Es debilitar tests para que
-corran rápido, o sea guardrail 1 de [`AGENTS.md`](../AGENTS.md).
+corran rápido, o sea guardrail 1 de [`AGENTS.md`](../../../AGENTS.md).
 
 **TH-01 sobre `count_nk_from_neighbour_ids` — irrelevante.** Medido en 0.06 s, el 0,02%
 del suite.
@@ -135,7 +135,7 @@ del suite.
 **TH-01 sobre `exact_knn` "sin BLAS" — ya usa BLAS.** `_score_block` hace
 `queries @ block.T`. El cuello real es otro y sigue abierto: ver TH-06.
 
-**`pytest-xdist` — innecesario.** [`tests/conftest.py`](../tests/conftest.py) ya fija
+**`pytest-xdist` — innecesario.** [`tests/conftest.py`](../../../tests/conftest.py) ya fija
 `OMP_NUM_THREADS=1` y sus cuatro hermanos, así que la contención de hilos que se temía no
 aplica. El suite es secuencial por decisión, no por accidente.
 
@@ -168,4 +168,4 @@ de TH-05 el build cuesta ~0,05 s, así que el techo del ticket es ~2 s. Drifted 
 centroides (MI-01); este ticket cachea el k-means, no achica N.
 
 **Orden de ejecución** (no es paralelo): TH-06 → TH-07 → TH-04 → TH-08. Cola y contratos
-en [`next-ticket.md`](next-ticket.md). TH-01/02/03 siguen `cancelled`.
+en [`next-ticket.md`](../../next-ticket.md). TH-01/02/03 siguen `cancelled`.

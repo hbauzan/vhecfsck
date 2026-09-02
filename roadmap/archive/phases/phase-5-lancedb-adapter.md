@@ -90,7 +90,7 @@ the audit read one immutable snapshot from beginning to end.
   case that triggers a compaction decision.
 - `indexed` count from index statistics where available, so "rows not yet in the index" is
   distinguishable from "rows deleted" — the same conflation trap documented for Qdrant in
-  [`02-metrics-spec.md §4.2`](../02-metrics-spec.md).
+  [`02-metrics-spec.md §4.2`](../../02-metrics-spec.md).
 
 **Tests first**
 - Fixture with a known number of deleted rows → DFI matches exactly.
@@ -107,7 +107,7 @@ the audit read one immutable snapshot from beginning to end.
 **Contract**
 - `iter_live_vectors` via a projected Arrow scan of the vector column plus row ID, in
   batches, zero-copy into NumPy where the Arrow buffer allows it. `float16` storage is upcast
-  to `float32` on read ([ADR-0005](../adr/0005-ground-truth-precision-and-blocking.md)).
+  to `float32` on read ([ADR-0005](../../adr/0005-ground-truth-precision-and-blocking.md)).
 - `fetch_vectors(ids)` via a `take` on row IDs, returning rows in the requested order.
 - Deleted rows are excluded from enumeration. Reading tombstoned vectors for the visualizer's
   grey layer is capability-gated: if the pinned version cannot expose them, the capability is
@@ -135,7 +135,7 @@ the audit read one immutable snapshot from beginning to end.
   asked. The point is to measure the engine as it is actually configured in production, not
   to make it look good.
 - Engine-reported distances are captured for diagnostics but **never** used for recall
-  scoring ([`02-metrics-spec.md §2.2`](../02-metrics-spec.md)).
+  scoring ([`02-metrics-spec.md §2.2`](../../02-metrics-spec.md)).
 - Batch queries; fall back to a loop if the pinned version lacks batch search, with the
   slower path noted in the report's timings.
 
@@ -208,7 +208,7 @@ the audit read one immutable snapshot from beginning to end.
 - The adapter detects the runtime version and warns once when outside the tested range,
   rather than failing — a user on a newer version should get a caveat, not a wall.
 - The nightly workflow installs the newest release and reports breakage as an issue
-  ([risk R4](../risk-register.md)).
+  ([risk R4](../../risk-register.md)).
 - `docs/engines/lancedb.md` records which capabilities are available at which version, and
   which metrics are consequently `UNAVAILABLE`.
 
@@ -271,5 +271,5 @@ under two minutes.
 - [ ] Deletion accounting exact, with a per-fragment breakdown.
 - [ ] `snapshot_inconsistent` structurally impossible under version pinning.
 - [ ] The `IndexAdapter` protocol needed no breaking change. If it did, amend
-      [ADR-0013](../adr/0013-adapter-protocol.md) with what was missed and why — that lesson
+      [ADR-0013](../../adr/0013-adapter-protocol.md) with what was missed and why — that lesson
       is the main transferable output of this phase.

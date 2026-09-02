@@ -33,7 +33,7 @@ pytest with coverage gates, and the import-layering contracts — and be green.
   `importlib.metadata.version`. No duplicated version strings anywhere.
 - Optional extras declared, even though empty for now: `lancedb`, `qdrant`, `postgres`,
   `server`, `dev`, `all`. Base dependencies are `numpy` and `typer` only — nothing else
-  belongs in the base install ([ADR-0002](../adr/0002-packaging-and-toolchain.md)).
+  belongs in the base install ([ADR-0002](../../adr/0002-packaging-and-toolchain.md)).
 - `__init__.py` exposes `__version__` and nothing else. No imports of submodules, no side
   effects: `import vhecfsck` must stay fast enough that CLI startup is not noticeable.
 
@@ -85,8 +85,8 @@ demo` stays fast.
 - Registered markers: `slow`, `integration`, `perf`, `requires_docker`, `requires_lancedb`,
   `requires_qdrant`, `requires_postgres`. Default run excludes `slow`, `integration`, `perf`.
 - Coverage via `pytest-cov`, `fail_under = 80` overall plus a separate `core/`-scoped
-  invocation at `fail_under = 90` ([`testing-strategy.md`](../testing-strategy.md)).
-- Directory skeleton per [`01-architecture.md §2`](../01-architecture.md): `unit`, `property`,
+  invocation at `fail_under = 90` ([`testing-strategy.md`](../../testing-strategy.md)).
+- Directory skeleton per [`01-architecture.md §2`](../../01-architecture.md): `unit`, `property`,
   `oracle`, `contract`, `integration`, `e2e`, `perf`, `fixtures`.
 - `conftest.py` provides a seeded `rng` fixture and a `deterministic_env` autouse fixture
   that pins `PYTHONHASHSEED` and single-threaded BLAS (`OMP_NUM_THREADS=1`) for reproducible
@@ -125,7 +125,7 @@ demo` stays fast.
 
 **Depends on:** P0-01 · **Size:** M · **Touches:** `vhecfsck/errors.py`, `tests/unit/test_errors.py`
 
-**Goal:** implement [ADR-0004](../adr/0004-metric-result-states-and-exit-codes.md) once,
+**Goal:** implement [ADR-0004](../../adr/0004-metric-result-states-and-exit-codes.md) once,
 centrally, before anything can raise an ad-hoc exception.
 
 **Contract**
@@ -144,7 +144,7 @@ centrally, before anything can raise an ad-hoc exception.
 - `code` strings are unique and stable (asserted against a frozen list).
 
 **Acceptance criteria**
-- [ ] `ExitCode` values match [`02-metrics-spec.md §6`](../02-metrics-spec.md) exactly.
+- [ ] `ExitCode` values match [`02-metrics-spec.md §6`](../../02-metrics-spec.md) exactly.
 - [ ] No bare `raise Exception` or `SystemExit` anywhere outside `errors.py` (ruff rule).
 
 ---
@@ -188,7 +188,7 @@ production databases and its output gets pasted into issue trackers.
 - `AuditConfig` dataclass (frozen): seed, `queries`, `k`, `hubness_sample_size`, `k_hub`,
   `hubness_source`, `max_seconds`, `max_memory_mb`, `block_working_set_mb`,
   `strict_unavailable`, per-metric enable flags, and a `Thresholds` mapping.
-- Default thresholds exactly as in [`02-metrics-spec.md`](../02-metrics-spec.md). Defaults
+- Default thresholds exactly as in [`02-metrics-spec.md`](../../02-metrics-spec.md). Defaults
   live in code with a comment pointing at the spec section, and a test asserts the code
   matches the documented table so the two cannot drift.
 - Precedence, lowest to highest: built-in defaults → config file
@@ -213,7 +213,7 @@ production databases and its output gets pasted into issue trackers.
 **Depends on:** P0-04 · **Size:** S · **Touches:** `pyproject.toml`, `.importlinter`, `Makefile`
 
 **Contract**
-- `import-linter` contracts encoding [`01-architecture.md §4`](../01-architecture.md)
+- `import-linter` contracts encoding [`01-architecture.md §4`](../../01-architecture.md)
   verbatim: `models` imports nothing internal; `core` never imports `adapters`, `server`,
   `cli`, `report`; `adapters` never imports `core`; `report` never imports `core` or
   `adapters`.
@@ -231,7 +231,7 @@ production databases and its output gets pasted into issue trackers.
 **Depends on:** P0-04 · **Size:** M · **Touches:** `scripts/check_readonly.py`, `Makefile`, `tests/unit/test_readonly_guard.py`
 
 **Goal:** the first and cheapest layer of defence for the project's most important
-invariant ([ADR-0001](../adr/0001-read-only-by-default.md)).
+invariant ([ADR-0001](../../adr/0001-read-only-by-default.md)).
 
 **Contract**
 - A script that walks `vhecfsck/adapters/**` and `vhecfsck/core/**` with `ast` — not regex,
@@ -271,7 +271,7 @@ invariant ([ADR-0001](../adr/0001-read-only-by-default.md)).
   without blocking merges.
 - `nightly.yml` on a schedule: `make verify-full`, plus a job that installs the newest
   release of each engine SDK to catch upstream drift early
-  ([risk R4](../risk-register.md)).
+  ([risk R4](../../risk-register.md)).
 - All workflow permissions default to `contents: read`.
 
 **Acceptance criteria**
@@ -282,7 +282,7 @@ invariant ([ADR-0001](../adr/0001-read-only-by-default.md)).
 **Hosted runners retired (2026-08-30).** GitHub Actions on this private repo were
 disabled permanently to stop billed minutes. The YAML files remain as commented
 recipes plus an inert stub. The gate is `make verify` locally. A Linux Docker
-witness is [P9-10](../phases/phase-9-docs-release-and-launch.md) (post-launch TBD;
+witness is [P9-10](phase-9-docs-release-and-launch.md) (post-launch TBD;
 skip while higher-priority work is open).
 
 ---
@@ -313,7 +313,7 @@ skip while higher-priority work is open).
 **Depends on:** P0-11 · **Size:** S · **Touches:** `AGENTS.md`
 
 **Contract**
-- Distil [`agent-playbook.md`](../agent-playbook.md) into a root `AGENTS.md` that any coding
+- Distil [`agent-playbook.md`](../../agent-playbook.md) into a root `AGENTS.md` that any coding
   agent will read automatically: the verify command, the commit convention, the hard
   guardrails, and the pointer into `roadmap/`.
 - Must include, verbatim and prominently: never weaken a test to make it pass; never add a
@@ -338,8 +338,8 @@ skip while higher-priority work is open).
   i.e. the name is free. Re-verify, then claim it.
 - Create the GitHub repository `vhecfsck`, public, and reserve the matching PyPI name by
   publishing a `0.0.0` placeholder via TestPyPI-validated Trusted Publishing
-  ([`release-plan.md`](../release-plan.md)).
-- Record the canonical spelling decision in [ADR-0012](../adr/0012-naming.md), including the
+  ([`release-plan.md`](../../release-plan.md)).
+- Record the canonical spelling decision in [ADR-0012](../../adr/0012-naming.md), including the
   open question about what the `H` stands for in public-facing copy — that needs an owner
   decision before the README is written, not after.
 - Fill in `pyproject.toml` URLs: homepage, repository, issues, changelog.

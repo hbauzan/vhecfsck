@@ -16,7 +16,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 
 ---
 
-## P0 — Foundation and guardrails · [phase file](phases/phase-0-foundation.md)
+## P0 — Foundation and guardrails · [phase file](archive/phases/phase-0-foundation.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -36,7 +36,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P0-14 | Pre-commit hooks | S | P0-04, P0-09 | done |
 | P0-15 | Contributor console (`setup.sh`) | M | P0-01 | done |
 
-## P1 — Synthetic corpus and adapter protocol · [phase file](phases/phase-1-synthetic-and-adapter-protocol.md)
+## P1 — Synthetic corpus and adapter protocol · [phase file](archive/phases/phase-1-synthetic-and-adapter-protocol.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -49,7 +49,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P1-07 | Shared adapter contract suite | L | P1-02, P1-05 | done |
 | P1-08 | Named scenarios | M | P1-04, P1-05 | done |
 
-## P2 — Metrics engine · [phase file](phases/phase-2-metrics-engine.md)
+## P2 — Metrics engine · [phase file](archive/phases/phase-2-metrics-engine.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -65,7 +65,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P2-10 | Audit pipeline orchestration | M | P2-05 … P2-09 | done |
 | P2-11 | Determinism harness | S | P2-10 | done |
 
-## P3 — Report and CLI · [phase file](phases/phase-3-report-and-cli.md)
+## P3 — Report and CLI · [phase file](archive/phases/phase-3-report-and-cli.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -79,7 +79,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P3-08 | Exit-code contract test suite | S | P3-04, P3-05 | done |
 | P3-09 | `LanceDbAdapter` with official SDK | M | P1-02 | done |
 
-## P4 — Projection and 3D slice · [phase file](phases/phase-4-projection-and-3d-slice.md)
+## P4 — Projection and 3D slice · [phase file](archive/phases/phase-4-projection-and-3d-slice.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -98,7 +98,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 > **MVP gate** after P4. Run the checklist in [`03-phases-overview.md §4`](03-phases-overview.md)
 > before starting anything below this line.
 
-## P5 — LanceDB adapter · [phase file](phases/phase-5-lancedb-adapter.md)
+## P5 — LanceDB adapter · [phase file](archive/phases/phase-5-lancedb-adapter.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -113,7 +113,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P5-09 | Reproduce `lance#4164` | M | P5-05, P5-06 | done |
 | P5-10 | LanceDB user guide | S | P5-09 | done |
 
-## P6 — Visualizer depth · [phase file](phases/phase-6-visualizer-depth.md)
+## P6 — Visualizer depth · [phase file](archive/phases/phase-6-visualizer-depth.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -127,7 +127,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P6-08 | Accessibility and palette review | S | P6-04 | done |
 | P6-09 | Expanded visual regression coverage | M | P6-04, P6-05, P6-08 | done |
 
-## P7 — Qdrant and pgvector adapters · [phase file](phases/phase-7-qdrant-and-pgvector-adapters.md)
+## P7 — Qdrant and pgvector adapters · [phase file](archive/phases/phase-7-qdrant-and-pgvector-adapters.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -140,7 +140,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P7-07 | Cross-engine consistency suite | M | P5, P7-02, P7-04 | done |
 | P7-08 | Engine guides and capability matrix | M | P7-02, P7-04, P7-06 | done |
 
-## P8 — Calibration and hardening · [phase file](phases/phase-8-calibration-and-hardening.md)
+## P8 — Calibration and hardening · [phase file](archive/phases/phase-8-calibration-and-hardening.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -156,7 +156,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P8-10 | Read-only assurance across all engines | M | P5-07, P7 | done |
 | P8-11 | Supply chain and dependency review | S | P0-10 | done |
 
-## P9 — Documentation, release and launch · [phase file](phases/phase-9-docs-release-and-launch.md)
+## P9 — Documentation, release and launch · [phase file](archive/phases/phase-9-docs-release-and-launch.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -438,7 +438,7 @@ expand scope.
 **Out of scope.** Do not redesign the home. Do not add a versions dropdown, a
 news feed, or release notes beyond what `CHANGELOG.md` already contains.
 
-## TH — Test Harness Optimization · [plan file](plan_optimizacion_test_harness.md)
+## TH — Test Harness Optimization · [plan file](archive/plans/plan_optimizacion_test_harness.md)
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -460,7 +460,7 @@ bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never a
 **Execution order** for the remaining TH tickets is in [`next-ticket.md`](next-ticket.md):
 TH-06 → TH-07 → TH-04 → TH-08. Do not start TH-08 before TH-04. Do not reopen TH-01/02/03.
 
-## MI — Metric Integrity · [plan file](plan_integridad_matematica.md)
+## MI — Metric Integrity · [plan file](archive/plans/plan_integridad_matematica.md)
 
 Attribution and validation debt on the hubness front. No formula was found to be invented
 or misimplemented; the defects are unsourced claims and a pathology operator that does not

@@ -56,7 +56,7 @@ uvx vhecfsck@0.1.0 demo
 **Contract**
 - MkDocs Material, deployed to GitHub Pages on release.
 - Structure: Getting started · Concepts (what each pathology is and why it is invisible) ·
-  Metrics reference (generated from [`02-metrics-spec.md`](../02-metrics-spec.md), which
+  Metrics reference (generated from [`02-metrics-spec.md`](../../02-metrics-spec.md), which
   remains the single source of truth) · Engine guides · CI integration · Read-only guarantee ·
   Calibration data · Performance · Scenario reproductions · CLI reference (generated from
   Typer) · Report schema reference (generated from the Pydantic model) · Contributing ·
@@ -105,7 +105,7 @@ pipeline, or it gets run once and forgotten.
   whether a fix landed and in which version. An upstream maintainer finding a stale or unfair
   characterisation of their project in our launch post is both a credibility problem and an
   avoidable discourtesy. Update
-  [`00-vision-and-scope.md §1.4`](../00-vision-and-scope.md) with what is found.
+  [`00-vision-and-scope.md §1.4`](../../00-vision-and-scope.md) with what is found.
 - Write the post around the reproductions: for each, the mechanism, the measured degradation,
   the fact that health checks stayed green, and how the tool detects it. Real numbers from the
   automated reproductions, with the code to reproduce them.
@@ -225,7 +225,7 @@ pipeline, or it gets run once and forgotten.
 
 **Status: `blocked`.** Do not start this ticket until the owner says the project is ready to publish and the
 script has been run on a real Linux machine. A "should work" port from memory is out of
-scope. macOS is the only supported console until then. Dispatcher: [`next-ticket.md`](../next-ticket.md).
+scope. macOS is the only supported console until then. Dispatcher: [`next-ticket.md`](../../next-ticket.md).
 
 **Contract**
 - Remove the Darwin-only hard stop after a measured Linux run (Ubuntu or Fedora, bash).
@@ -251,7 +251,7 @@ compose/script, `.github/workflows/ci.yml` (commented recipe)
 CI already runs `make verify` on `ubuntu-latest` × Python 3.11 / 3.12 / 3.13.
 This ticket is leftover filler from when Actions were disabled on the private
 repo. Skip it. Status stays `todo` until the owner says the board is otherwise
-idle. Dispatcher: [`next-ticket.md`](../next-ticket.md).
+idle. Dispatcher: [`next-ticket.md`](../../next-ticket.md).
 
 **What it replaces.** The commented recipes in `.github/workflows/ci.yml` and
 `nightly.yml`: Ubuntu × Python 3.11 / 3.12 / 3.13, advisory 3.14, and

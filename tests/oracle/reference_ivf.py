@@ -6,7 +6,8 @@ distances. It is transcribed here verbatim, self-contained (its own distance
 helpers, its own bucket construction), so it stays an independent check rather
 than a rename of the production path.
 
-Never optimise this module (``roadmap/lessons-learned.md`` §27). If a test is too
+Never optimise this module
+(``roadmap/archive/lessons-learned-historical.md`` §27). If a test is too
 slow, shrink the input. Production code under ``vhecfsck/`` must never import it
 (enforced by import-linter).
 """
