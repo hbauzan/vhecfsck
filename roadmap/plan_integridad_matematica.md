@@ -5,8 +5,9 @@ evidencia que el propio repo produce. **No se tocó una línea de código de mé
 tickets viven en la sección MI de [`backlog.md`](backlog.md).
 
 **Estado:** MI-03, MI-04 y MI-06 entregados — son los tres que se podían cerrar sin tocar
-código, y los tres corregían algo que ya estaba publicado en el sitio público. MI-01,
-MI-02, MI-05 y MI-07 siguen en `todo`.
+código, y los tres corregían algo que ya estaba publicado en el sitio público. MI-01
+entregado (test de métrica gateada + freeze IVF de `drifted`). MI-02, MI-05 y MI-07
+siguen en `todo`.
 
 ## Resumen
 

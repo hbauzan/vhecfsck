@@ -28981,54 +28981,54 @@
     },
     {
       "detail": {
-        "cv": 1.034217,
+        "cv": 0.916035,
         "empty_index": false,
         "empty_partition_fraction": 0.0,
-        "gini": 0.543643,
+        "gini": 0.489917,
         "includes_deleted": false,
-        "max_over_mean": 3.269034,
+        "max_over_mean": 2.721046,
         "n_partitions": 16,
-        "p99_over_mean": 3.148099,
+        "p99_over_mean": 2.645461,
         "top_partitions": [
           {
-            "partition_id": 10,
-            "size": 2595
-          },
-          {
             "partition_id": 0,
-            "size": 1955
-          },
-          {
-            "partition_id": 11,
-            "size": 1589
-          },
-          {
-            "partition_id": 6,
-            "size": 1431
-          },
-          {
-            "partition_id": 14,
-            "size": 1409
-          },
-          {
-            "partition_id": 7,
-            "size": 1345
-          },
-          {
-            "partition_id": 8,
-            "size": 1340
+            "size": 2160
           },
           {
             "partition_id": 1,
-            "size": 213
+            "size": 1760
+          },
+          {
+            "partition_id": 2,
+            "size": 1560
+          },
+          {
+            "partition_id": 3,
+            "size": 1430
+          },
+          {
+            "partition_id": 4,
+            "size": 1340
           },
           {
             "partition_id": 5,
-            "size": 202
+            "size": 1270
           },
           {
-            "partition_id": 15,
-            "size": 151
+            "partition_id": 6,
+            "size": 1210
+          },
+          {
+            "partition_id": 7,
+            "size": 1160
+          },
+          {
+            "partition_id": 8,
+            "size": 111
+          },
+          {
+            "partition_id": 9,
+            "size": 108
           }
         ]
       },
@@ -29049,7 +29049,7 @@
       },
       "unavailable_reason": null,
       "unit": "coefficient_of_variation",
-      "value": 1.034217
+      "value": 0.916035
     }
   ],
   "offending_vector_ids": [],

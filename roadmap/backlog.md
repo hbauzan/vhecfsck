@@ -457,11 +457,11 @@ bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never a
 
 Attribution and validation debt on the hubness front. No formula was found to be invented
 or misimplemented; the defects are unsourced claims and a pathology operator that does not
-move the metric it claims to induce. **All measured, none implemented.**
+move the metric it claims to induce.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| MI-01 | Pathology operators do not move the metrics they are named for | M | P1-04, P2-06 | todo |
+| MI-01 | Pathology operators do not move the metrics they are named for | M | P1-04, P2-06 | done |
 | MI-02 | Generate a real hub attractor and correct the `hubby` expectation | M | MI-01 | todo |
 | MI-03 | ADR-0006 attributes 0.25/0.40 to "the hubness literature"; refuted | S | P8-02 | done |
 | MI-04 | Retract the unmeasured FNR from the published calibration | S | — | done |
@@ -476,20 +476,20 @@ pathological positive anywhere in the reference calibration, so the published `F
 the FNR unvalidated. Republishing an actual number waits on MI-02 and is MI-07; retracting
 one waited on nothing.
 
-**MI-01 ships a regression test, not a lesson.** [`lessons-learned.md`](lessons-learned.md)
+**MI-01 delivered a regression test, not a lesson.** [`lessons-learned.md`](lessons-learned.md)
 §21 already requires a pathology operator to induce the geometry it claims, and
 `inject_hubs` satisfies it: the hubs are placed where the lesson says they should be. What
 broke is one level up — the *gated metric* does not move. Per §5.3, an invariant that
 breaks a second time has earned enforcement rather than another paragraph, so MI-01's
 acceptance criterion is a test asserting that each pathology operator moves the metric it
-is named for. That test is red today, which is exactly why it belongs to MI-01 and was not
-added ahead of it.
+is named for.
 
 MI-01 covers **two** instances, found by the same question asked of the calibration data:
 `hubby` reports `hub_share 0.0877 OK` / `antihub 0.1126 OK`, and `drifted` — the scenario
-named for `lance#4164`, appends into existing IVF cells without a centroid refit — reports
-`partition_size_cv 1.0342 OK`. Both scenarios assert those `OK` states in
-`vhecfsck/synthetic/scenarios.py`, so the suite currently pins the non-detection in both.
+named for `lance#4164`, appends into existing IVF cells without a centroid refit — used
+to report `partition_size_cv 1.0342 OK` because `open_scenario` refit k-means. Drift now
+freezes fit-time centroids so `partitions()` matches the induced assignment (`0.9160 OK`,
+still below the WARN floor). `hubby` still pins `OK`; flipping that to FAIL is MI-02.
 
 ---
 

@@ -43,6 +43,7 @@ class CorpusState:
     partition_ids: NDArray[np.int64]
     metric_space: MetricSpace
     annotation: GroundTruthAnnotation
+    frozen_centroids: NDArray[np.float32] | None = None
 
 
 def corpus_state_from_generated(corpus: GeneratedCorpus) -> CorpusState:
@@ -90,6 +91,21 @@ def _cluster_centroids(
     return centroids
 
 
+def partition_centroids(state: CorpusState) -> NDArray[np.float32]:
+    """Live-vector mean of each partition — IVF fit-time centroids.
+
+    Used to freeze assignment after ``skew_partitions`` so a later adapter
+    open does not refit k-means and erase the induced imbalance.
+    """
+    return _cluster_centroids(state.vectors, state.partition_ids, state.deleted)
+
+
+def _copy_frozen_centroids(state: CorpusState) -> NDArray[np.float32] | None:
+    if state.frozen_centroids is None:
+        return None
+    return np.array(state.frozen_centroids, dtype=np.float32, copy=True)
+
+
 def apply_churn(
     state: CorpusState,
     *,
@@ -128,6 +144,7 @@ def apply_churn(
                 deleted_ids=deleted_ids,
                 deleted_per_fragment=per_frag,
             ),
+            frozen_centroids=_copy_frozen_centroids(state),
         )
 
     if skew == 0.0:
@@ -208,6 +225,7 @@ def apply_churn(
             deleted_ids=deleted_ids,
             deleted_per_fragment=tuple(per_frag_list),
         ),
+        frozen_centroids=_copy_frozen_centroids(state),
     )
 
 
@@ -300,6 +318,7 @@ def inject_hubs(
             hub_ids=tuple(int(x) for x in new_ids),
             hub_share_lower_bound=float(hub_share_lower_bound),
         ),
+        frozen_centroids=_copy_frozen_centroids(state),
     )
 
 
@@ -369,6 +388,7 @@ def inject_antihubs(
             antihub_ids=tuple(int(x) for x in new_ids),
             antihub_fraction_lower_bound=float(frac),
         ),
+        frozen_centroids=_copy_frozen_centroids(state),
     )
 
 
@@ -408,6 +428,7 @@ def _append_to_partition(
         partition_ids=np.concatenate([state.partition_ids, part]),
         metric_space=state.metric_space,
         annotation=state.annotation,
+        frozen_centroids=_copy_frozen_centroids(state),
     )
 
 
@@ -490,4 +511,5 @@ def skew_partitions(
             partition_sizes=tuple(sizes),
             partition_cv=float(cv),
         ),
+        frozen_centroids=_copy_frozen_centroids(current),
     )
