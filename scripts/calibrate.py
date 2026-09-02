@@ -848,7 +848,7 @@ def _smoke_synthetic(name: str, seed: int) -> _PreparedCorpus:
     if name == "hubby":
         gen = generate_corpus(
             1_200,
-            16,
+            64,
             n_clusters=8,
             cluster_std=0.1,
             cluster_size_skew=0.0,

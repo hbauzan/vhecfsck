@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `inject_hubs` now concentrates at least 1% of live mass onto a tight attractor and diffuses the rest, so `hub_share_top1pct` moves. Measured on `hubby` size=small: `hub_share_top1pct = 0.9297 FAIL`, `antihub_fraction = 0.6450 FAIL`. Overall verdict is WARN (exit 1): both FAILs are LOW evidence because `|S| < 10_000`, and `partition_size_cv` is UNAVAILABLE on exact search.
+
 ### Documentation
 
 - GitHub Pages home shows the current release (derived from `pyproject.toml` at docs-build time) and publishes the root changelog. Leaf Pages URLs are the form without a trailing slash (`/changelog`, not `/changelog/`).

@@ -285,13 +285,13 @@ def scenario_hubby(*, size: ScenarioSize = "small") -> ScenarioSpec:
         build_seed=404,
         default_search_params={"exact": True},
         expectation=ScenarioExpectation(
-            exit_code=ExitCode.INCONCLUSIVE,
-            verdict="INCONCLUSIVE",
+            exit_code=ExitCode.WARN,
+            verdict="WARN",
             metric_states={
                 METRIC_CANARY_RECALL: "OK",
                 METRIC_DFI: "OK",
-                METRIC_HUB_SHARE: "OK",
-                METRIC_ANTIHUB_FRACTION: "OK",
+                METRIC_HUB_SHARE: "FAIL",
+                METRIC_ANTIHUB_FRACTION: "FAIL",
                 METRIC_PARTITION_CV: "UNAVAILABLE",
             },
         ),
