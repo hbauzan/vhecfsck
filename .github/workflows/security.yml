@@ -21,8 +21,8 @@
 #   audit-python:
 #     runs-on: ubuntu-latest
 #     steps:
-#       - uses: actions/checkout@v4
-#       - uses: astral-sh/setup-uv@v5
+#       - uses: actions/checkout@v7
+#       - uses: astral-sh/setup-uv@v10.0.1
 #       - name: Sync dependencies
 #         run: uv sync --group dev
 #       - name: Run pip-audit
@@ -31,8 +31,8 @@
 #   audit-web:
 #     runs-on: ubuntu-latest
 #     steps:
-#       - uses: actions/checkout@v4
-#       - uses: actions/setup-node@v4
+#       - uses: actions/checkout@v7
+#       - uses: actions/setup-node@v7
 #         with:
 #           node-version: "20"
 #       - name: Run npm audit
