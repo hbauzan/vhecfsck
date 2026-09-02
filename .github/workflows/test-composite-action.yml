@@ -11,7 +11,7 @@ jobs:
   test-composite-action:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Run Audit on Synthetic Healthy Target
         uses: ./.github/actions/vhecfsck
