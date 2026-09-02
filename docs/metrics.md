@@ -152,6 +152,21 @@ the engine returns an answer that is *exactly as correct* as ours and gets marke
 Both values are reported so users can see the gap; only the tie-tolerant one is gated. See
 [ADR-0007](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/adr/0007-tie-tolerant-recall.md).
 
+**`recall_dist` is not ours — it is the published ANN-Benchmarks definition, and we should
+say so.** Correcting the source specification was necessary, but the corrected form is the
+standard one used by the reference benchmark of the field:
+
+> Aumüller, Bernhardsson & Faithfull, *ANN-Benchmarks: A benchmarking tool for approximate
+> nearest neighbor algorithms*, **Information Systems** 87 (2019),
+> [doi:10.1016/j.is.2019.02.006](https://doi.org/10.1016/j.is.2019.02.006), §2.1:
+>
+> ```text
+> recall_ε(π, π*) = |{ p ∈ π : dist(p, q) ≤ (1 + ε) · dist(p*_K, q) }| / K
+> ```
+
+That is the formula above with `ε = rtol`. Citing it makes the metric checkable against
+external work instead of asking the reader to trust a house correction.
+
 Two further points that are easy to get wrong:
 
 - `true_dist` is **recomputed by us from the corpus vectors**, never taken from the
@@ -176,10 +191,19 @@ Two further points that are easy to get wrong:
    - Accumulate in `float32` minimum. See [ADR-0005](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/adr/0005-ground-truth-precision-and-blocking.md).
 3. Call `adapter.search(queries, K, params)` once, batched.
 4. Compute both recall variants per query; aggregate.
-5. Compute a 95% interval by **bootstrap resampling over queries** (default 1,000
-   resamples, seeded). This is resampling of observed data, not a distributional
-   assumption, so it stays inside the "empirical only" constraint
-   ([ADR-0003](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/adr/0003-empirical-metrics-only.md)).
+5. Compute a 95% interval by **percentile bootstrap resampling over queries** (default
+   1,000 resamples, seeded; Efron, *Bootstrap Methods: Another Look at the Jackknife*,
+   **Annals of Statistics** 7(1):1–26, 1979,
+   [doi:10.1214/aos/1176344552](https://doi.org/10.1214/aos/1176344552)). This is
+   resampling of observed data, not a distributional assumption, so it stays inside the
+   "empirical only" constraint ([ADR-0003](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/adr/0003-empirical-metrics-only.md)).
+
+   **Declared deviation:** the interval is widened, if necessary, to contain the point
+   estimate (`ci_lo = min(ci_lo, mean)`, `ci_hi = max(ci_hi, mean)`; see
+   `vhecfsck/core/canary.py`). A percentile bootstrap can exclude the mean at very small
+   `Q`, and an interval that does not contain the number it qualifies is worse than useless
+   to a reader. This makes the interval conservative and no longer a pure percentile
+   bootstrap — which is why it is stated here rather than left in a code comment.
 
 ### 2.4 Query set resolution
 

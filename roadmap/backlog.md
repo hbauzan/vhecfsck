@@ -197,15 +197,20 @@ move the metric it claims to induce. **All measured, none implemented.**
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| MI-01 | `inject_hubs` does not move `hub_share`; `hubby` asserts the non-detection | M | P1-04, P2-06 | todo |
+| MI-01 | Pathology operators do not move the metrics they are named for | M | P1-04, P2-06 | todo |
 | MI-02 | Generate a real hub attractor and correct the `hubby` expectation | M | MI-01 | todo |
-| MI-03 | ADR-0006 attributes 0.25/0.40 to "the hubness literature"; refuted | S | P8-02 | todo |
-| MI-04 | `docs/calibration/` publishes an FNR with no pathological positive | S | MI-02 | todo |
+| MI-03 | ADR-0006 attributes 0.25/0.40 to "the hubness literature"; refuted | S | P8-02 | done |
+| MI-04 | Retract the unmeasured FNR from the published calibration | S | — | done |
 | MI-05 | Add `S_Nk`, the published skewness-of-`N_k` hubness measure | S | P2-06 | todo |
-| MI-06 | Cite ANN-Benchmarks for `recall_dist`; declare the canary CI expansion | S | P2-05 | todo |
+| MI-06 | Cite ANN-Benchmarks for `recall_dist`; declare the canary CI expansion | S | P2-05 | done |
+| MI-07 | Regenerate `results.csv` and the report pages against current profiles | M | MI-02 | todo |
 
-MI-02 must land before MI-04 **if MI-04 republishes a number**. Retracting an unmeasured
-one does not wait for anything.
+**MI-04 shipped as a retraction, not a republication.** `hub_share_top1pct`,
+`antihub_fraction` **and `partition_size_cv`** — three of the five metrics — have no
+pathological positive anywhere in the reference calibration, so the published `FPR / FNR:
+0.0%` was half measured and half assertion. The published pages now split the two and mark
+the FNR unvalidated. Republishing an actual number waits on MI-02 and is MI-07; retracting
+one waited on nothing.
 
 **MI-01 ships a regression test, not a lesson.** [`lessons-learned.md`](lessons-learned.md)
 §21 already requires a pathology operator to induce the geometry it claims, and
@@ -215,6 +220,12 @@ breaks a second time has earned enforcement rather than another paragraph, so MI
 acceptance criterion is a test asserting that each pathology operator moves the metric it
 is named for. That test is red today, which is exactly why it belongs to MI-01 and was not
 added ahead of it.
+
+MI-01 covers **two** instances, found by the same question asked of the calibration data:
+`hubby` reports `hub_share 0.0877 OK` / `antihub 0.1126 OK`, and `drifted` — the scenario
+named for `lance#4164`, appends into existing IVF cells without a centroid refit — reports
+`partition_size_cv 1.0342 OK`. Both scenarios assert those `OK` states in
+`vhecfsck/synthetic/scenarios.py`, so the suite currently pins the non-detection in both.
 
 ---
 

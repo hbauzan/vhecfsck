@@ -10,10 +10,21 @@
 
 Absolute metric thresholds inherited from the source specification (`roadmap/02-metrics-spec.md`) assume fixed values across all vector dimensions. Empirical measurement in **P8-01** demonstrated that while recall and deletion metrics (`canary_recall`, `dfi`) are invariant to dimension $d$, hubness and partition clustering variance naturally scale with $d$.
 
-To eliminate false-positive warnings on healthy high-dimensional vector indexes while preserving strict detection sensitivity on true pathologies:
+To eliminate false-positive warnings on healthy high-dimensional vector indexes:
 1. **`canary_recall` and `dfi`** preserve their inherited global defaults across all dimensions.
 2. **`hub_share_top1pct`, `antihub_fraction`, and `partition_size_cv`** use per-dimensionality profiles (`low`, `medium`, `high`, `ultra_high`).
 3. Explicit user overrides (`AuditConfig.thresholds`, CLI flags, env vars, config files) take precedence over all calibrated defaults.
+
+> **What this calibration does and does not establish.** Every threshold below is
+> derived from measured healthy controls, so the **false-positive** rates are backed by
+> data. The **false-negative** side is only established for the two metrics that have a
+> pathological positive in the reference run: `canary_recall` (`0.5340` on
+> `synthetic-tombstoned`) and `dfi` (`0.3500` on the same). For
+> `hub_share_top1pct`, `antihub_fraction` and `partition_size_cv` **no pathological
+> positive exists in the calibration**, so their detection sensitivity is unvalidated and
+> is reported as such per metric below. This is a gap in the synthetic pathology
+> operators, not evidence that the metrics fail to detect — see
+> [`roadmap/plan_integridad_matematica.md`](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/plan_integridad_matematica.md).
 
 ---
 
@@ -49,7 +60,11 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes 
   - $d = 384$: `0.7152` (`gaussian-384`)
   - $d = 768$: `1.1048` (`gaussian-768`)
   - $d = 1536$: `1.3647` (`gaussian-1536`)
-- **FPR / FNR:** `0.0%` false positives across all healthy IVF clustering runs when profiled by $d$.
+- **Measured FPR:** `0.0%` false positives across all healthy IVF clustering runs when profiled by $d$.
+- **Measured FNR:** **not measured — no pathological positive exists in the reference
+  calibration.** `synthetic-drifted`, the scenario named for appends into existing IVF cells
+  without a centroid refit (`lance#4164`), reports `1.0342 OK`. Detection sensitivity for this
+  metric is therefore unvalidated. Tracked as MI-01 / MI-04.
 - **Invalidation / Boundary Conditions:**
   - Non-partitioned indexes (FLAT, HNSW without IVF) return `UNAVAILABLE` / `not_applicable`.
 
@@ -67,7 +82,11 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes 
   - $d = 384$: `0.2664`
   - $d = 768$: `0.3012`
   - $d = 1536$: `0.3126`
-- **FPR / FNR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.20 default for $d \ge 128$).
+- **Measured FPR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.20 default for $d \ge 128$).
+- **Measured FNR:** **not measured — no pathological positive exists in the reference
+  calibration.** `synthetic-hubby`, the scenario named for hubness, reports `0.0877 OK`; its
+  injected hubs do not move this metric. Detection sensitivity is therefore unvalidated.
+  Tracked as MI-01 / MI-02 / MI-04.
 - **Invalidation / Boundary Conditions:**
   - Hubness sample size $|S| < 1000$ yields `UNAVAILABLE` (ADR-0006).
   - Hubness sampling parameters differing from $S=20000, k_{hub}=10$ set `thresholds_uncalibrated_for_sample_size` flag.
@@ -86,7 +105,11 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes 
   - $d = 384$: `0.3814`
   - $d = 768$: `0.4177`
   - $d = 1536$: `0.4376`
-- **FPR / FNR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.25 default for $d \ge 128$).
+- **Measured FPR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.25 default for $d \ge 128$).
+- **Measured FNR:** **not measured — no pathological positive exists in the reference
+  calibration.** `synthetic-hubby` reports `0.1126 OK`; its injected anti-hubs do not move
+  this metric. Detection sensitivity is therefore unvalidated. Tracked as MI-01 / MI-02 /
+  MI-04.
 - **Invalidation / Boundary Conditions:**
   - Hubness sample size $|S| < 1000$ yields `UNAVAILABLE`.
 

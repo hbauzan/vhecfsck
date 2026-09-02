@@ -1,9 +1,12 @@
 # Plan de Integridad Matemática
 
 Auditoría de la matemática de `vhecfsck` contra la literatura publicada y contra la
-evidencia que el propio repo produce. **Este documento es backlog: no se tocó código de
-métricas al escribirlo.** Los tickets viven en la sección MI de
-[`backlog.md`](backlog.md), todos en `todo`.
+evidencia que el propio repo produce. **No se tocó una línea de código de métricas.** Los
+tickets viven en la sección MI de [`backlog.md`](backlog.md).
+
+**Estado:** MI-03, MI-04 y MI-06 entregados — son los tres que se podían cerrar sin tocar
+código, y los tres corregían algo que ya estaba publicado en el sitio público. MI-01,
+MI-02, MI-05 y MI-07 siguen en `todo`.
 
 ## Resumen
 
@@ -65,7 +68,20 @@ párrafo. El criterio de aceptación de MI-01 es un test que afirme que cada ope
 patología mueve la métrica que le da nombre. Hoy ese test es rojo — por eso pertenece a
 MI-01 y no se agregó antes.
 
-## MI-03 — ADR-0006 atribuye 0.25/0.40 a "la literatura de hubness", y eso está refutado
+**Segunda instancia, encontrada al escribir MI-04.** No es solo hubness. `synthetic-drifted`
+—el escenario nombrado por `lance#4164`, appends dentro de celdas IVF existentes sin refit de
+centroides— reporta `partition_size_cv = 1.0342 OK`, y
+[`scenarios.py:199-203`](../vhecfsck/synthetic/scenarios.py) asserta `OK` para las cinco
+métricas. O sea: **tres de las cinco métricas no tienen un solo positivo patológico en toda
+la calibración de referencia**, porque ningún operador de patología las mueve. El test de
+MI-01 tiene que cubrir a los dos operadores, no solo a `inject_hubs`.
+
+## MI-03 — ADR-0006 atribuye 0.25/0.40 a "la literatura de hubness" · **ENTREGADO**
+
+> Entregado: ADR-0006 lleva un bloque de corrección en el encabezado, la frase sobre "the
+> hubness literature" está tachada en su lugar con la cita real de Radovanović et al., y el
+> status declara que la justificación de los umbrales quedó superada por ADR-0011 / P8-02.
+> La decisión sobre el régimen de sampleo —el tema real del ADR— no se tocó.
 
 **La afirmación.** [`adr/0006-hubness-sampling-regime.md`](adr/0006-hubness-sampling-regime.md)
 §Context dice: *"Warn `0.25` / fail `0.40` are recognisable values from the hubness
@@ -95,7 +111,17 @@ falsificado por el propio trabajo posterior del repo y **nunca se anotó como su
 atribución a la literatura o reemplazarla por la cita real, y declarar los umbrales por lo
 que son: valores calibrados empíricamente en P8-02, no heredados.
 
-## MI-04 — `docs/calibration/` publica tasas de error sin el positivo que las sostiene
+## MI-04 — `docs/calibration/` publica tasas de error sin el positivo que las sostiene · **ENTREGADO (retractación)**
+
+> Entregado: `thresholds.md` separa **Measured FPR** de **Measured FNR** en las tres
+> métricas afectadas y marca el FNR como no medido, con el escenario que lo demuestra en
+> cada caso; el Executive Summary lleva un recuadro que dice qué establece y qué no
+> establece esta calibración; y `docs/calibration/README.md` —la portada de la sección en el
+> sitio— gana una sección "Known gaps".
+>
+> **No** se editaron `results.csv` ni `reports/*.md`: los genera `scripts/calibrate.py` y
+> una edición a mano se pierde en el próximo `make calibrate`. Regenerarlos es **MI-07**, y
+> ese sí espera a MI-02.
 
 **Medido contra el repo.**
 
@@ -141,7 +167,12 @@ S_Nk = mean((N_k - mean(N_k))^3) / std(N_k)^3      # tercer momento estandarizad
 (sin umbral propio hasta calibrarlo), y citarlo en el spec. Vale la pena por sí solo:
 convierte un bloque de estadísticas ad-hoc en algo comparable con la literatura.
 
-## MI-06 — `recall_dist` está publicada; el spec la presenta como invención propia
+## MI-06 — `recall_dist` está publicada; el spec la presenta como invención propia · **ENTREGADO**
+
+> Entregado: `02-metrics-spec.md` §2.2 cita ANN-Benchmarks con DOI y la fórmula textual, y
+> §2.3 paso 5 cita Efron (1979) y **declara la desviación**: el CI se ensancha para contener
+> la media, así que ya no es un percentil bootstrap puro. Eso estaba solo en un comentario
+> de `canary.py`.
 
 Este es el hallazgo bueno. [`roadmap/02-metrics-spec.md:112`](02-metrics-spec.md) presenta
 la recall tolerante a empates como **"[CORRECTION 2]"**, es decir, como una corrección
