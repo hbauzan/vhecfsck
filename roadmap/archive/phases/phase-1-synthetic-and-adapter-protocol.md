@@ -24,7 +24,7 @@ The contract suite must pass against `SyntheticAdapter` with **zero skips**.
 **Depends on:** P0-07 · **Size:** M · **Touches:** `vhecfsck/models/target.py`, `vhecfsck/models/corpus.py`, `tests/unit/test_models.py`
 
 **Goal:** a leaf package of types that everything imports and that imports nothing internal
-([`01-architecture.md §4`](../01-architecture.md)).
+([`01-architecture.md §4`](../../01-architecture.md)).
 
 **Contract**
 - `MetricSpace` enum: `COSINE`, `L2`, `DOT`.
@@ -64,7 +64,7 @@ The contract suite must pass against `SyntheticAdapter` with **zero skips**.
 
 **Depends on:** P1-01 · **Size:** L (atomic — a contract must land whole) · **Touches:** `vhecfsck/adapters/base.py`, `tests/unit/test_adapter_protocol.py`
 
-**Goal:** the interface from [`01-architecture.md §3`](../01-architecture.md), exactly.
+**Goal:** the interface from [`01-architecture.md §3`](../../01-architecture.md), exactly.
 
 **Contract**
 - `IndexAdapter` as a `@runtime_checkable Protocol` with the methods and properties listed
@@ -85,7 +85,7 @@ The contract suite must pass against `SyntheticAdapter` with **zero skips**.
 
 **Acceptance criteria**
 - [ ] Protocol is complete enough that P5 (LanceDB) requires **no change** to it. If P5
-      forces a change, record what was missed in [ADR-0013](../adr/0013-adapter-protocol.md)
+      forces a change, record what was missed in [ADR-0013](../../adr/0013-adapter-protocol.md)
       as an amendment rather than editing history.
 - [ ] Every optional read returns `None` (not an exception) when the capability is absent.
 
@@ -105,7 +105,7 @@ The contract suite must pass against `SyntheticAdapter` with **zero skips**.
   partition-imbalance metric untestable.
 - Cosine spaces produce L2-normalised output; `DOT` spaces support a configurable norm
   distribution, which is what makes the magnitude-driven hubness case in
-  [`02-metrics-spec.md §3.6`](../02-metrics-spec.md) reachable.
+  [`02-metrics-spec.md §3.6`](../../02-metrics-spec.md) reachable.
 - Memory-aware: generates in blocks, never materialising more than one block beyond the
   output array. Must produce 1M × 768 within the memory budget.
 - Returns a `CorpusSpec` recording every parameter, so a report can state exactly what was

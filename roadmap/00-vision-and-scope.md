@@ -55,14 +55,14 @@ integration test corpus — each one becomes a reproduction scenario in the test
 
 | Anchor | Failure | Reproduced in | Re-verified |
 | :--- | :--- | :--- | :--- |
-| [`pgvector/pgvector#244`](https://github.com/pgvector/pgvector/issues/244) | Dead tuples drive recall to **0%** on tables with frequent updates/deletes before autovacuum runs. Mitigated in v0.8.0 via iterative scans. | [P7](phases/phase-7-qdrant-and-pgvector-adapters.md) | 2026-09-01 (v0.8.6) |
-| [`lancedb/lance#4164`](https://github.com/lancedb/lance/issues/4164) | IVF indexes with a static `num_partitions` degrade to linear scan when the dataset grows 10× without repartitioning. | [P5](phases/phase-5-lancedb-adapter.md) | 2026-09-01 (v0.17.x) |
-| [`qdrant/qdrant#7147`](https://github.com/qdrant/qdrant/issues/7147) | Segment consolidation corrupts per-tenant subgraphs (`is_tenant: true`), dropping mean precision from **0.98 to 0.61** with health checks fully green. | [P7](phases/phase-7-qdrant-and-pgvector-adapters.md) | 2026-09-01 (v1.19.0) |
+| [`pgvector/pgvector#244`](https://github.com/pgvector/pgvector/issues/244) | Dead tuples drive recall to **0%** on tables with frequent updates/deletes before autovacuum runs. Mitigated in v0.8.0 via iterative scans. | [P7](archive/phases/phase-7-qdrant-and-pgvector-adapters.md) | 2026-09-01 (v0.8.6) |
+| [`lancedb/lance#4164`](https://github.com/lancedb/lance/issues/4164) | IVF indexes with a static `num_partitions` degrade to linear scan when the dataset grows 10× without repartitioning. | [P5](archive/phases/phase-5-lancedb-adapter.md) | 2026-09-01 (v0.17.x) |
+| [`qdrant/qdrant#7147`](https://github.com/qdrant/qdrant/issues/7147) | Segment consolidation corrupts per-tenant subgraphs (`is_tenant: true`), dropping mean precision from **0.98 to 0.61** with health checks fully green. | [P7](archive/phases/phase-7-qdrant-and-pgvector-adapters.md) | 2026-09-01 (v1.19.0) |
 | [`weaviate/weaviate#11951`](https://github.com/weaviate/weaviate/issues/11951), [`#8914`](https://github.com/weaviate/weaviate/issues/8914) | Entry-point repair selects tombstoned nodes, causing infinite loops and pod startups exceeding one hour. | P10 (Weaviate adapter, post-1.0) | Planned P10 |
 
 > Verify each issue is still described accurately at the time you write the reproduction
 > test. Upstream issues get fixed, retitled, and closed; a stale claim in our README is a
-> credibility problem. See [P9](phases/phase-9-docs-release-and-launch.md), ticket `P9-04`.
+> credibility problem. See [P9](archive/phases/phase-9-docs-release-and-launch.md), ticket `P9-04`.
 
 ## 2. Thesis
 

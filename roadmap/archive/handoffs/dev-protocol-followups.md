@@ -25,5 +25,5 @@ Pick one row. Do not "while I was in here" a second.
 
 ## Out of this list
 
-- Product exit codes (`1` = `WARN`) stay on [ADR-0004](adr/0004-metric-result-states-and-exit-codes.md). The pack default is `8` / `0`+stderr. Do not "align" the CLI.
+- Product exit codes (`1` = `WARN`) stay on [ADR-0004](../../adr/0004-metric-result-states-and-exit-codes.md). The pack default is `8` / `0`+stderr. Do not "align" the CLI.
 - Merge-to-`main` on OK is closed. Do not re-open PR-vs-direct as a follow-up unless the user changes it.

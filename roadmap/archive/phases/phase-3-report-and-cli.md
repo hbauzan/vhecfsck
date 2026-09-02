@@ -26,13 +26,13 @@ promtool check metrics < <(vhecfsck demo --scenario drifted --format prometheus)
 **Depends on:** P2-01 · **Size:** M · **Touches:** `vhecfsck/models/report.py`, `tests/unit/test_report_model.py`
 
 **Contract**
-- `Report` (Pydantic v2, strict) matching [`01-architecture.md §6`](../01-architecture.md):
+- `Report` (Pydantic v2, strict) matching [`01-architecture.md §6`](../../01-architecture.md):
   `schema_version`, `tool_version`, `verdict`, `run`, `target`, `counts`, `metrics`,
   `warnings`, `config` (the fully resolved effective config).
 - `RunContext`: `started_at`, `duration_seconds`, `seed`, `deterministic`, host facts
   (CPU count, BLAS identification, platform), per-stage timings.
 - `schema_version` is a module constant with a comment stating the change policy
-  ([ADR-0008](../adr/0008-report-schema-versioning.md)): additive → minor bump; removal or
+  ([ADR-0008](../../adr/0008-report-schema-versioning.md)): additive → minor bump; removal or
   semantic change → major bump plus a migration note in `CHANGELOG.md`.
 - `Report.compare(other)` returning a structured diff, for baseline mode in P8. Designed in
   now so the schema does not have to change later to accommodate it.
@@ -119,7 +119,7 @@ not with a table of numbers.
   `--nprobe`, `--ef-search`, `--max-seconds`, `--max-memory-mb`, `--strict-unavailable`,
   `--only metric[,metric]`, `--skip metric[,metric]`, `--config PATH`, `-v/-vv/--quiet`,
   `--debug`, `--no-progress`.
-- Exit codes exactly per [`02-metrics-spec.md §6`](../02-metrics-spec.md). Typer's default
+- Exit codes exactly per [`02-metrics-spec.md §6`](../../02-metrics-spec.md). Typer's default
   exception handling is overridden; every path returns through the P0-05 mapper.
 - Progress rendered to stderr, automatically suppressed on a non-TTY or with `--no-progress`.
   A CI log full of progress bar redraws is a real annoyance and a real reason people add
@@ -228,7 +228,7 @@ dedicated suite so that a change to it can never be an accident.
   correct code with empty stdout.
 
 **Acceptance criteria**
-- [ ] Every code in [`02-metrics-spec.md §6`](../02-metrics-spec.md) is exercised.
+- [ ] Every code in [`02-metrics-spec.md §6`](../../02-metrics-spec.md) is exercised.
 - [ ] The suite is referenced from `SECURITY.md`/`CONTRIBUTING.md` as a stability contract.
 
 ---

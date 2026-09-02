@@ -1,7 +1,7 @@
 # Calibration (P8-01)
 
 Measured healthy / pathological ranges for the five metrics. Thresholds are **not**
-changed here — that is [P8-02](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/phases/phase-8-calibration-and-hardening.md).
+changed here — that is [P8-02](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/phases/phase-8-calibration-and-hardening.md).
 
 ## Regenerate
 

@@ -332,7 +332,7 @@ be someone's neighbour, so both metrics shift as `S` changes. Therefore:
 - `|S|` and `k_hub` are recorded in the report, always.
 - Cross-run comparison is only valid at identical `|S|` and `k_hub`. Baseline mode refuses
   to compare across different values and emits `not_comparable`.
-- Default thresholds are calibrated at `|S| = 20_000, k_hub = 10` ([P8](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/phases/phase-8-calibration-and-hardening.md)).
+- Default thresholds are calibrated at `|S| = 20_000, k_hub = 10` ([P8](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/phases/phase-8-calibration-and-hardening.md)).
   Running with different values sets the report warning
   `thresholds_uncalibrated_for_sample_size`. The number is still computed and shown; it is
   just not gated against defaults that do not apply to it.
@@ -457,9 +457,9 @@ population — not the logical row count.
 The Qdrant row is the reason `Capabilities` exists. An adapter that cannot get the right
 number must say so rather than substitute a number that is merely available.
 
-### 4.3 Companion sub-check: entry-point health (post-MVP, [P7](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/phases/phase-7-qdrant-and-pgvector-adapters.md))
+### 4.3 Companion sub-check: entry-point health (post-MVP, [P7](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/phases/phase-7-qdrant-and-pgvector-adapters.md))
 
-> *Cites `roadmap/02-metrics-spec.md` — 4.3 Companion sub-check: entry-point health (post-MVP, [P7](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/phases/phase-7-qdrant-and-pgvector-adapters.md))*
+> *Cites `roadmap/02-metrics-spec.md` — 4.3 Companion sub-check: entry-point health (post-MVP, [P7](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/phases/phase-7-qdrant-and-pgvector-adapters.md))*
 
 
 For HNSW indexes, whether the graph entry point is itself tombstoned is a boolean far more
@@ -597,9 +597,9 @@ without a major version bump.
 
 | Metric | Value | Blocked on |
 | :--- | :--- | :--- |
-| HNSW in-degree distribution / unreachable-node fraction | Directly quantifies path blocking rather than inferring it from tombstone ratios | Graph-level adapter introspection ([P7](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/phases/phase-7-qdrant-and-pgvector-adapters.md)) |
+| HNSW in-degree distribution / unreachable-node fraction | Directly quantifies path blocking rather than inferring it from tombstone ratios | Graph-level adapter introspection ([P7](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/phases/phase-7-qdrant-and-pgvector-adapters.md)) |
 | Centroid drift | Distance from stored centroids to recomputed k-means centroids over current data | Centroid extraction per engine |
 | Recall-vs-`nprobe`/`ef_search` curve | Turns a pass/fail into a tuning recommendation | Multiple search sweeps; runtime cost |
 | Per-tenant recall breakdown | The exact shape of [`qdrant#7147`](https://github.com/qdrant/qdrant/issues/7147) | Filtered-search support in the adapter protocol |
 | Quantisation error (PQ/SQ reconstruction) | Separates quantisation loss from graph/partition damage | Codebook access |
-| Temporal drift / trend | Turns a point-in-time check into an early-warning signal | Baseline persistence ([P8](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/phases/phase-8-calibration-and-hardening.md)) |
+| Temporal drift / trend | Turns a point-in-time check into an early-warning signal | Baseline persistence ([P8](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/phases/phase-8-calibration-and-hardening.md)) |

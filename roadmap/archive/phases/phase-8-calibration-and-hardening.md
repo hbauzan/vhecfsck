@@ -33,10 +33,10 @@ make verify-full     # includes slow, integration, perf, mutation testing
   - **Public embedding benchmark datasets** (the standard ANN benchmark corpora: SIFT, GIST,
     GloVe, NYTimes, and a modern sentence-embedding set). Chosen for permissive licensing;
     record the licence and provenance of each in `docs/calibration/datasets.md`, and download
-    on demand rather than committing data ([risk R13](../risk-register.md)).
+    on demand rather than committing data ([risk R13](../../risk-register.md)).
   - **Synthetic corpora with known injected pathologies**, as the positive controls.
 - Sweep `hubness_sample_size` ∈ {1k, 5k, 20k, 50k} and `k_hub` ∈ {5, 10, 20} to quantify the
-  sampling sensitivity that [`02-metrics-spec.md §3.2`](../02-metrics-spec.md) warns about.
+  sampling sensitivity that [`02-metrics-spec.md §3.2`](../../02-metrics-spec.md) warns about.
   Publish the resulting sensitivity curves — they are the honest answer to "why does my number
   change when I change the sample size?", and having that answer ready is what prevents a
   false-positive report from becoming a credibility problem.
@@ -65,7 +65,7 @@ make verify-full     # includes slow, integration, perf, mutation testing
 - Publish, per metric: the healthy range, the recommended threshold, the measured error rates,
   and a plain statement of which conditions invalidate the default (dimensionality, metric
   space, sample size).
-- Update [ADR-0011](../adr/0011-thresholds-and-baseline-mode.md) with the measurements.
+- Update [ADR-0011](../../adr/0011-thresholds-and-baseline-mode.md) with the measurements.
 - Ship per-dimensionality threshold profiles if the data shows a single global default cannot
   work — the likeliest outcome for the hubness metrics, since hubness is a function of `d`.
 
@@ -94,7 +94,7 @@ apply — which, after P8-02, will be many of them.
 - Comparability enforcement: refuse to compare when seed, `k`, `hubness_sample_size`, `k_hub`,
   metric space, dimension, or engine differ. Emit `not_comparable` with the specific field
   rather than silently comparing incomparable numbers
-  ([`02-metrics-spec.md §3.2`](../02-metrics-spec.md)).
+  ([`02-metrics-spec.md §3.2`](../../02-metrics-spec.md)).
 - Delta thresholds configurable and defaulted from the P8-01 measured run-to-run variance, so
   the gate sits above noise rather than at an arbitrary round number.
 - Report includes both the absolute states and the delta states; the verdict may be driven by

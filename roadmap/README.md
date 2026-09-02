@@ -10,11 +10,13 @@ criteria, not by elapsed time.
 
 ## How to use this roadmap
 
-1. Read [`agent-playbook.md`](agent-playbook.md) first. It defines the mandatory workflow,
-   the guardrails, and the definition of done that applies to **every** ticket.
-2. Find the next unblocked ticket in [`backlog.md`](backlog.md) (flat tracker).
-3. Open the owning phase file under [`phases/`](phases/) for the full ticket contract:
-   scope, files, dependencies, tests to write first, acceptance criteria.
+1. Read [`next-ticket.md`](next-ticket.md). One agent, one ticket, in that order.
+   Do not start at `P0-01`.
+2. Read [`lessons-learned.md`](lessons-learned.md) §0 (cold start) and
+   [`agent-playbook.md`](agent-playbook.md) for the workflow that applies to every ticket.
+3. Open the ticket contract named by `next-ticket.md` — remaining work lives in
+   [`archive/plans/`](archive/plans/) and [`archive/phases/`](archive/phases/).
+   [`phases/`](phases/) only still holds P10.
 4. Before implementing any metric, read the relevant section of
    [`02-metrics-spec.md`](02-metrics-spec.md). It is normative and overrides prose
    elsewhere.
@@ -29,16 +31,19 @@ criteria, not by elapsed time.
 | [`01-architecture.md`](01-architecture.md) | Module layout, contracts, data flow, dependency rules | Yes (structure) |
 | [`02-metrics-spec.md`](02-metrics-spec.md) | Exact definition of every metric, thresholds, edge cases, oracles | Yes (behaviour) |
 | [`03-phases-overview.md`](03-phases-overview.md) | Phase map, dependency DAG, phase exit gates | Yes (sequencing) |
-| [`phases/`](phases/) | Per-phase agent-sized tickets with acceptance criteria | Yes (work items) |
+| [`next-ticket.md`](next-ticket.md) | Dispatcher: next `todo` ticket, in order | Yes (queue) |
+| [`phases/`](phases/) | Open horizon only (P10). P0–P9 contracts are in [`archive/phases/`](archive/phases/) | Yes (work items) |
+| [`archive/`](archive/) | Completed phases, sub-plans, historical lessons, handoffs | Historical |
 | [`adr/`](adr/) | Architecture Decision Records — the "why", and what not to revisit | Yes (decisions) |
 | [`backlog.md`](backlog.md) | Flat ticket tracker: ID, phase, deps, size, status | Tracking only |
 | [`testing-strategy.md`](testing-strategy.md) | Test layers, oracles, determinism, coverage and CI gates | Yes (quality bar) |
 | [`risk-register.md`](risk-register.md) | Risks, triggers, mitigations, owning tickets | Advisory |
 | [`release-plan.md`](release-plan.md) | Versioning, packaging, CI/CD, PyPI, launch | Yes (release) |
 | [`agent-playbook.md`](agent-playbook.md) | Execution protocol and guardrails for AI agents | Yes (process) |
-| [`lessons-learned.md`](lessons-learned.md) | Durable handoff memory between agents (invariants) | Process |
-| [`plan_optimizacion_test_harness.md`](plan_optimizacion_test_harness.md) | Test harness empirical benchmarks and optimization roadmap | Tracking only |
-| [`dev-protocol-followups.md`](dev-protocol-followups.md) | Queued work on the dev-protocol pack itself | Tracking only |
+| [`lessons-learned.md`](lessons-learned.md) | Active handoff memory (invariants). P0–P7 write-ups: [`archive/lessons-learned-historical.md`](archive/lessons-learned-historical.md) | Process |
+| [`archive/plans/plan_optimizacion_test_harness.md`](archive/plans/plan_optimizacion_test_harness.md) | Test harness empirical benchmarks (TH remaining via `next-ticket.md`) | Tracking only |
+| [`archive/plans/plan_integridad_matematica.md`](archive/plans/plan_integridad_matematica.md) | Metric-integrity findings (MI remaining via `next-ticket.md`) | Tracking only |
+| [`archive/handoffs/dev-protocol-followups.md`](archive/handoffs/dev-protocol-followups.md) | Queued work on the dev-protocol pack itself | Tracking only |
 | [`glossary.md`](glossary.md) | HNSW, IVF, tombstone, hubness, DFI, and friends | Reference |
 
 ## Project parameters fixed by the owner
@@ -89,10 +94,12 @@ Each correction has an owning ADR so the reasoning survives.
 | 4 | Queries "from the log or the corpus" are treated as equivalent. Corpus-drawn queries are their own nearest neighbour at distance 0, inflating recall by roughly `1/K`. | Self-matches are excluded by default; corpus-drawn queries are labelled a weaker evidence class in the report. | [metrics §2](02-metrics-spec.md) |
 | 5 | Unavailable metrics have no representation, so an engine that cannot report dead-tuple counts would silently score a perfect DFI of 0. | Every metric is tri-state plus `UNAVAILABLE`, which never counts as a pass. Dedicated exit code, promotable to failure with `--strict-unavailable`. | [ADR-0004](adr/0004-metric-result-states-and-exit-codes.md) |
 | 6 | Exit codes cover only `0/1/2`, leaving tool crashes and misconfiguration indistinguishable from a genuine `FAIL` verdict — the worst possible outcome for a CI gate. | Reserved codes for inconclusive, usage error and internal error. | [ADR-0004](adr/0004-metric-result-states-and-exit-codes.md) |
-| 7 | Absolute thresholds are presented as universal, but healthy values are dataset- and metric-space-dependent. Uncalibrated thresholds produce false alarms, and a noisy checker gets disabled. | Thresholds are configurable, ship calibrated defaults, and are complemented by a baseline/delta mode. | [ADR-0011](adr/0011-thresholds-and-baseline-mode.md), [P8](phases/phase-8-calibration-and-hardening.md) |
+| 7 | Absolute thresholds are presented as universal, but healthy values are dataset- and metric-space-dependent. Uncalibrated thresholds produce false alarms, and a noisy checker gets disabled. | Thresholds are configurable, ship calibrated defaults, and are complemented by a baseline/delta mode. | [ADR-0011](adr/0011-thresholds-and-baseline-mode.md), [P8](archive/phases/phase-8-calibration-and-hardening.md) |
 | 8 | A 1M-point scene sent as JSON is hundreds of megabytes and will not render. | Scene payloads use a binary transport with server-side level-of-detail decimation. | [ADR-0009](adr/0009-scene-transport-and-lod.md) |
 
 ## Status
 
-Nothing is implemented yet. The repository root contains only this roadmap. Phase 0
-ticket `P0-01` creates the first line of production code.
+P0–P9 execution is complete except the residual queue in
+[`next-ticket.md`](next-ticket.md) (MI-07, MI-05, TH-06…TH-08, P9-12). Product on
+`main` is the read-only CLI auditor; hero command `uvx vhecfsck demo`. P10 stays
+unplanned in [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md).
