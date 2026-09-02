@@ -9,6 +9,7 @@ from scripts.coverage_gate import (
     cache_forced_off,
     cache_is_hit,
     core_report_argv,
+    coverage_core_env,
     fingerprint,
     instrumented_pytest_argv,
     overall_report_argv,
@@ -71,6 +72,22 @@ def test_cache_hit_requires_coverage_data_and_matching_meta(tmp_path: Path) -> N
         )
         is False
     )
+
+
+def test_sysmon_not_injected_below_312() -> None:
+    env = coverage_core_env({}, version_info=(3, 11, 15))
+    assert "COVERAGE_CORE" not in env
+
+
+def test_sysmon_injected_on_312_and_above_unless_already_set() -> None:
+    assert coverage_core_env({}, version_info=(3, 12, 13))["COVERAGE_CORE"] == "sysmon"
+    assert coverage_core_env({}, version_info=(3, 13, 5))["COVERAGE_CORE"] == "sysmon"
+    preserved = coverage_core_env({"COVERAGE_CORE": "ctrace"}, version_info=(3, 12, 13))
+    assert preserved["COVERAGE_CORE"] == "ctrace"
+    copied = coverage_core_env({"PATH": "/bin", "CI": "true"}, version_info=(3, 12, 0))
+    assert copied["PATH"] == "/bin"
+    assert copied["CI"] == "true"
+    assert copied["COVERAGE_CORE"] == "sysmon"
 
 
 def test_instrumented_miss_path_is_one_pytest_and_core_report() -> None:

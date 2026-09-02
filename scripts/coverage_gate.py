@@ -5,6 +5,10 @@ Merge and CI always run one instrumented pytest and both floors (80 overall,
 90 core/). Locally, an unchanged tree reuses ``.coverage`` and only reports.
 ``make test`` remains the uninstrumented inner loop. Force a trace with
 ``COVERAGE_CACHE=0``.
+
+On Python 3.12+ the instrumented child uses ``COVERAGE_CORE=sysmon`` unless
+that variable is already set (escape hatch: ``COVERAGE_CORE=ctrace``).
+Python 3.11 keeps coverage.py's C tracer. Do not raise ``requires-python``.
 """
 
 from __future__ import annotations
@@ -69,6 +73,21 @@ def cache_forced_off(env: Mapping[str, str]) -> bool:
     if _truthy(env.get("GITHUB_ACTIONS", "")) or _truthy(env.get("CI", "")):
         return True
     return env.get("COVERAGE_CACHE", "").strip().lower() in _FALSE
+
+
+def coverage_core_env(
+    env: Mapping[str, str],
+    *,
+    version_info: tuple[int, ...] | None = None,
+) -> dict[str, str]:
+    """Copy ``env``; on 3.12+ set ``COVERAGE_CORE=sysmon`` unless already set."""
+    out = dict(env)
+    if out.get("COVERAGE_CORE", "").strip():
+        return out
+    info = sys.version_info if version_info is None else version_info
+    if (int(info[0]), int(info[1])) >= (3, 12):
+        out["COVERAGE_CORE"] = "sysmon"
+    return out
 
 
 def _skip(path: Path, root: Path) -> bool:
@@ -208,10 +227,17 @@ def main() -> int:
         return int(core_run.returncode)
 
     reason = "CI" if cache_forced_off(env) else "miss"
-    print(f"coverage-gate: {reason} — instrumented pytest", file=sys.stderr)
+    pytest_env = coverage_core_env(env)
+    # `core` is the package path for the 90% floor; do not reuse it for the tracer name.
+    tracer = pytest_env.get("COVERAGE_CORE", "").strip() or "ctrace"
+    print(
+        f"coverage-gate: {reason} — instrumented pytest (COVERAGE_CORE={tracer})",
+        file=sys.stderr,
+    )
     traced = subprocess.run(
         instrumented_pytest_argv(pkg=pkg, cov_all=cov_all, slow_marks=slow_marks),
         cwd=ROOT,
+        env=pytest_env,
     )
     if traced.returncode != 0:
         return int(traced.returncode)
