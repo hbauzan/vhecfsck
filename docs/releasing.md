@@ -2,21 +2,6 @@
 
 This document describes the process for packaging, testing, and publishing releases of `vhecfsck`.
 
-> **Current state — the automated path below is not active yet.**
-> No `v*` tag has ever existed in this repository, so `.github/workflows/release.yml`
-> has never run. Every version on PyPI so far (`0.1.0.dev0`, `0.1.0`, `0.1.1`,
-> `0.1.2`, `0.1.3`) was built and uploaded manually with a maintainer API token.
->
-> The workflow itself is already written for Trusted Publishing — it declares
-> `id-token: write` and passes no password to `pypa/gh-action-pypi-publish` — but
-> the trusted publisher has not been registered on pypi.org, so a tag push today
-> would fail at the publish step. Registering it, and adding a protected `pypi`
-> environment so a tag cannot publish without approval, is **P9-12** in
-> [the backlog](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/backlog.md).
->
-> Until P9-12 lands, use the manual procedure in §6. Sections 3 and 4 describe the
-> target state, not today's.
-
 ---
 
 ## 1. Release Architecture & Security
@@ -24,7 +9,7 @@ This document describes the process for packaging, testing, and publishing relea
 `vhecfsck` uses standard Python packaging (`hatchling` backend declared in `pyproject.toml`) and automated GitHub Actions workflows.
 
 * **Versioning Standard**: [Semantic Versioning 2.0.0](https://semver.org/). `0.1.0` establishes stable CLI parameters, report schemas, and exit codes.
-* **Authentication**: no long-lived API tokens or secret keys are stored in the repository, and none ever should be. The release workflow is built for **Trusted Publishing via OpenID Connect (OIDC)** (`id-token: write`, no `password` input); registering the publisher on PyPI so that path becomes live is P9-12. Today's manual uploads use a maintainer-held token that exists only on the maintainer's machine.
+* **Authentication**: no long-lived API tokens or secret keys are stored in the repository, and none ever should be. Releases go through **Trusted Publishing via OpenID Connect (OIDC)** (`id-token: write`, no `password` input). The `verify-and-build` job uses the GitHub environment `pypi`, so a tag cannot publish without owner approval. If that path is unavailable, use the manual fallback in §6.
 * **Artifact Integrity**: The build pipeline compiles both source distribution (`.tar.gz`) and binary wheel (`.whl`), embedding the static visualization bundle processed by `hatch_build.py`.
 
 ---
@@ -67,7 +52,9 @@ git push origin v0.1.0
 
 ## 4. Automated Workflow Execution
 
-The `.github/workflows/release.yml` workflow runs automatically upon tag push:
+The `.github/workflows/release.yml` workflow runs automatically upon tag push.
+The job is bound to the GitHub environment `pypi` and **waits for owner approval**
+before any step (including build) runs.
 
 1. **Build Step**: Checks out code, sets up Python 3.11/`uv`, and executes `uv build`.
 2. **Clean Smoke Test**: Installs the newly built wheel in an isolated temporary environment and executes `vhecfsck demo`.
@@ -86,9 +73,9 @@ uvx vhecfsck@0.1.0 demo
 
 ---
 
-## 6. Manual Release Procedure (current)
+## 6. Manual Release Procedure (fallback)
 
-Use this until P9-12 activates the automated path. Every step matters; two of them
+Use this only if the automated path in §3 is unavailable. Every step matters; two of them
 have silently produced a bad artefact before.
 
 1. **Bump the version in two places, not one.** `pyproject.toml`, and the

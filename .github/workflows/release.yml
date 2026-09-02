@@ -13,6 +13,9 @@ permissions:
 jobs:
   verify-and-build:
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/vhecfsck
     steps:
       - uses: actions/checkout@v7
 

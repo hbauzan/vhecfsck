@@ -22,10 +22,11 @@ Cola de implementación: [`next-ticket.md`](next-ticket.md). Un ticket, en orden
 [`archive/phases/`](archive/phases/). No los reabras.
 **P8 completo** en `main` (P8-01…P8-11, incluido **P8-03** baseline/delta). No lo
 reinicies: un §0 viejo que lo listaba como critical path está stale.
-**P9** casi cerrado: P9-01…P9-08 y P9-11/13/14 `done`. Fase archivada en
+**P9** cerrado salvo P9-09/P9-10: P9-01…P9-08 y P9-11/12/13/14 `done`. Fase archivada en
 [`archive/phases/phase-9-docs-release-and-launch.md`](archive/phases/phase-9-docs-release-and-launch.md).
-P9-12 `blocked` (humano: env GitHub `pypi` + publisher PyPI). P9-09 `blocked`
-(go-ahead + Linux real). P9-10 skip (CI Linux × 3.11/3.12/3.13 ya corre).
+P9-12 `done` (Trusted Publishing: env GitHub `pypi` + publisher PyPI + YAML
+`environment:`). P9-09 `blocked` (go-ahead + Linux real). P9-10 skip (CI Linux ×
+3.11/3.12/3.13 ya corre).
 **MI-01 / MI-02 / MI-05 / MI-07 `done`.** Hubness self-query + freeze IVF drifted +
 `inject_hubs` concentra ≥1% de masa (d=64). `S_Nk` in hubness `detail` (informative;
 JSON `null` when `std(N_k)=0`). Reference calibration republished:
@@ -40,11 +41,11 @@ on 3.12+ (3.11 keeps the C tracer).
 sigue en `roadmap/phases/` (no archivado).
 
 **Critical path activo:** [`next-ticket.md`](next-ticket.md) —
-P9-12 (blocked-on-human).
-No tomes dos. No reabras TH-01/02/03/04/05/06/07/08, MI-03/04/06/07, P8-03.
+cola de implementación vacía (P9-09 blocked, P9-10 skip).
+No tomes dos. No reabras TH-01/02/03/04/05/06/07/08, MI-03/04/06/07, P8-03, P9-12.
 No arranques P9-09 ni P9-10.
 
-**HEAD de referencia:** `main` after merge of `perf/th-08-coverage-sysmon`.
+**HEAD de referencia:** `main` after merge of `ci/p9-12-pypi-environment`.
 Confirm with `git log -1 origin/main`.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PUBLIC** desde P9-07).
 Runners estándar de GitHub Actions son gratis en repo público.
@@ -62,8 +63,9 @@ lecciones 50 y 59). Residual P9-11: falta un `gh workflow run ci.yml` testigo
 `setup.sh` es consola de contribuidor macOS, no el producto.
 
 Residual dueño (no lo “arregles” vos solo):
-- PyPI `0.1.3` está publicado; Trusted Publishing es **P9-12**, blocked-on-human.
-  No secret PyPI. No tag de prueba.
+- PyPI `0.1.3` está publicado; Trusted Publishing (P9-12) está activo. No secret
+  PyPI. No tag de prueba. Testigo residual: `gh workflow run release.yml` **sin**
+  tag (tiene que pausar por aprobación del env `pypi`).
 - ADR-0012: la expansión de la `H` en copy público sigue abierta.
 
 Las lecciones de `vhectorlab` **no** se copian.
