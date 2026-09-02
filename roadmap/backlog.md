@@ -169,6 +169,201 @@ atomically.
 | P9-08 | Post-launch triage window | M | P9-07 | done |
 | P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | todo |
 | P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | todo |
+| P9-11 | Bump GitHub Actions off the deprecated Node 20 runtime | S | — | todo |
+| P9-12 | Activate PyPI Trusted Publishing with a protected `pypi` environment | S | — | todo |
+| P9-13 | `clean_orphans.py` kills the shell that invoked `make verify` | S | — | todo |
+
+### P9-13 — `clean_orphans.py` kills the caller when the checkout path is on the command line
+
+**Found while running the gate for the 0.1.3 release.** `make verify` died after ~5
+seconds with no output at all — not even the lint lines — and left an empty log.
+Three runs in a row. The cause is not flaky infrastructure.
+
+[`scripts/clean_orphans.py`](../scripts/clean_orphans.py) selects victims like this:
+
+```python
+is_relevant_cmd = any(
+    token in cmd for token in ("pytest", "python", "make ", "make\t", "uv run")
+)
+if is_relevant_cmd and target_root in cmd:
+```
+
+It excludes only `self_pid`, `os.getppid()` and anything mentioning
+`clean_orphans.py`. It does **not** exclude the process tree it was launched from.
+
+So a shell invoked as
+
+```bash
+cd /Users/hbauzan/treepwood/vhecfsck && make verify
+```
+
+has a command line containing both `make ` and the checkout root, matches, and is
+sent `SIGTERM` and then `SIGKILL` by the `clean-proc` prerequisite of the very target
+it is running. The same happens with `make -C /path/to/vhecfsck verify` and with any
+wrapper script that names the repository path in its arguments.
+
+It is invisible when you invoke `make verify` from a shell already sitting in the
+repository, because then the path never appears in the command string. That is why
+this survived until now.
+
+**Fix direction, not prescribed.** Walking up the parent chain with `os.getppid()`
+only skips one level; the shell is usually two or three up. Options worth weighing:
+climb the full ancestor chain via `ps -o ppid=` and exclude every ancestor; or
+compare process start times and refuse to kill anything older than this process; or
+narrow the token list so a bare `make ` no longer qualifies. Whichever is chosen, the
+scan must still catch genuine orphans, which is the whole point of the script.
+
+**Regression test.** `tests/unit/test_clean_orphans.py` must gain a case asserting
+that `get_checkout_orphan_pids` never returns an ancestor of the current process.
+Note that this test file already fails under sandboxes that forbid executing `ps`
+(`PermissionError: [Errno 1] Operation not permitted: 'ps'`); that is an environment
+artefact, not a repository failure, and it passes on a normal shell.
+
+**Do not fix this by removing `clean-proc` from `verify`.** It exists because
+orphaned pytest processes from interrupted runs really do accumulate and peg the CPU
+(lesson 38 and the P8-era `clean-proc` work). The scan is right; its exclusion set is
+wrong.
+
+### P9-11 — Bump GitHub Actions off the deprecated Node 20 runtime
+
+**Symptom.** Every workflow run since CI was re-enabled carries this annotation:
+
+> Node.js 20 is deprecated. The following actions target Node.js 20 but are being
+> forced to run on Node.js 24.
+
+**Nothing is broken today.** GitHub is transparently forcing the newer runtime. The
+risk is the day the forcing stops, at which point every workflow in the repository
+fails at once, including `release.yml`. This is maintenance, not a fix.
+
+**Scope: every workflow, one ticket.** Do not bump them one file at a time. Mixed
+majors across workflows is how one of them silently stops matching the others and
+nobody notices until a release fails.
+
+Actions currently pinned to a Node 20 major:
+
+| File | Actions to bump |
+| :--- | :--- |
+| `.github/workflows/ci.yml` | `actions/checkout`, `actions/upload-artifact`, `astral-sh/setup-uv` |
+| `.github/workflows/docs.yml` | `actions/checkout`, `actions/setup-python`, `actions/upload-pages-artifact`, `actions/deploy-pages` |
+| `.github/workflows/release.yml` | `actions/checkout`, `actions/setup-python`, `softprops/action-gh-release`, `pypa/gh-action-pypi-publish` |
+| `.github/workflows/security.yml` | `actions/checkout` and anything in its active job |
+| `.github/workflows/test-composite-action.yml` | `actions/checkout` |
+| `.github/actions/vhecfsck/action.yml` | the composite action has its own pins — check it |
+
+**Resolve the current major yourself.** Do not copy a version number out of this
+ticket; it is stale by construction. For each action, read its README or releases
+page and take the newest stable major. Pin to the major (`@v5`), not to a full
+version or a SHA, matching the existing convention in this repository.
+
+**Constraint.** `pypa/gh-action-pypi-publish` is pinned to `@release/v1`, which is a
+branch, not a tag. That is the form its maintainers document; leave it alone unless
+they say otherwise.
+
+**Verification.**
+
+1. `gh workflow run ci.yml` and confirm the run produces **zero** Node deprecation
+   annotations: `gh run view <id> --log | grep -i "node.js 20"` must be empty.
+2. `docs.yml` still deploys Pages successfully.
+3. `release.yml` still builds: dispatch it manually with `workflow_dispatch` (no
+   tag), which runs build and smoke test and skips publish because that step is
+   conditioned on `startsWith(github.ref, 'refs/tags/v')`. **Do not create a tag to
+   test this** — a tag triggers a real publish.
+
+**Out of scope.** Do not change triggers, matrices, runner labels, or job structure.
+Only the `uses:` version pins move.
+
+### P9-12 — Activate PyPI Trusted Publishing with a protected `pypi` environment
+
+**State this ticket starts from.** No `v*` tag has ever existed in this repository,
+so `.github/workflows/release.yml` has never run. Versions `0.1.0.dev0`, `0.1.0`,
+`0.1.1`, `0.1.2` and `0.1.3` were all built and uploaded manually with a
+maintainer-held API token. The workflow is already written correctly for Trusted
+Publishing: it declares `id-token: write` and calls `pypa/gh-action-pypi-publish`
+with no `password` input. **The code is not the missing piece — the PyPI-side
+registration is.**
+
+**Do not add a PyPI token as a GitHub secret.** It is the worse option in every
+dimension: it would require editing `release.yml` to pass `password:`, it stores a
+long-lived credential that can be exfiltrated by any workflow that can read secrets,
+and it contradicts `docs/releasing.md`, which states no long-lived tokens are stored.
+Trusted Publishing needs zero code changes for authentication.
+
+**The PyPI project already exists**, so this is a trusted publisher added to an
+existing project, **not** a "pending publisher". Pending publishers are for names
+that have never been uploaded; using that form here will not work.
+
+**Execute in exactly this order.** Any other order leaves a half-configured state
+that either publishes without approval or fails authentication.
+
+1. **Create the GitHub environment first.** Repository → Settings → Environments →
+   New environment, named exactly `pypi`. Add the protection rule *Required
+   reviewers* and add the repository owner. Optionally restrict deployment branches
+   to `main` and to tags matching `v*`. Creating it first means that when the
+   workflow starts referencing it, the protection is already in force — if the
+   workflow references an environment that does not exist, GitHub creates it
+   implicitly **with no protection rules at all**, which is silently worse than not
+   doing this at all.
+
+2. **Register the trusted publisher on PyPI.** Log in to pypi.org as the project
+   owner, go to the `vhecfsck` project → Manage → Publishing → Add a new publisher →
+   GitHub. Fill in exactly:
+
+   | Field | Value |
+   | :--- | :--- |
+   | Owner | `hbauzan` |
+   | Repository name | `vhecfsck` |
+   | Workflow name | `release.yml` |
+   | Environment name | `pypi` |
+
+   The workflow field is the **filename**, not the `name:` key inside the file.
+
+3. **Only then edit the workflow.** Add the environment declaration to the
+   `verify-and-build` job in `.github/workflows/release.yml`, as a sibling of
+   `runs-on`:
+
+   ```yaml
+   jobs:
+     verify-and-build:
+       runs-on: ubuntu-latest
+       environment:
+         name: pypi
+         url: https://pypi.org/p/vhecfsck
+   ```
+
+   Change nothing else in that file. In particular, leave `permissions:` as it is —
+   `id-token: write` is what makes OIDC work and `contents: write` is what lets the
+   GitHub Release step attach artefacts.
+
+**The failure mode to know in advance.** The environment name must match on both
+sides, exactly, or not be present on either. If PyPI has `pypi` recorded and the
+workflow does not declare an environment, or the reverse, the OIDC token exchange is
+rejected with a generic authorization error that does not say which side is
+mismatched. If publishing fails with an auth error, check this before anything else.
+
+**How to test without burning a version number.** PyPI refuses re-uploads of an
+existing version, so a botched test cannot be retried under the same number.
+
+1. `gh workflow run release.yml` with no tag. This exercises checkout, sync, `uv
+   build` and the wheel smoke test, and **skips** both the publish and the GitHub
+   Release steps, because each is guarded by
+   `if: startsWith(github.ref, 'refs/tags/v')`. Confirm the run pauses for approval
+   first — that proves the environment gate is live.
+2. Only once that is green, cut the next real release by tag as documented in
+   `docs/releasing.md` §3.
+
+**Acceptance criteria.**
+
+- Pushing a `v*` tag starts `release.yml` and it **waits** for a human approval
+  before the publish step runs.
+- Approving it publishes to PyPI successfully.
+- `gh secret list` shows **no** PyPI token in the repository.
+- `docs/releasing.md` is updated: remove the "Current state" warning box at the top,
+  and either delete §6 (Manual Release Procedure) or retitle it as the fallback for
+  when the workflow is unavailable. The version-bump-plus-golden-fixtures step in §6
+  is still required either way and must survive wherever it ends up.
+
+**Out of scope.** Do not add signing, attestations, or a TestPyPI stage in this
+ticket. Do not change the version scheme.
 
 ## TH — Test Harness Optimization · [plan file](plan_optimizacion_test_harness.md)
 
