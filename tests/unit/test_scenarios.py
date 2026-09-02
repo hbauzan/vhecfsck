@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 
 import pytest
+from vhecfsck.adapters import synthetic_adapter
 from vhecfsck.adapters.base import IndexAdapter
 from vhecfsck.adapters.registry import open_target
 from vhecfsck.adapters.scenarios import open_scenario
@@ -68,6 +69,42 @@ def test_scenario_builders_are_deterministic() -> None:
 def test_tombstoned_and_drifted_issue_anchors() -> None:
     assert "pgvector#244" in scenario_tombstoned().issue
     assert "lance#4164" in scenario_drifted().issue
+
+
+def test_drifted_adapter_partitions_match_induced_skew() -> None:
+    """MI-01: open_scenario('drifted') must not refit IVF after skew_partitions.
+
+    partitions() has to report the cells the operator grew, not a k-means
+    rebalance of the post-append corpus.
+    """
+    spec = scenario_drifted(size="tiny")
+    induced = spec.state.annotation.partition_sizes
+    assert induced is not None
+    opened = open_scenario("drifted", size="tiny")
+    try:
+        parts = opened.adapter.partitions()
+        assert parts is not None
+        got = tuple(int(x) for x in parts.sizes)
+        assert got == induced
+    finally:
+        opened.adapter.close()
+
+
+def test_open_scenario_drifted_does_not_refit_ivf(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _explode(*_args: object, **_kwargs: object) -> object:
+        msg = "drifted must freeze IVF assignment, not refit k-means"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(synthetic_adapter, "_fit_ivf", _explode)
+    opened = open_scenario("drifted", size="tiny")
+    try:
+        parts = opened.adapter.partitions()
+        assert parts is not None
+        assert int(parts.sizes.sum()) == opened.adapter.counts().live
+    finally:
+        opened.adapter.close()
 
 
 def test_capability_limited_hides_deleted_counts() -> None:
