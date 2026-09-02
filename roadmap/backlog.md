@@ -171,7 +171,7 @@ atomically.
 | P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | todo |
 | P9-11 | Bump GitHub Actions off the deprecated Node 20 runtime | S | — | todo |
 | P9-12 | Activate PyPI Trusted Publishing with a protected `pypi` environment | S | — | todo |
-| P9-13 | `clean_orphans.py` kills the shell that invoked `make verify` | S | — | todo |
+| P9-13 | `clean_orphans.py` kills the shell that invoked `make verify` | S | — | done |
 | P9-14 | Show the current version and the changelog on GitHub Pages | S | P9-02 | todo |
 
 ### P9-13 — `clean_orphans.py` kills the caller when the checkout path is on the command line
