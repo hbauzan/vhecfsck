@@ -150,7 +150,7 @@ aplica. El suite es secuencial por decisión, no por accidente.
 | TH-03 | ~~Bajar fixtures a `size="tiny"`~~ | — | — | `cancelled` |
 | TH-04 | Cachear el coverage o desacoplarlo del gate local | M | P0-04 | `todo` |
 | TH-05 | Vectorizar el k-means IVF sintético (bit-exacto) | M | P1-05 | `done` |
-| TH-06 | `_merge_query_topk` domina `exact_knn` con Q grande | M | P2-04 | `todo` |
+| TH-06 | `_merge_query_topk` domina `exact_knn` con Q grande | M | P2-04 | `done` |
 | TH-07 | Reusar los tres builds IVF deterministas entre tests | S | TH-05 | `todo` |
 | TH-08 | Evaluar `COVERAGE_CORE=sysmon` subiendo el intérprete de dev | S | TH-04 | `todo` |
 
@@ -159,9 +159,14 @@ otro a una optimización irrelevante, y el tercero viola un guardrail. Dejarlos 
 invita a que alguien los implemente.
 
 **TH-06** es el hallazgo que sobrevivió de TH-01, y es un problema del **producto a escala
-real, no del gate**: con Q grande (hubness a S=20.000) el panel de scores fuerza 6 bloques
-y `_merge_query_topk` se llama 120.000 veces = **1.88 s de 2.53 s**. No se implementó en
-TH-05 por alcance.
+real, no del gate**: con Q grande (hubness a S=20.000) el panel de scores fuerza 6 bloques.
+Entregado: merge y block top-k batched, bit-exactos contra el loop en
+`tests/oracle/reference_merge.py`. Medido en Apple Silicon arm64 / Python 3.11.15 /
+numpy 2.4.6, Q=N=20_000, D=32, k=10, `working_set_mb=256`: `exact_knn` mediana
+**4.210 s → 3.360 s**. Split instrumentado: merge 0.732 s (120_000 calls) → 0.164 s
+(6 calls); block top-k 3.069 s (120_000 calls) → 2.641 s (6 calls). La cifra original
+1.88 s / 2.53 s estaba stale en esta máquina. `_score_block` no se tocó (sin identidad
+GEMM).
 
 **TH-07** ataca lo que queda: 45 de las 90 llamadas eran tres fixtures idénticas. Después
 de TH-05 el build cuesta ~0,05 s, así que el techo del ticket es ~2 s. Drifted ya congela
