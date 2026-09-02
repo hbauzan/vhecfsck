@@ -1,71 +1,91 @@
 # =============================================================================
-# DISABLED PERMANENTLY — do not uncomment to "fix CI".
+# Linux verification matrix.
 # -----------------------------------------------------------------------------
-# GitHub-hosted runners are billed on this private repo. These workflows were
-# turned off on 2026-08-30 so Actions minutes stay at zero.
+# This workflow was disabled on 2026-08-30 with the reason "runners are billed on
+# this private repo". That premise no longer holds: the repository is public, and
+# standard GitHub-hosted runners are free in public repositories — no billed
+# minutes and no draw against the account's monthly quota.
 #
-# The quality gate is local: `make verify`. The primary machine is macOS/arm64,
-# which already covers the old macos-latest x 3.12 job (Accelerate vs OpenBLAS).
+# Two things are still billed in a public repository, so do not introduce them
+# without a reason:
+#   * larger runners (8+ vCPU) — always charged, quota never applies;
+#   * artifact storage — 500 MB shared with Packages, hence retention-days below.
 #
-# Linux x Python 3.11 / 3.12 / 3.13 (and advisory 3.14) is NOT covered until
-# P9-10 — a post-launch TBD: run the recipes below in Docker, optionally from
-# setup.sh. Do not start P9-10 while higher-priority tickets are open.
+# macOS is intentionally not in the matrix. It is not a cost decision: the
+# primary development machine is macOS/arm64 and already runs `make verify` on
+# every ticket, so a macos-latest leg would re-measure what the local gate
+# covers. Linux x Python 3.11/3.12/3.13 is the gap this workflow closes.
 #
-# The original workflow is preserved as comments (recipe for P9-10).
-# The stub below (`workflow_dispatch` + `if: false`) exists only because GitHub
-# flags a workflows/*.yml file with no `on:` as invalid. It never runs on
-# push, pull_request, or schedule. Do not add those triggers.
+# The sync line is load-bearing. `uv sync --group dev` alone is NOT enough:
+#   * tests/integration/test_lancedb_*.py import pyarrow at module level, and
+#     pytest imports a module to collect it before markers deselect it, so the
+#     lancedb extra is required even though those tests never run here
+#     (lessons 50 and 59);
+#   * tests/unit/test_docs_generation.py shells out to `mkdocs build --strict`
+#     with no skip guard, so the docs group is required too.
+# Never `--all-extras`, and never add `--extra qdrant` / `--extra postgres` to
+# this job: PostgresAdapter registers pgvector whenever it is importable and
+# turns the contract suite red (lesson 50).
 # =============================================================================
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install Python
+        run: uv python install ${{ matrix.python-version }}
+      - name: Sync dependencies
+        # Lean base + declared groups — never --all-extras (ADR-0002 / P0-15).
+        # See the header for why docs and lancedb are not optional here.
+        run: uv sync --group dev --group docs --extra lancedb
+      - name: make verify
+        run: make verify
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-ubuntu-${{ matrix.python-version }}
+          path: |
+            .coverage
+            coverage.xml
+          if-no-files-found: ignore
+          retention-days: 7
+
+# -----------------------------------------------------------------------------
+# Deliberately still off — these are P9-10 recipes, not forgotten code.
 #
-# name: ci
+# `integration` needs Docker plus the qdrant and postgres extras and pulls two
+# pinned engine images per run. It is free to run but slow and failure-prone,
+# and it has never executed on a hosted runner; enabling it is its own ticket.
+# Image pins live in tests/integration/containers.py.
 #
-# on:
-#   push:
-#     branches: [main]
-#   pull_request:
+# `next-python` is an advisory 3.14 leg (continue-on-error) for early warning of
+# upstream breakage.
+# -----------------------------------------------------------------------------
 #
-# permissions:
-#   contents: read
-#
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.ref }}
-#   cancel-in-progress: true
-#
-# jobs:
-#   verify:
-#     runs-on: ${{ matrix.os }}
-#     strategy:
-#       fail-fast: false
-#       matrix:
-#         os: [ubuntu-latest]
-#         python-version: ["3.11", "3.12", "3.13"]
-#         include:
-#           - os: macos-latest
-#             python-version: "3.12"
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: astral-sh/setup-uv@v5
-#         with:
-#           enable-cache: true
-#       - name: Install Python
-#         run: uv python install ${{ matrix.python-version }}
-#       - name: Sync dependencies
-#         # Lean base + declared dependency groups — never --all-extras (ADR-0002 / P0-15).
-#         run: uv sync --group dev
-#       - name: make verify
-#         run: make verify
-#       - name: Upload coverage
-#         if: always()
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
-#           path: |
-#             .coverage
-#             coverage.xml
-#           if-no-files-found: ignore
-#
-#   # P7-01 — container integration (copy into P9-10; do not enable hosted runners here).
-#   # Image pins live in tests/integration/containers.py. Never sync all extras.
 #   integration:
 #     runs-on: ubuntu-latest
 #     steps:
@@ -104,20 +124,5 @@
 #         with:
 #           enable-cache: true
 #       - run: uv python install 3.14
-#       - run: uv sync --group dev
+#       - run: uv sync --group dev --group docs --extra lancedb
 #       - run: make verify
-
-name: ci
-
-on:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  disabled:
-    if: false
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "GitHub Actions disabled permanently; local gate is make verify (P9-10 TBD)."
