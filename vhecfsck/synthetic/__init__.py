@@ -8,6 +8,7 @@ from vhecfsck.synthetic.pathologies import (
     corpus_state_from_generated,
     inject_antihubs,
     inject_hubs,
+    partition_centroids,
     skew_partitions,
 )
 from vhecfsck.synthetic.scenarios import (
@@ -35,5 +36,6 @@ __all__ = [
     "inject_antihubs",
     "inject_hubs",
     "list_scenarios",
+    "partition_centroids",
     "skew_partitions",
 ]

@@ -6,6 +6,7 @@ import math
 
 import numpy as np
 import pytest
+from vhecfsck.adapters.synthetic_adapter import PrebuiltIvf, SyntheticAdapter
 from vhecfsck.core.partitions import (
     PARTITION_CV_FAIL,
     PARTITION_CV_METRIC_ID,
@@ -27,6 +28,7 @@ from vhecfsck.synthetic import (
     generate_corpus,
     skew_partitions,
 )
+from vhecfsck.synthetic.pathologies import partition_centroids
 
 
 def _stats(sizes: list[int], *, includes_deleted: bool = False) -> PartitionStats:
@@ -148,3 +150,49 @@ def test_skew_partitions_target_cv_within_5_percent() -> None:
     sizes = list(out.annotation.partition_sizes or ())
     result = compute_partition_cv(_stats(list(sizes)))
     assert result.value == pytest.approx(1.5, rel=0.05)
+
+
+def test_skew_partitions_moves_gated_partition_cv() -> None:
+    """MI-01: the operator must move the gated metric, not just the annotation.
+
+    Adapter.partitions() reads the IVF assignment. Without freezing fit-time
+    centroids, a later k-means refit rebalances cells and the CV does not
+    reflect the skew.
+    """
+    gen = generate_corpus(
+        800,
+        8,
+        n_clusters=8,
+        cluster_std=0.15,
+        cluster_size_skew=0.5,
+        seed=5,
+        metric_space=MetricSpace.L2,
+    )
+    base = corpus_state_from_generated(gen)
+    centroids = partition_centroids(base)
+    n_lists = 8
+
+    def gated_cv(state) -> float:
+        adapter = SyntheticAdapter(
+            state,
+            mode="ivf",
+            n_lists=n_lists,
+            prebuilt_ivf=PrebuiltIvf(
+                centroids=centroids,
+                cell_of=state.partition_ids,
+            ),
+        )
+        try:
+            parts = adapter.partitions()
+            assert parts is not None
+            result = compute_partition_cv(parts)
+        finally:
+            adapter.close()
+        assert result.value is not None
+        return float(result.value)
+
+    before = gated_cv(base)
+    skewed = skew_partitions(base, target_cv=1.5, seed=2)
+    after = gated_cv(skewed)
+    assert after > before
+    assert after == pytest.approx(float(skewed.annotation.partition_cv or 0.0))

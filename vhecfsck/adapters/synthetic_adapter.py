@@ -128,6 +128,19 @@ class SyntheticAdapter:
                     dtype=np.int64,
                 )
                 self._lists = _lists_from_assignment(self._cell_of, n_lists_i)
+            elif state.frozen_centroids is not None:
+                # Pathology freeze (lance#4164): keep fit-time centroids and
+                # the operator's assignment, including post-append members.
+                self._centroids = _pad_centroids(
+                    state.frozen_centroids,
+                    n_lists=n_lists_i,
+                    dim=dim,
+                )
+                self._cell_of = np.ascontiguousarray(
+                    state.partition_ids,
+                    dtype=np.int64,
+                )
+                self._lists = _lists_from_assignment(self._cell_of, n_lists_i)
             else:
                 self._centroids, self._cell_of, self._lists = _fit_ivf(
                     self._vectors,
@@ -583,6 +596,28 @@ def _distance_panel(
         else:
             out[start:stop] = -prod
     return out
+
+
+def _pad_centroids(
+    centroids: NDArray[np.float32],
+    *,
+    n_lists: int,
+    dim: int,
+) -> NDArray[np.float32]:
+    """Match frozen centroids to ``n_lists`` (pad last row / trim extras)."""
+    arr = np.ascontiguousarray(centroids, dtype=np.float32)
+    if arr.ndim != 2:
+        arr = arr.reshape(-1, dim) if arr.size else np.empty((0, dim), dtype=np.float32)
+    n_rows = int(arr.shape[0])
+    if n_rows == n_lists:
+        return arr
+    if n_rows == 0:
+        return np.zeros((n_lists, dim), dtype=np.float32)
+    if n_rows < n_lists:
+        pad = np.repeat(arr[-1:], n_lists - n_rows, axis=0)
+        stacked = np.concatenate([arr, pad], axis=0)
+        return np.ascontiguousarray(stacked, dtype=np.float32)
+    return np.ascontiguousarray(arr[:n_lists], dtype=np.float32)
 
 
 def _lists_from_assignment(

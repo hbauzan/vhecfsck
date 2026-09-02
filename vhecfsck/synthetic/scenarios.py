@@ -12,7 +12,7 @@ Small by default (~8k vectors) so the full set builds in CI under 20 s; pass
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Literal
 
 from vhecfsck.errors import ExitCode, UsageError
@@ -24,6 +24,7 @@ from vhecfsck.synthetic.pathologies import (
     corpus_state_from_generated,
     inject_antihubs,
     inject_hubs,
+    partition_centroids,
     skew_partitions,
 )
 
@@ -182,7 +183,9 @@ def scenario_drifted(*, size: ScenarioSize = "small") -> ScenarioSpec:
         metric_space=MetricSpace.L2,
     )
     state = corpus_state_from_generated(gen)
-    # Fit-time partitions = cluster ids; grow without retraining centroids later.
+    # Fit-time partitions = cluster ids. Freeze those centroids before the
+    # append so open_scenario does not refit k-means and erase the skew.
+    state = replace(state, frozen_centroids=partition_centroids(state))
     state = skew_partitions(state, seed=203, growth_factor=10.0)
     return ScenarioSpec(
         name="drifted",
@@ -282,13 +285,13 @@ def scenario_hubby(*, size: ScenarioSize = "small") -> ScenarioSpec:
         build_seed=404,
         default_search_params={"exact": True},
         expectation=ScenarioExpectation(
-            exit_code=ExitCode.INCONCLUSIVE,
-            verdict="INCONCLUSIVE",
+            exit_code=ExitCode.WARN,
+            verdict="WARN",
             metric_states={
                 METRIC_CANARY_RECALL: "OK",
                 METRIC_DFI: "OK",
-                METRIC_HUB_SHARE: "OK",
-                METRIC_ANTIHUB_FRACTION: "OK",
+                METRIC_HUB_SHARE: "FAIL",
+                METRIC_ANTIHUB_FRACTION: "FAIL",
                 METRIC_PARTITION_CV: "UNAVAILABLE",
             },
         ),

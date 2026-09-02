@@ -51,8 +51,9 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      # setup-uv stopped publishing @vN major tags at v8 (immutable full tags only).
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
       - name: Install Python
@@ -65,7 +66,7 @@ jobs:
         run: make verify
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-ubuntu-${{ matrix.python-version }}
           path: |
@@ -89,11 +90,11 @@ jobs:
 #   integration:
 #     runs-on: ubuntu-latest
 #     steps:
-#       - uses: actions/checkout@v4
-#       - uses: astral-sh/setup-uv@v5
+#       - uses: actions/checkout@v7
+#       - uses: astral-sh/setup-uv@v10.0.1
 #         with:
 #           enable-cache: true
-#       - uses: actions/cache@v4
+#       - uses: actions/cache@v6
 #         with:
 #           path: /tmp/vhecfsck-engine-images
 #           key: engine-images-${{ hashFiles('tests/integration/containers.py') }}
@@ -119,8 +120,8 @@ jobs:
 #     runs-on: ubuntu-latest
 #     continue-on-error: true
 #     steps:
-#       - uses: actions/checkout@v4
-#       - uses: astral-sh/setup-uv@v5
+#       - uses: actions/checkout@v7
+#       - uses: astral-sh/setup-uv@v10.0.1
 #         with:
 #           enable-cache: true
 #       - run: uv python install 3.14

@@ -83,10 +83,10 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes:
   - $d = 768$: `0.3012`
   - $d = 1536$: `0.3126`
 - **Measured FPR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.20 default for $d \ge 128$).
-- **Measured FNR:** **not measured — no pathological positive exists in the reference
-  calibration.** `synthetic-hubby`, the scenario named for hubness, reports `0.0877 OK`; its
-  injected hubs do not move this metric. Detection sensitivity is therefore unvalidated.
-  Tracked as MI-01 / MI-02 / MI-04.
+- **Measured FNR:** **not yet republished in `results.csv` (MI-07).** MI-02 gave
+  `synthetic-hubby` a real attractor: measured `hub_share_top1pct = 0.9297 FAIL` on
+  size=small. Detection sensitivity against that fixture exists; the calibration
+  artefact still has to be regenerated.
 - **Invalidation / Boundary Conditions:**
   - Hubness sample size $|S| < 1000$ yields `UNAVAILABLE` (ADR-0006).
   - Hubness sampling parameters differing from $S=20000, k_{hub}=10$ set `thresholds_uncalibrated_for_sample_size` flag.
@@ -106,10 +106,9 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes:
   - $d = 768$: `0.4177`
   - $d = 1536$: `0.4376`
 - **Measured FPR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension profiling (reduced from 100% false-positive rate under static 0.25 default for $d \ge 128$).
-- **Measured FNR:** **not measured — no pathological positive exists in the reference
-  calibration.** `synthetic-hubby` reports `0.1126 OK`; its injected anti-hubs do not move
-  this metric. Detection sensitivity is therefore unvalidated. Tracked as MI-01 / MI-02 /
-  MI-04.
+- **Measured FNR:** **not yet republished in `results.csv` (MI-07).** MI-02 measured
+  `synthetic-hubby` `antihub_fraction = 0.6450 FAIL` on size=small. The calibration
+  artefact still has to be regenerated.
 - **Invalidation / Boundary Conditions:**
   - Hubness sample size $|S| < 1000$ yields `UNAVAILABLE`.
 

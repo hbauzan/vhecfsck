@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 from scripts.clean_orphans import (
+    ancestor_pids,
     clean_checkout_orphans,
     get_checkout_orphan_pids,
 )
@@ -29,6 +30,42 @@ def test_get_checkout_orphan_pids_excludes_self() -> None:
     pids = get_checkout_orphan_pids(ROOT)
     assert os.getpid() not in pids
     assert os.getppid() not in pids
+
+
+def test_get_checkout_orphan_pids_never_returns_ancestors() -> None:
+    """Live scan: no ancestor of this process is a candidate."""
+    pids = get_checkout_orphan_pids(ROOT)
+    claimed = set(pids)
+    ancestors = ancestor_pids(os.getpid())
+    assert claimed.isdisjoint(ancestors)
+
+
+def test_get_checkout_orphan_pids_skips_matching_shell_ancestor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A parent shell with `cd <root> && make verify` on its cmdline is not an orphan.
+
+    That is the P9-13 repro: excluding only self and getppid() left the shell two
+    or three levels up eligible, and clean-proc SIGKILL'd the gate's own caller.
+    """
+    root = Path("/Users/hbauzan/treepwood/vhecfsck")
+    table = [
+        (1, 0, "/sbin/launchd"),
+        (10, 1, f"/bin/zsh -c cd {root} && make verify"),
+        (20, 10, "make verify"),
+        (30, 20, f"uv run python {root}/scripts/clean_orphans.py"),
+        (40, 1, f"{sys.executable} -c # pytest dummy runner for {root}"),
+    ]
+    monkeypatch.setattr("scripts.clean_orphans._read_process_table", lambda: table)
+    monkeypatch.setattr(os, "getpid", lambda: 30)
+    monkeypatch.setattr(os, "getppid", lambda: 20)
+
+    pids = get_checkout_orphan_pids(root)
+
+    assert 10 not in pids
+    assert 20 not in pids
+    assert 30 not in pids
+    assert 40 in pids
 
 
 def test_clean_checkout_orphans_terminates_dummy_process(

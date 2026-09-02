@@ -169,10 +169,10 @@ atomically.
 | P9-08 | Post-launch triage window | M | P9-07 | done |
 | P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | todo |
 | P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | todo |
-| P9-11 | Bump GitHub Actions off the deprecated Node 20 runtime | S | — | todo |
+| P9-11 | Bump GitHub Actions off the deprecated Node 20 runtime | S | — | done |
 | P9-12 | Activate PyPI Trusted Publishing with a protected `pypi` environment | S | — | todo |
-| P9-13 | `clean_orphans.py` kills the shell that invoked `make verify` | S | — | todo |
-| P9-14 | Show the current version and the changelog on GitHub Pages | S | P9-02 | todo |
+| P9-13 | `clean_orphans.py` kills the shell that invoked `make verify` | S | — | done |
+| P9-14 | Show the current version and the changelog on GitHub Pages | S | P9-02 | done |
 
 ### P9-13 — `clean_orphans.py` kills the caller when the checkout path is on the command line
 
@@ -457,12 +457,12 @@ bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never a
 
 Attribution and validation debt on the hubness front. No formula was found to be invented
 or misimplemented; the defects are unsourced claims and a pathology operator that does not
-move the metric it claims to induce. **All measured, none implemented.**
+move the metric it claims to induce.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| MI-01 | Pathology operators do not move the metrics they are named for | M | P1-04, P2-06 | todo |
-| MI-02 | Generate a real hub attractor and correct the `hubby` expectation | M | MI-01 | todo |
+| MI-01 | Pathology operators do not move the metrics they are named for | M | P1-04, P2-06 | done |
+| MI-02 | Generate a real hub attractor and correct the `hubby` expectation | M | MI-01 | done |
 | MI-03 | ADR-0006 attributes 0.25/0.40 to "the hubness literature"; refuted | S | P8-02 | done |
 | MI-04 | Retract the unmeasured FNR from the published calibration | S | — | done |
 | MI-05 | Add `S_Nk`, the published skewness-of-`N_k` hubness measure | S | P2-06 | todo |
@@ -476,20 +476,21 @@ pathological positive anywhere in the reference calibration, so the published `F
 the FNR unvalidated. Republishing an actual number waits on MI-02 and is MI-07; retracting
 one waited on nothing.
 
-**MI-01 ships a regression test, not a lesson.** [`lessons-learned.md`](lessons-learned.md)
+**MI-01 delivered a regression test, not a lesson.** [`lessons-learned.md`](lessons-learned.md)
 §21 already requires a pathology operator to induce the geometry it claims, and
 `inject_hubs` satisfies it: the hubs are placed where the lesson says they should be. What
 broke is one level up — the *gated metric* does not move. Per §5.3, an invariant that
 breaks a second time has earned enforcement rather than another paragraph, so MI-01's
 acceptance criterion is a test asserting that each pathology operator moves the metric it
-is named for. That test is red today, which is exactly why it belongs to MI-01 and was not
-added ahead of it.
+is named for.
 
 MI-01 covers **two** instances, found by the same question asked of the calibration data:
 `hubby` reports `hub_share 0.0877 OK` / `antihub 0.1126 OK`, and `drifted` — the scenario
-named for `lance#4164`, appends into existing IVF cells without a centroid refit — reports
-`partition_size_cv 1.0342 OK`. Both scenarios assert those `OK` states in
-`vhecfsck/synthetic/scenarios.py`, so the suite currently pins the non-detection in both.
+named for `lance#4164`, appends into existing IVF cells without a centroid refit — used
+to report `partition_size_cv 1.0342 OK` because `open_scenario` refit k-means. Drift now
+freezes fit-time centroids so `partitions()` matches the induced assignment (`0.9160 OK`,
+still below the WARN floor). `hubby` now reports `hub_share 0.9297 FAIL` /
+`antihub 0.6450 FAIL` (MI-02); overall is WARN because those FAILs are LOW evidence.
 
 ---
 
