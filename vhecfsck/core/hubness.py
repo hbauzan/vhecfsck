@@ -92,6 +92,28 @@ def antihub_fraction_from_nk(n_k: NDArray[np.int64]) -> float:
     return zeros / float(s)
 
 
+def snk_from_nk(n_k: NDArray[np.int64]) -> float | None:
+    """Skewness of ``N_k`` (standardised third moment, population ``ddof=0``).
+
+    Radovanović, Nanopoulos & Ivanović, JMLR 11:2487-2531 (2010), §2:
+
+    ``S_Nk = mean((N_k - mean(N_k))**3) / std(N_k)**3``
+
+    Informative only — no threshold. Returns ``None`` when ``std(N_k) == 0``
+    (undefined; never a substitute ``0.0``, ADR-0004). Empty ``N_k`` is also
+    undefined. A computed ``0.0`` is defined zero skewness (Fixture B).
+    """
+    if n_k.size == 0:
+        return None
+    arr = np.asarray(n_k, dtype=np.float64)
+    std = float(np.std(arr, ddof=0))
+    if std == 0.0:
+        return None
+    mean = float(np.mean(arr))
+    third = float(np.mean((arr - mean) ** 3))
+    return third / (std**3)
+
+
 def count_nk_from_neighbour_ids(
     neighbour_ids: NDArray[np.int64],
     *,
@@ -331,6 +353,7 @@ def _build_diagnostics(
         "max_nk": int(np.max(n_k)) if n_k.size else 0,
         "p99_nk": float(np.quantile(n_k, 0.99)) if n_k.size else 0.0,
         "median_nk": float(np.median(n_k)) if n_k.size else 0.0,
+        "S_Nk": snk_from_nk(n_k),
         "histogram": bucketed_histogram(n_k),
         "hub_outlier_count": _mad_outlier_count(n_k, multiplier=mad_multiplier),
         "hub_ids": _offender_ids(n_k, sample_ids, top=True),

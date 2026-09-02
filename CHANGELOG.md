@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Hubness `detail` now includes `S_Nk`, the published skewness of `N_k` (Radovanović, Nanopoulos & Ivanović, JMLR 11:2487–2531, 2010, §2). Informative only — no threshold, no verdict.
+
 ### Fixed
 
 - `inject_hubs` now concentrates at least 1% of live mass onto a tight attractor and diffuses the rest, so `hub_share_top1pct` moves. Measured on `hubby` size=small: `hub_share_top1pct = 0.9297 FAIL`, `antihub_fraction = 0.6450 FAIL`. Overall verdict is WARN (exit 1): both FAILs are LOW evidence because `|S| < 10_000`, and `partition_size_cv` is UNAVAILABLE on exact search.

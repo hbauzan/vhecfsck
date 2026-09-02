@@ -472,7 +472,7 @@ move the metric it claims to induce.
 | MI-02 | Generate a real hub attractor and correct the `hubby` expectation | M | MI-01 | done |
 | MI-03 | ADR-0006 attributes 0.25/0.40 to "the hubness literature"; refuted | S | P8-02 | done |
 | MI-04 | Retract the unmeasured FNR from the published calibration | S | — | done |
-| MI-05 | Add `S_Nk`, the published skewness-of-`N_k` hubness measure | S | P2-06 | todo |
+| MI-05 | Add `S_Nk`, the published skewness-of-`N_k` hubness measure | S | P2-06 | done |
 | MI-06 | Cite ANN-Benchmarks for `recall_dist`; declare the canary CI expansion | S | P2-05 | done |
 | MI-07 | Regenerate `results.csv` and the report pages against current profiles | M | MI-02 | done |
 
@@ -506,8 +506,11 @@ still below the WARN floor). `hubby` now reports `hub_share 0.9297 FAIL` /
 unmeasured. Healthy Gaussians are `OK` under per-dimension profiles.
 `sentence-minilm` skipped (no cache npy). Thresholds in `config.py` unchanged.
 
-**What is left** is [`next-ticket.md`](next-ticket.md): **MI-05** (`S_Nk` in hubness
-`detail`). Do not reopen MI-03/04/06/07.
+**MI-05 shipped `S_Nk` in hubness `detail`.** Population skewness of `N_k` (`ddof=0`),
+informative only (no threshold, no verdict). Fixture B hand-computed `S_Nk = 0.0`.
+`std(N_k) == 0` emits JSON `null`. Do not reopen MI-03/04/06/07.
+
+**What is left** is [`next-ticket.md`](next-ticket.md): **TH-06**.
 
 ---
 
