@@ -23,7 +23,7 @@ Cold start: [`lessons-learned.md`](lessons-learned.md) §0, then this file.
 | Metric logic | only in `core/`. |
 | CHANGELOG `[Unreleased]` | product only: **MI-05** done. Remaining TH/P9: no. |
 
-**Do not reopen:** TH-01, TH-02, TH-03, MI-03, MI-04, MI-06, MI-07, P8-03.
+**Do not reopen:** TH-01, TH-02, TH-03, TH-05, TH-06, TH-07, MI-03, MI-04, MI-06, MI-07, P8-03.
 
 **Do not start** P9-09 or P9-10. They stay skipped (see queue).
 
@@ -39,8 +39,8 @@ do the work the ticket says is allowed while blocked; then stop. Never start two
 | 1 | **MI-07** | `done` | Regenerated `docs/calibration/` against current profiles. Hubby FAIL published; drifted `partition_size_cv` still below WARN. |
 | 2 | **MI-05** | `done` | `S_Nk` in hubness `detail` (informative; JSON `null` when `std(N_k)=0`). |
 | 3 | **TH-06** | `done` | Batched `_block_topk` + `_merge_queries_topk`. Bit-exact. No GEMM. |
-| 4 | **TH-07** | `todo` ← **you are here** | Reuse PrebuiltIvf of healthy/tombstoned/drifted. Do not shrink N. |
-| 5 | **TH-04** | `todo` | Local coverage cache. Merge/CI `make verify` keeps both floors. |
+| 4 | **TH-07** | `done` | Cached PrebuiltIvf for healthy/tombstoned/drifted. Do not shrink N. |
+| 5 | **TH-04** | `todo` ← **you are here** | Local coverage cache. Merge/CI `make verify` keeps both floors. |
 | 6 | **TH-08** | `todo` | **After TH-04.** Measure `COVERAGE_CORE=sysmon` on 3.12+. If it does not win, do not leave it. |
 | 7 | **P9-12** | `blocked` | Human must do GitHub env `pypi` + PyPI publisher **before** the YAML `environment:` line. |
 | — | P9-09 | `blocked` | Skip until owner says "listo para publicar" **and** a real Linux host exists. |
@@ -117,15 +117,21 @@ Do not shrink fixtures to `tiny`.
 
 ---
 
-## TH-07 — reuse PrebuiltIvf across tests
+## TH-07 — reuse PrebuiltIvf across tests (`done`)
 
 **Depends on:** TH-05 (`done`). **Size:** S.
 
-45 of 90 k-means calls were three identical deterministic builds
-(healthy / tombstoned / drifted). After TH-05 each build is ~0.05 s, so the
-ceiling is small; still do it. Cache `PrebuiltIvf` (or equivalent) for those
-three. Drifted already **freezes** fit-time centroids (MI-01) — do not refit on
-`open_scenario`. **Do not shrink N.**
+`open_scenario` caches `PrebuiltIvf` for healthy / tombstoned / drifted keyed
+by `(name, size)`, copy-in and copy-out. Drifted is snapshotted from the MI-01
+freeze — `_fit_ivf` is never called. **Did not shrink N.** Goldens unchanged.
+
+Measured on Apple Silicon arm64 / macOS 26.5.1 / Python 3.11.15 / numpy 2.4.6.
+Default suite `--no-cov`: `_fit_ivf` **98 calls / 1.767 s → 58 / 0.332 s**.
+healthy n=8000: 21 calls, 1.166 s → 3 / 0.164 s; tombstoned n=8000: 16 / 0.525 s
+→ 3 / 0.093 s. Suite wall 78.50 s → 76.60 s (883 passed; +3 reuse tests).
+Targeted healthy small ×3: 0.051–0.061 s each (1 fit) → 0.070 s then 0.002 s.
+Remaining small fits are the reuse-test cache clear plus CLI subprocesses
+(process-local cache). Drifted was already 0 fits after MI-01.
 
 ---
 
