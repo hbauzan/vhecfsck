@@ -4,6 +4,10 @@ site_url: https://hbauzan.github.io/vhecfsck/
 repo_url: https://github.com/hbauzan/vhecfsck
 repo_name: hbauzan/vhecfsck
 edit_uri: blob/main/docs/
+# Leaf pages are `page.html`. GitHub Pages then serves `/page` (200) and
+# 404s `/page/`. Nested sections like `calibration/` still have an index.
+# Do not add a redirect plugin to paper over that (P9-14).
+use_directory_urls: false
 
 theme:
   name: material
@@ -47,6 +51,7 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Changelog: changelog.md
   - Concepts & Pathologies: concepts.md
   - Metrics Reference: metrics.md
   - Engine Guides:
