@@ -11,7 +11,8 @@ atomically.
 
 **Status values:** `todo` · `in-progress` · `blocked` · `done` · `cancelled`.
 
-**Start here:** `P0-01`. It has no dependencies and creates the first line of production code.
+**Start here:** [`next-ticket.md`](next-ticket.md). One ticket, in that order.
+P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 
 ---
 
@@ -167,10 +168,10 @@ atomically.
 | P9-06 | Pre-launch review pass | M | P9-01, P9-02, P9-03 | done |
 | P9-07 | Launch | M | P9-04, P9-05, P9-06 | done |
 | P9-08 | Post-launch triage window | M | P9-07 | done |
-| P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | todo |
+| P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | blocked |
 | P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | todo |
 | P9-11 | Bump GitHub Actions off the deprecated Node 20 runtime | S | — | done |
-| P9-12 | Activate PyPI Trusted Publishing with a protected `pypi` environment | S | — | todo |
+| P9-12 | Activate PyPI Trusted Publishing with a protected `pypi` environment | S | GitHub env `pypi` + PyPI publisher | blocked |
 | P9-13 | `clean_orphans.py` kills the shell that invoked `make verify` | S | — | done |
 | P9-14 | Show the current version and the changelog on GitHub Pages | S | P9-02 | done |
 
@@ -274,6 +275,9 @@ they say otherwise.
 Only the `uses:` version pins move.
 
 ### P9-12 — Activate PyPI Trusted Publishing with a protected `pypi` environment
+
+**Status: `blocked` on a human.** Do not start step 3 until steps 1 and 2 below
+are done. Dispatcher: [`next-ticket.md`](next-ticket.md).
 
 **State this ticket starts from.** Tag `v0.1.3` exists and points at
 `f68d3c3`. It was pushed *after* a failed `uv publish` that used a placeholder
@@ -453,6 +457,9 @@ bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never a
 (`CTracer available: YES`); TH-03 is forbidden by [`lessons-learned.md`](lessons-learned.md)
 §37 and by guardrail 1.
 
+**Execution order** for the remaining TH tickets is in [`next-ticket.md`](next-ticket.md):
+TH-06 → TH-07 → TH-04 → TH-08. Do not start TH-08 before TH-04. Do not reopen TH-01/02/03.
+
 ## MI — Metric Integrity · [plan file](plan_integridad_matematica.md)
 
 Attribution and validation debt on the hubness front. No formula was found to be invented
@@ -491,6 +498,10 @@ to report `partition_size_cv 1.0342 OK` because `open_scenario` refit k-means. D
 freezes fit-time centroids so `partitions()` matches the induced assignment (`0.9160 OK`,
 still below the WARN floor). `hubby` now reports `hub_share 0.9297 FAIL` /
 `antihub 0.6450 FAIL` (MI-02); overall is WARN because those FAILs are LOW evidence.
+
+**What is left** is [`next-ticket.md`](next-ticket.md): **MI-07** (regenerate
+`docs/calibration/` with `make calibrate`; do not edit CSV/reports by hand), then
+**MI-05** (`S_Nk` in hubness `detail`). Do not reopen MI-03/04/06.
 
 ---
 

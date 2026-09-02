@@ -5,7 +5,8 @@ evidencia que el propio repo produce. **No se tocó una línea de código de mé
 tickets viven en la sección MI de [`backlog.md`](backlog.md).
 
 **Estado:** MI-01 y MI-02 entregados (`inject_hubs` concentra masa; `hubby` mide FAIL en
-hubness). MI-03, MI-04 y MI-06 ya estaban. MI-05 y MI-07 siguen en `todo`.
+hubness). MI-03, MI-04 y MI-06 ya estaban. **Siguiente: MI-07, después MI-05** — cola en
+[`next-ticket.md`](next-ticket.md). No reabrir MI-03/04/06.
 
 ## Resumen
 
@@ -64,8 +65,11 @@ revés.
 geometría, y `inject_hubs` la cumple. Lo que falta es el escalón de arriba: que mueva la
 métrica gateada. Por §5.3, una invariante que se rompe dos veces se ganó un guard, no otro
 párrafo. El criterio de aceptación de MI-01 es un test que afirme que cada operador de
-patología mueve la métrica que le da nombre. Hoy ese test es rojo — por eso pertenece a
-MI-01 y no se agregó antes.
+patología mueve la métrica que le da nombre. **Entregado:** ese test existe y está verde
+(`tests/property/test_hubness_props.py`, `tests/unit/test_partitions.py`,
+`tests/unit/test_scenarios.py`). Hubness es self-query sobre `S`; samplear `ids[:n]`
+después del append dejaba los hubs afuera. Drifted congela centroides de fit para que
+`open_scenario` no refitee IVF.
 
 **Segunda instancia, encontrada al escribir MI-04.** No es solo hubness. `synthetic-drifted`
 —el escenario nombrado por `lance#4164`, appends dentro de celdas IVF existentes sin refit de
@@ -145,9 +149,11 @@ Además [`docs/calibration/results.csv`](../docs/calibration/results.csv) está 
 antihub_fraction FAIL 0.43755`, fila 22 `gaussian-768 antihub_fraction FAIL 0.4177`. Son
 controles sanos fallando, publicados como resultado de calibración de referencia.
 
-**Ticket.** Regenerar `results.csv` con los perfiles vigentes y separar FPR de FNR en
-`thresholds.md`, marcando el FNR de hubness como no medido hasta que MI-02 entregue la
-fixture patológica.
+**Ticket.** Regenerar `results.csv` con los perfiles vigentes (**MI-07**, ahora
+desbloqueado: `make calibrate`, no editar CSV/MD a mano) y, en `thresholds.md`,
+publicar FNR solo para las métricas que el CSV muestre como positivo patológico.
+`partition_size_cv` en `synthetic-drifted` sigue debajo del piso WARN (`0.9160 OK`)
+salvo que el artefacto nuevo diga otra cosa.
 
 ## MI-05 — Falta `S_Nk`, la única medida de hubness que un paper reconocería
 
@@ -165,6 +171,8 @@ S_Nk = mean((N_k - mean(N_k))^3) / std(N_k)^3      # tercer momento estandarizad
 **Ticket.** Agregar `S_Nk` a `detail` de las métricas de hubness como valor informativo
 (sin umbral propio hasta calibrarlo), y citarlo en el spec. Vale la pena por sí solo:
 convierte un bloque de estadísticas ad-hoc en algo comparable con la literatura.
+Contrato operativo (Fixture B a mano, `ddof=0`, `S_Nk = 0.0` en B, cola):
+[`next-ticket.md`](next-ticket.md) § MI-05.
 
 ## MI-06 — `recall_dist` está publicada; el spec la presenta como invención propia · **ENTREGADO**
 

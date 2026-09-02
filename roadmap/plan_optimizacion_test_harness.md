@@ -164,5 +164,8 @@ y `_merge_query_topk` se llama 120.000 veces = **1.88 s de 2.53 s**. No se imple
 TH-05 por alcance.
 
 **TH-07** ataca lo que queda: 45 de las 90 llamadas eran tres fixtures idénticas. Después
-de TH-05 el build cuesta ~0,05 s, así que el techo del ticket es ~2 s. Se deja anotado, no
-priorizado.
+de TH-05 el build cuesta ~0,05 s, así que el techo del ticket es ~2 s. Drifted ya congela
+centroides (MI-01); este ticket cachea el k-means, no achica N.
+
+**Orden de ejecución** (no es paralelo): TH-06 → TH-07 → TH-04 → TH-08. Cola y contratos
+en [`next-ticket.md`](next-ticket.md). TH-01/02/03 siguen `cancelled`.
