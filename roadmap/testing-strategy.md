@@ -202,7 +202,7 @@ inert `workflow_dispatch` stub that never runs on push or schedule.
 macOS × 3.12 / Accelerate job.
 
 **Linux × Python 3.11 / 3.12 / 3.13** (advisory 3.14) and **nightly** (`make verify-full`,
-SDK drift) have no remote witness until [P9-10](phases/phase-9-docs-release-and-launch.md)
+SDK drift) have no remote witness until [P9-10](archive/phases/phase-9-docs-release-and-launch.md)
 — post-launch TBD: the same recipes in Docker, optionally a `setup.sh` verb. Skip P9-10
 while anything else is open. Docker does not reproduce macOS BLAS.
 

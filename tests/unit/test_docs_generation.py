@@ -50,6 +50,10 @@ def test_generate_metrics_docs_cites_spec_sections() -> None:
     assert "`02-metrics-spec.md` §2.1" in content
     assert "`02-metrics-spec.md` §3.1" in content
     assert "`02-metrics-spec.md` §4.1" in content
+    assert (
+        "https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/phases/"
+        in content
+    )
 
 
 def test_mkdocs_yml_exists_and_valid() -> None:

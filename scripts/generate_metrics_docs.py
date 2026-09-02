@@ -24,6 +24,11 @@ def generate_metrics_docs() -> str:
         spec_text,
     )
     spec_text = re.sub(
+        r"\]\(archive/phases/([^\)]+)\)",
+        r"](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/phases/\1)",
+        spec_text,
+    )
+    spec_text = re.sub(
         r"\]\(phases/([^\)]+)\)",
         r"](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/phases/\1)",
         spec_text,

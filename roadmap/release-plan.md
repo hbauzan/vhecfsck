@@ -1,7 +1,7 @@
 # Release Plan
 
 Covers versioning, packaging, publication, and what "stable" means for each surface. Detailed
-launch execution lives in [P9](phases/phase-9-docs-release-and-launch.md).
+launch execution lives in [P9](archive/phases/phase-9-docs-release-and-launch.md).
 
 ---
 

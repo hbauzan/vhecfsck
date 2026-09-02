@@ -24,7 +24,7 @@ To eliminate false-positive warnings on healthy high-dimensional vector indexes:
 > positive exists in the calibration**, so their detection sensitivity is unvalidated and
 > is reported as such per metric below. This is a gap in the synthetic pathology
 > operators, not evidence that the metrics fail to detect — see
-> [`roadmap/plan_integridad_matematica.md`](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/plan_integridad_matematica.md).
+> [`roadmap/archive/plans/plan_integridad_matematica.md`](https://github.com/hbauzan/vhecfsck/blob/main/roadmap/archive/plans/plan_integridad_matematica.md).
 
 ---
 

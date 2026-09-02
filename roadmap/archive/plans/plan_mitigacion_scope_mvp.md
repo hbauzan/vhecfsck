@@ -1,11 +1,11 @@
 # Plan de Mitigación de Alcance MVP: Integración de LanceDB Adapter en P3 y Alineación de Roadmap
 
 > [!NOTE]
-> **Histórico / Superseded**: La verdad canónica sobre el estado y plan del proyecto vive en [`backlog.md`](backlog.md) y en las phase files (`roadmap/phases/`).
+> **Histórico / Superseded**: La verdad canónica sobre el estado y plan del proyecto vive en [`backlog.md`](../../backlog.md) y en las phase files (`roadmap/phases/`).
 
 **Fecha:** 2026-08-29  
 **Estado:** Aprobado  
-**Documentos Relacionados:** [03-phases-overview.md](file:///Users/hbauzan/treepwood/vhecfsck/roadmap/03-phases-overview.md), [backlog.md](file:///Users/hbauzan/treepwood/vhecfsck/roadmap/backlog.md), [phase-3-report-and-cli.md](file:///Users/hbauzan/treepwood/vhecfsck/roadmap/phases/phase-3-report-and-cli.md)
+**Documentos Relacionados:** [03-phases-overview.md](../../03-phases-overview.md), [backlog.md](../../backlog.md), [phase-3-report-and-cli.md](../phases/phase-3-report-and-cli.md)
 
 ---
 
