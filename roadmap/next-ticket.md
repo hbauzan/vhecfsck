@@ -23,7 +23,7 @@ Cold start: [`lessons-learned.md`](lessons-learned.md) §0, then this file.
 | Metric logic | only in `core/`. |
 | CHANGELOG `[Unreleased]` | product only: **MI-05** done. Remaining TH/P9: no. |
 
-**Do not reopen:** TH-01, TH-02, TH-03, TH-04, TH-05, TH-06, TH-07, TH-08, MI-03, MI-04, MI-06, MI-07, P8-03.
+**Do not reopen:** TH-01, TH-02, TH-03, TH-04, TH-05, TH-06, TH-07, TH-08, MI-03, MI-04, MI-06, MI-07, P8-03, P9-12.
 
 **Do not start** P9-09 or P9-10. They stay skipped (see queue).
 
@@ -42,11 +42,11 @@ do the work the ticket says is allowed while blocked; then stop. Never start two
 | 4 | **TH-07** | `done` | Cached PrebuiltIvf for healthy/tombstoned/drifted. Do not shrink N. |
 | 5 | **TH-04** | `done` | Local `.coverage` cache. CI/merge still one instrumented run, both floors. |
 | 6 | **TH-08** | `done` | `COVERAGE_CORE=sysmon` on 3.12+ in the gate. 3.11 keeps the C tracer. |
-| 7 | **P9-12** | `blocked` ← **you are here** | Human must do GitHub env `pypi` + PyPI publisher **before** the YAML `environment:` line. |
-| — | P9-09 | `blocked` | Skip until owner says "listo para publicar" **and** a real Linux host exists. |
+| 7 | **P9-12** | `done` | Trusted Publishing live: GitHub env `pypi` + PyPI publisher + YAML `environment:`. |
+| — | P9-09 | `blocked` ← **idle** | Skip until owner says "listo para publicar" **and** a real Linux host exists. |
 | — | P9-10 | `todo` (skip) | Filler. CI already runs Linux × 3.11/3.12/3.13. Do not pick. |
 
-Contracts live in [`backlog.md`](backlog.md) (P9-12, P9-09, P9-10), in
+Contracts live in [`backlog.md`](backlog.md) (P9-09, P9-10), in
 [`archive/plans/`](archive/plans/) and [`archive/phases/`](archive/phases/),
 and in the sections below (MI, TH). Completed P0–P9 phase files are archived;
 do not start `P0-01`.
@@ -182,22 +182,15 @@ Mean **110.627 s → 77.017 s**. Warm pair 100.142 s → 80.459 s. Worst sysmon
 
 ---
 
-## P9-12 — while blocked
+## P9-12 — Activate PyPI Trusted Publishing (`done`)
 
-YAML auth is already correct (`id-token: write`, no `password`). Order:
-
-1. **Human:** GitHub environment `pypi` with required reviewers = owner
-   **first**. If a workflow names a missing env, GitHub creates it with **no**
-   protection.
-2. **Human:** PyPI trusted publisher on the **existing** project. Workflow
-   filename `release.yml`, environment `pypi`.
-3. **Agent, only after 1+2:** add
-   `environment: {name: pypi, url: https://pypi.org/p/vhecfsck}` to
-   `verify-and-build` in `release.yml`. Nothing else in that file. Update
-   `docs/releasing.md` (remove "Current state"; §6 becomes fallback).
-
-No PyPI secret. No test tag. If 1+2 are not done, you may prepare the diff of
-(3) and **stop**. Do not merge it.
+GitHub environment `pypi` has required reviewers = owner. PyPI trusted
+publisher on the existing `vhecfsck` project: workflow `release.yml`,
+environment `pypi`. `verify-and-build` now declares
+`environment: {name: pypi, url: https://pypi.org/p/vhecfsck}`. YAML auth
+unchanged (`id-token: write`, no `password`). `docs/releasing.md` no longer
+has the "Current state" box; §6 is the manual fallback. No PyPI secret. No
+test tag.
 
 ---
 
