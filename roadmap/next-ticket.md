@@ -21,7 +21,7 @@ Cold start: [`lessons-learned.md`](lessons-learned.md) §0, then this file.
 | Sync | `uv sync --group dev --group docs --extra lancedb`. **Never** `--all-extras`. |
 | Delivery | one branch, one conventional commit. No push/merge to `main` without explicit OK. |
 | Metric logic | only in `core/`. |
-| CHANGELOG `[Unreleased]` | product only: **MI-05** yes. Remaining TH/P9: no. |
+| CHANGELOG `[Unreleased]` | product only: **MI-05** done. Remaining TH/P9: no. |
 
 **Do not reopen:** TH-01, TH-02, TH-03, MI-03, MI-04, MI-06, MI-07, P8-03.
 
@@ -37,8 +37,8 @@ do the work the ticket says is allowed while blocked; then stop. Never start two
 | # | ID | Status | Why this slot |
 | ---: | :--- | :--- | :--- |
 | 1 | **MI-07** | `done` | Regenerated `docs/calibration/` against current profiles. Hubby FAIL published; drifted `partition_size_cv` still below WARN. |
-| 2 | **MI-05** | `todo` ← **you are here** | Independent of MI-07; next after it. `S_Nk` in hubness `detail`. |
-| 3 | **TH-06** | `todo` | `_merge_query_topk` at large Q. Bit-exact. No GEMM identity. |
+| 2 | **MI-05** | `done` | `S_Nk` in hubness `detail` (informative; JSON `null` when `std(N_k)=0`). |
+| 3 | **TH-06** | `todo` ← **you are here** | `_merge_query_topk` at large Q. Bit-exact. No GEMM identity. |
 | 4 | **TH-07** | `todo` | Reuse PrebuiltIvf of healthy/tombstoned/drifted. Do not shrink N. |
 | 5 | **TH-04** | `todo` | Local coverage cache. Merge/CI `make verify` keeps both floors. |
 | 6 | **TH-08** | `todo` | **After TH-04.** Measure `COVERAGE_CORE=sysmon` on 3.12+. If it does not win, do not leave it. |
@@ -65,9 +65,9 @@ in `config.py` were not changed.
 
 ---
 
-## MI-05 — `S_Nk` in hubness `detail`
+## MI-05 — `S_Nk` in hubness `detail` (`done`)
 
-**Depends on:** P2-06 (`done`). MI-07 is `done`; this is next. **Size:** S. **Touches:** `vhecfsck/core/hubness.py`,
+**Depends on:** P2-06 (`done`). **Size:** S. **Touches:** `vhecfsck/core/hubness.py`,
 `roadmap/02-metrics-spec.md` §3.5, `tests/oracle/test_hubness.py`, CHANGELOG.
 
 **Formula** (Radovanović, Nanopoulos & Ivanović, JMLR 11:2487–2531, 2010, §2):

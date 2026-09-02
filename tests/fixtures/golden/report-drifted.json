@@ -130,6 +130,7 @@
     },
     {
       "detail": {
+        "S_Nk": 2.998034,
         "antihub_fraction": 0.038973,
         "antihub_ids": [
           3,
@@ -14539,6 +14540,7 @@
     },
     {
       "detail": {
+        "S_Nk": 2.998034,
         "antihub_fraction": 0.038973,
         "antihub_ids": [
           3,
