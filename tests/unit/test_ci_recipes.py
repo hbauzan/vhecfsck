@@ -66,3 +66,19 @@ def test_composite_action_workflow_exists_and_valid() -> None:
     assert workflow_file.exists()
     data = yaml.safe_load(workflow_file.read_text(encoding="utf-8"))
     assert data["name"] == "Test Composite Action"
+
+
+def test_release_workflow_uses_protected_pypi_environment() -> None:
+    """P9-12: OIDC publish is gated on GitHub environment ``pypi``, no password."""
+    workflow_file = ROOT / ".github" / "workflows" / "release.yml"
+    data = yaml.safe_load(workflow_file.read_text(encoding="utf-8"))
+    assert data["permissions"]["id-token"] == "write"
+    job = data["jobs"]["verify-and-build"]
+    assert job["environment"]["name"] == "pypi"
+    assert job["environment"]["url"] == "https://pypi.org/p/vhecfsck"
+    publish = next(
+        step
+        for step in job["steps"]
+        if str(step.get("uses", "")).startswith("pypa/gh-action-pypi-publish")
+    )
+    assert "password" not in publish.get("with", {})
