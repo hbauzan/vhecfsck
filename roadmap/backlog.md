@@ -172,6 +172,7 @@ atomically.
 | P9-11 | Bump GitHub Actions off the deprecated Node 20 runtime | S | — | todo |
 | P9-12 | Activate PyPI Trusted Publishing with a protected `pypi` environment | S | — | todo |
 | P9-13 | `clean_orphans.py` kills the shell that invoked `make verify` | S | — | todo |
+| P9-14 | Show the current version and the changelog on GitHub Pages | S | P9-02 | todo |
 
 ### P9-13 — `clean_orphans.py` kills the caller when the checkout path is on the command line
 
@@ -274,13 +275,15 @@ Only the `uses:` version pins move.
 
 ### P9-12 — Activate PyPI Trusted Publishing with a protected `pypi` environment
 
-**State this ticket starts from.** No `v*` tag has ever existed in this repository,
-so `.github/workflows/release.yml` has never run. Versions `0.1.0.dev0`, `0.1.0`,
-`0.1.1`, `0.1.2` and `0.1.3` were all built and uploaded manually with a
-maintainer-held API token. The workflow is already written correctly for Trusted
-Publishing: it declares `id-token: write` and calls `pypa/gh-action-pypi-publish`
-with no `password` input. **The code is not the missing piece — the PyPI-side
-registration is.**
+**State this ticket starts from.** Tag `v0.1.3` exists and points at
+`f68d3c3`. It was pushed *after* a failed `uv publish` that used a placeholder
+token; a later manual `uv publish` with a real token is what put `0.1.3` on
+PyPI. `.github/workflows/release.yml` has still never published anything:
+`0.1.0.dev0` through `0.1.3` were all uploaded by a maintainer-held API token.
+The workflow is already written correctly for Trusted Publishing: it declares
+`id-token: write` and calls `pypa/gh-action-pypi-publish` with no `password`
+input. **The code is not the missing piece — the PyPI-side registration is.**
+A tag push today would start the workflow and fail at the publish step.
 
 **Do not add a PyPI token as a GitHub secret.** It is the worse option in every
 dimension: it would require editing `release.yml` to pass `password:`, it stores a
@@ -364,6 +367,72 @@ existing version, so a botched test cannot be retried under the same number.
 
 **Out of scope.** Do not add signing, attestations, or a TestPyPI stage in this
 ticket. Do not change the version scheme.
+
+### P9-14 — Show the current version and the changelog on GitHub Pages
+
+**Why this exists.** After `0.1.3` landed on PyPI, the GitHub Pages home
+([https://hbauzan.github.io/vhecfsck/](https://hbauzan.github.io/vhecfsck/))
+looked unchanged. That was not a failed deploy: [`docs/index.md`](../docs/index.md)
+does not mention a version, and [`CHANGELOG.md`](../CHANGELOG.md) is not in
+[`mkdocs.yml`](../mkdocs.yml) `nav`, so MkDocs never publishes it. The pages that
+*did* change (calibration gaps, thresholds FNR, metrics ANN-Benchmarks, releasing)
+are live. The home has nothing new to render.
+
+**Two deliverables, one ticket.**
+
+1. **Current version on the home page.** A single visible line near the
+   quickstart, for example `Current release: 0.1.3`, linking to the changelog
+   page and to `https://pypi.org/project/vhecfsck/`. The number **must be
+   derived at docs-build time from `pyproject.toml`** (`[project].version`).
+   Do not type `0.1.3` (or any future version) into `docs/index.md` by hand:
+   that is the same coupling that already bit the golden fixtures twice
+   (`tool_version` in `tests/fixtures/golden/`). Follow the existing generator
+   pattern (`scripts/generate_cli_docs.py`, `generate_schema_docs.py`,
+   `generate_metrics_docs.py`): a small script writes a fragment or rewrites a
+   clearly delimited region, then `uv run ruff format` on any generated `.md`
+   (lesson 58). Wire the script into `.github/workflows/docs.yml` next to the
+   other three generators, and into
+   `tests/unit/test_docs_generation.py::test_mkdocs_build_strict_smoke` so the
+   default gate cannot ship a stale number. A test must fail if the homepage
+   text does not contain the version string from `pyproject.toml`.
+
+2. **Changelog as a first-class Pages page.** Add it to `mkdocs.yml` `nav`
+   (suggested slot: immediately after Home, title `Changelog`). The source of
+   truth stays the root [`CHANGELOG.md`](../CHANGELOG.md) — **do not duplicate
+   it under `docs/`**. Prefer a git symlink `docs/changelog.md` →
+   `../CHANGELOG.md`. If `mkdocs build --strict` or the GitHub Actions
+   checkout does not follow that symlink, generate `docs/changelog.md` in the
+   same docs-build step from the root file (overwrite is fine; the generated
+   copy must not be the edited original). Do not add a second changelog that
+   humans have to keep in sync.
+
+**MkDocs URL quirk to know.** This site currently 404s on some trailing-slash
+URLs (`/releasing/` is 404, `/releasing` is 200) while others with a slash
+work (`/calibration/` is 200). After this ticket, verify both
+`https://hbauzan.github.io/vhecfsck/changelog` and
+`https://hbauzan.github.io/vhecfsck/changelog/` return the same document, or
+document the working form in `docs/index.md` if MkDocs cannot do both. Do not
+invent a custom redirect plugin to paper over it unless `mkdocs build
+--strict` already fails without one.
+
+**Also update the README home?** No. PyPI long description is frozen at
+publish time (lesson 60). This ticket is GitHub Pages only. A README version
+badge would need the next PyPI release to appear on pypi.org; do not silently
+expand scope.
+
+**Acceptance.**
+
+- `uv run mkdocs build --strict` exits 0.
+- The built `site/index.html` contains the version from `pyproject.toml`.
+- The built site contains the changelog, including the `0.1.3` section from
+  root `CHANGELOG.md`.
+- `tests/unit/test_docs_generation.py` covers both.
+- After merge to `main`, the live home shows the version and a working
+  changelog link. Confirm by fetching the Pages URL, not by assuming the
+  workflow went green.
+
+**Out of scope.** Do not redesign the home. Do not add a versions dropdown, a
+news feed, or release notes beyond what `CHANGELOG.md` already contains.
 
 ## TH — Test Harness Optimization · [plan file](plan_optimizacion_test_harness.md)
 
