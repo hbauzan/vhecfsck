@@ -152,7 +152,7 @@ aplica. El suite es secuencial por decisión, no por accidente.
 | TH-05 | Vectorizar el k-means IVF sintético (bit-exacto) | M | P1-05 | `done` |
 | TH-06 | `_merge_query_topk` domina `exact_knn` con Q grande | M | P2-04 | `done` |
 | TH-07 | Reusar los tres builds IVF deterministas entre tests | S | TH-05 | `done` |
-| TH-08 | Evaluar `COVERAGE_CORE=sysmon` subiendo el intérprete de dev | S | TH-04 | `todo` |
+| TH-08 | Evaluar `COVERAGE_CORE=sysmon` subiendo el intérprete de dev | S | TH-04 | `done` |
 
 **TH-01/02/03 se cancelan**, no quedan en `todo`: uno apunta a un problema inexistente,
 otro a una optimización irrelevante, y el tercero viola un guardrail. Dejarlos abiertos
@@ -184,5 +184,16 @@ siempre traza (un pytest, pisos 80/90). Hit local: solo `coverage report`.
 (impuesto +20.35 s). Fingerprint 0.872 s; report 0.52 s + 0.14 s. El "gate
 local sub-30s" del backlog estaba stale: el suite es ~77 s (TH-03 cancelled).
 
+**TH-08** midió `COVERAGE_CORE=sysmon` contra el C tracer en Python 3.12.13
+(Apple Silicon arm64 / macOS 26.5.1 / numpy 2.5.2 / coverage 7.16.0;
+`SysMonitor` usable porque `[tool.coverage.run] branch = false`). Suite
+instrumentada, dos corridas intercaladas: C tracer 121.112 s / 100.142 s vs
+sysmon 73.575 s / 80.459 s (media **110.627 s → 77.017 s**; par en caliente
+100.142 s → 80.459 s). Overall 88.62–88.64%, `core/` 95%. Adoptado: el child
+instrumentado de `scripts/coverage_gate.py` setea `sysmon` en 3.12+ salvo que
+`COVERAGE_CORE` ya esté seteado. 3.11 sigue en C tracer. No se subió
+`requires-python`.
+
 **Orden de ejecución** (no es paralelo): TH-06 → TH-07 → TH-04 → TH-08. Cola y contratos
-en [`next-ticket.md`](../../next-ticket.md). TH-01/02/03 siguen `cancelled`.
+en [`next-ticket.md`](../../next-ticket.md). TH-01/02/03 siguen `cancelled`. TH-04/06/07/08
+están `done`.

@@ -33,16 +33,18 @@ JSON `null` when `std(N_k)=0`). Reference calibration republished:
 overall WARN (evidence LOW, `|S|<10000`). `synthetic-drifted`
 `partition_size_cv 0.9160 OK` — FNR still unmeasured. Healthy Gaussians are
 `OK` under per-dimension profiles. `sentence-minilm` skipped (no cache npy).
-**TH-06 / TH-07 / TH-04 `done`.** Batched exact_knn merge; in-process
-`PrebuiltIvf` reuse; local `.coverage` cache (CI still traces).
+**TH-06 / TH-07 / TH-04 / TH-08 `done`.** Batched exact_knn merge; in-process
+`PrebuiltIvf` reuse; local `.coverage` cache (CI still traces); `COVERAGE_CORE=sysmon`
+on 3.12+ (3.11 keeps the C tracer).
 **Horizon:** [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md)
 sigue en `roadmap/phases/` (no archivado).
 
 **Critical path activo:** [`next-ticket.md`](next-ticket.md) —
-TH-08 → P9-12.
-No tomes dos. No reabras TH-01/02/03/04/05/06/07, MI-03/04/06/07, P8-03.
+P9-12 (blocked-on-human).
+No tomes dos. No reabras TH-01/02/03/04/05/06/07/08, MI-03/04/06/07, P8-03.
+No arranques P9-09 ni P9-10.
 
-**HEAD de referencia:** `main` after merge of `perf/th-04-coverage-cache`.
+**HEAD de referencia:** `main` after merge of `perf/th-08-coverage-sysmon`.
 Confirm with `git log -1 origin/main`.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PUBLIC** desde P9-07).
 Runners estándar de GitHub Actions son gratis en repo público.
@@ -373,11 +375,12 @@ test` stays the uninstrumented inner loop; do not add `make verify-fast`.
 
 **Invariant:** Merge/CI `make verify` keeps both floors (80 / 90) from **one**
 instrumented pytest. Do not drop coverage from the merge command. Do not invent
-a second loose gate. Do not raise `requires-python` without an ADR (TH-08
-measures `COVERAGE_CORE=sysmon` on 3.12+; if it does not win, leave nothing
-behind). `open_scenario`'s `PrebuiltIvf` cache is **process-local** — CLI
-subprocesses still pay one k-means; do not add a disk IVF cache without
-invalidation.
+a second loose gate. Do not raise `requires-python` without an ADR. TH-08
+adopted `COVERAGE_CORE=sysmon` on 3.12+ inside `scripts/coverage_gate.py`;
+Python 3.11 keeps the C tracer. Escape hatch: `COVERAGE_CORE=ctrace`. Do not
+set `core = sysmon` in `pyproject.toml` (3.11 would warn and fall back).
+`open_scenario`'s `PrebuiltIvf` cache is **process-local** — CLI subprocesses
+still pay one k-means; do not add a disk IVF cache without invalidation.
 
 ---
 
