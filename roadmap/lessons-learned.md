@@ -28,9 +28,11 @@ progress, query probe, partition views, tombstone layer, camera tour, README GIF
 accessible palettes, visual regression).
 **Playwright Visualizer E2E slice completo** en `main` (WebGL2, screenshot regression, WS resilience, probe interaction, axe accessibility, colour-by baselines).
 **P7 completo** en `main` (P7-01…P7-08 `done` — container harness, Qdrant/Postgres adapters, qdrant#7147, pgvector#244, graph stats UNAVAILABLE, lance#4164, engine matrix & guides).
-**P8-01 / P8-02 / P8-08 / P8-09 / P8-11** `done` en `main` (calibration harness, dimension-aware threshold profiles, fuzzing, error audit, security review).
-**Próximo critical path:** **P8-03** (baseline y delta mode).
-**HEAD de referencia al handoff:** `main` post P8-02 (commit `d8f03cb`).
+**P8 completo** en `main` (P8-01…P8-11 `done`, incluido **P8-03** baseline/delta). No lo reinicies: §0 viejo que lo listaba como critical path está stale.
+**P9** casi cerrado: P9-01…P9-08 `done`; P9-11/13/14 `done` en `main`. P9-12 `blocked` (humano: env GitHub `pypi` + publisher PyPI). P9-09 `blocked` (go-ahead + Linux real). P9-10 skip (CI Linux × 3.11/3.12/3.13 ya corre).
+**MI-01 / MI-02 `done`.** Hubness self-query + freeze IVF drifted + `inject_hubs` concentra ≥1% de masa (d=64). `hubby` size=small: `hub_share 0.9297 FAIL` / `antihub 0.6450 FAIL` / overall WARN (evidence LOW, `|S|<10000`).
+**Cola:** [`next-ticket.md`](next-ticket.md) — **un** ticket, en orden. Siguiente: **MI-07**.
+**HEAD de referencia al handoff:** `main` @ merge `3a3e609` (P9-13 + P9-14 + P9-11 + MI-01 + MI-02) más el commit de este dispatcher.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PUBLIC** desde el launch P9-07).
 Consecuencia práctica: los runners estándar de GitHub Actions son **gratis** acá — no
 consumen cuota. Lo que sí se cobra en un repo público son los *larger runners* y el
@@ -40,7 +42,9 @@ almacenamiento de artifacts (500 MB compartidos con Packages).
 **CI:** `.github/workflows/ci.yml` corre `make verify` en Linux x Python 3.11/3.12/3.13.
 Sync en CI = `uv sync --group dev --group docs --extra lancedb` (**nunca** `--all-extras`,
 **nunca** `--extra qdrant` / `--extra postgres` — lecciones 50 y 59). `nightly.yml` y los
-jobs `integration` / `next-python` siguen apagados (P9-10).
+jobs `integration` / `next-python` siguen apagados (P9-10). Residual P9-11: falta un
+`gh workflow run ci.yml` testigo (`grep -i "node.js 20"` vacío) y un dispatch de
+`release.yml` **sin** tag.
 
 Stack en `main` (además de P0/P1):
 - `vhecfsck/core/{ground_truth,canary,hubness,fragmentation,partitions,verdict,sampling}.py`
@@ -51,11 +55,9 @@ Stack en `main` (además de P0/P1):
 - `setup.sh` verbo `clean` / menú `[5]` — solo pytest de **este** checkout
 
 Residual dueño (no lo “arregles” vos solo):
-- PyPI `vhecfsck` sigue libre (`404`); falta publicar placeholder con Trusted Publishing / token.
-- ~~Visibilidad del repo: sigue private hasta OK explícito.~~ Resuelto: público desde P9-07.
+- PyPI `0.1.3` está publicado; Trusted Publishing (env `pypi` + publisher) es **P9-12**, blocked-on-human. No secret PyPI. No tag de prueba.
 - ADR-0012: la expansión de la `H` en copy público sigue abierta (no inventar gloss).
-- Wall/RSS budgets de `release-plan.md` §4: vacíos hasta **P8-04** — no inventar números.
-- Plan de alcance MVP LanceDB en P3: ver commit `4d7582e` / roadmap — no ensanches P3-09 sin leerlo.
+- Cola de implementación: [`next-ticket.md`](next-ticket.md). No tomes dos tickets.
 
 Las lecciones de `vhectorlab` **no** se copian: producto = auditor CLI offline, no stack web/daemon.
 
@@ -618,6 +620,59 @@ prove byte equality against the implementation being replaced before trusting it
 prove it with `.tobytes()`, not a tolerance. Never substitute the GEMM distance identity
 for an explicit `sqrt(sum(diff*diff))`, and never replace sequential accumulation with a
 masked reduction.
+
+---
+
+### Lesson 62 (clean_orphans ancestor exclusion)
+
+**Context:** `scripts/clean_orphans.py` matched any process whose command line contained
+both a build token (`make `, `pytest`, …) and the checkout path. Excluding only
+`self` + `ppid` still killed the shell that invoked `make verify` when the `cd` was on
+that command line.
+
+**Invariant:** The orphan killer's exclusion set is the **full ancestor chain**, not
+self+ppid. Do not drop `clean-proc` from `verify` to paper over a too-wide match.
+`tests/unit/test_clean_orphans.py` fails in sandboxes that block `ps`; that is not a
+repo failure.
+
+---
+
+### Lesson 63 (MkDocs leaf URLs on GitHub Pages)
+
+**Context:** This Pages site 404s trailing-slash leaf URLs (`/releasing/` 404,
+`/releasing` 200). A redirect plugin papers over it and is out of scope.
+
+**Invariant:** `use_directory_urls: false`. Link the working form (no trailing slash).
+Do not invent a redirect plugin.
+
+---
+
+### Lesson 64 (GitHub Action major pins)
+
+**Context:** `setup-uv` since v8 has no floating `@vN` tag. Pinning `@v10` 404s;
+`@v10.0.1` works. Other actions in this repo moved to current majors (checkout v7,
+setup-python v7, …). `pypa/gh-action-pypi-publish@release/v1` stays on that moving
+tag on purpose.
+
+**Invariant:** Pin `setup-uv` to a full release. Do not "bump to @vN" without checking
+that the tag exists.
+
+---
+
+### Lesson 65 (Cancelled TH ≠ open MI; hubness sample; IVF freeze)
+
+**Context:** TH-01/02/03 are **cancelled** (GEMM not bit-exact; CTracer already on;
+tiny fixtures forbidden). MI-01/02 were **todo** and are now **done**. Mixing those
+lists reopened GEMM and `size="tiny"`. Separately: hubness is self-query on `S`, so
+an attractor not in the sample cannot move `hub_share`; and `open_scenario` refitting
+k-means on drifted hides `lance#4164`. `inject_hubs` must concentrate ≥1% of live mass
+on a tight attractor at **high d** (~64); d=16 does not move the gated metric. FAIL +
+UNAVAILABLE is overall FAIL only when evidence is not LOW (`|S|<10000` → WARN).
+
+**Invariant:** Do not reopen cancelled TH tickets to "fix" hubness. Pathology operators
+must move the **gated** metric on the sample the metric actually sees. Do not refit IVF
+on a frozen drifted assignment. Do not patch `verdict.py` to chase exit 2 when evidence
+is LOW. Do not shrink P1-08 fixtures to `tiny` (also lesson 37).
 
 ---
 
