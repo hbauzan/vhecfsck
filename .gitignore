@@ -23,6 +23,7 @@ build/
 .ruff_cache/
 .coverage
 .coverage.*
+.coverage-cache.json
 coverage.xml
 htmlcov/
 .tox/

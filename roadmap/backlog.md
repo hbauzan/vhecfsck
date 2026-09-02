@@ -445,7 +445,7 @@ news feed, or release notes beyond what `CHANGELOG.md` already contains.
 | TH-01 | BLAS GEMM (`q @ c.T`) vectorization for `exact_knn` and `compute_hubness` | M | P2-04, P2-06 | cancelled |
 | TH-02 | Force `coverage.py` C-extension tracer build verification in `.venv` | S | P0-03 | cancelled |
 | TH-03 | Audit unit test fixtures to enforce $N \le 100$ (`size="tiny"`) for non-perf tests | M | P0-03, P1-08 | cancelled |
-| TH-04 | Decouple/cache coverage in default `make verify` for sub-30s local dev gate | M | P0-04 | todo |
+| TH-04 | Decouple/cache coverage in default `make verify` for sub-30s local dev gate | M | P0-04 | done |
 | TH-05 | Vectorise the synthetic IVF k-means, bit-exact | M | P1-05 | done |
 | TH-06 | `_merge_query_topk` dominates `exact_knn` at large Q (1.88s of 2.53s) | M | P2-04 | done |
 | TH-07 | Reuse the three deterministic IVF builds across tests | S | TH-05 | done |
@@ -458,7 +458,7 @@ bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never a
 §37 and by guardrail 1.
 
 **Execution order** for the remaining TH tickets is in [`next-ticket.md`](next-ticket.md):
-TH-04 → TH-08. Do not start TH-08 before TH-04. Do not reopen TH-01/02/03/05/06/07.
+TH-08. Do not start TH-08 before TH-04 (done). Do not reopen TH-01/02/03/04/05/06/07.
 
 ## MI — Metric Integrity · [plan file](archive/plans/plan_integridad_matematica.md)
 
@@ -510,15 +510,15 @@ unmeasured. Healthy Gaussians are `OK` under per-dimension profiles.
 informative only (no threshold, no verdict). Fixture B hand-computed `S_Nk = 0.0`.
 `std(N_k) == 0` emits JSON `null`. Do not reopen MI-03/04/06/07.
 
-**TH-07 shipped in-process `PrebuiltIvf` reuse in `open_scenario`.** healthy /
-tombstoned / drifted keyed by `(name, size)`, copy-in/copy-out. Drifted from the
-MI-01 freeze, never a refit. Did not shrink N. Measured Apple Silicon arm64 /
-macOS 26.5.1 / Python 3.11.15 / numpy 2.4.6. Default suite `--no-cov`:
-`_fit_ivf` 98 calls / 1.767 s → 58 / 0.332 s (healthy n=8000: 21 / 1.166 s →
-3 / 0.164 s; tombstoned n=8000: 16 / 0.525 s → 3 / 0.093 s). Suite wall
-78.50 s → 76.60 s. Goldens unchanged.
+**TH-04 shipped a local `.coverage` cache in `scripts/coverage_gate.py`.** CI/merge
+always traces (one pytest, floors 80/90). Local hit reuses `.coverage` and
+reports only. `make test` unchanged. Measured Apple Silicon arm64 / macOS
+26.5.1 / Python 3.11.15 / coverage 7.16.0: instrumented suite 96.95 s vs
+`--no-cov` 76.60 s (tax +20.35 s). Repeat local coverage is fingerprint
+0.872 s + report 0.52 s + 0.14 s, not a sub-30s first-run gate (stale; suite
+is ~77 s).
 
-**What is left** is [`next-ticket.md`](next-ticket.md): **TH-04**.
+**What is left** is [`next-ticket.md`](next-ticket.md): **TH-08**.
 
 ---
 

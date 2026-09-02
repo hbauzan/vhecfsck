@@ -60,14 +60,11 @@ def test_test_target_disables_cov_instrumentation() -> None:
     assert "--no-cov" in block
 
 
-def test_coverage_recipe_measures_both_floors_from_one_pytest_run() -> None:
-    """One instrumented run; core floor is a report over the same .coverage data."""
+def test_coverage_recipe_delegates_to_gate_script() -> None:
+    """TH-04: local cache lives in the script; CI/miss still one instrumented pytest."""
     block = _target_block((ROOT / "Makefile").read_text(encoding="utf-8"), "coverage")
-    assert block.count("uv run pytest") == 1
-    assert "--cov-fail-under=$(COV_ALL)" in block
-    assert "coverage report" in block
-    assert "--fail-under=$(COV_CORE)" in block
-    assert "--include=" in block
+    assert "scripts/coverage_gate.py" in block
+    assert "uv run pytest" not in block
 
 
 def _verify_prereqs(makefile: str) -> list[str]:
