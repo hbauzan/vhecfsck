@@ -46,7 +46,7 @@ pytest tests/integration -k repro -q        # all three reproduction scenarios
 **Depends on:** P1-02, P7-01 · **Size:** L · **Touches:** `vhecfsck/adapters/qdrant_adapter.py`, `tests/integration/test_qdrant_counts.py`
 
 **Goal:** get DFI right, or report nothing. This ticket is where
-[`02-metrics-spec.md §4.2`](../02-metrics-spec.md) has to be honoured under pressure.
+[`02-metrics-spec.md §4.2`](../../02-metrics-spec.md) has to be honoured under pressure.
 
 **Contract**
 - Read collection info for dimension, distance metric and HNSW configuration.

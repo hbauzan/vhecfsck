@@ -1,5 +1,10 @@
 # 03 — Phases Overview
 
+P0–P9 ticket files live under [`archive/phases/`](archive/phases/). Remaining
+implementation is dispatched from [`next-ticket.md`](next-ticket.md), not from
+this map. [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md)
+is the only phase file still in `phases/`.
+
 ## 1. Sequencing principles
 
 There are no dates in this roadmap. Progress is measured by verifiable gates, because the
@@ -75,16 +80,16 @@ teaches — if the adapter contract survives LanceDB unchanged, it will survive 
 
 | Phase | Name | Delivers | Exit gate command |
 | :--- | :--- | :--- | :--- |
-| [P0](phases/phase-0-foundation.md) | Foundation & guardrails | Repo, packaging, lint/type/test tooling, CI, `make verify`, layering enforcement, reserved names | `make verify && vhecfsck --version` |
-| [P1](phases/phase-1-synthetic-and-adapter-protocol.md) | Synthetic corpus & adapter protocol | `IndexAdapter` protocol, synthetic adapter, pathology generator, shared contract suite | `pytest tests/contract tests/unit -q` |
-| [P2](phases/phase-2-metrics-engine.md) | Metrics engine | Ground truth, all five metrics, verdict engine, oracles, property tests | `pytest tests/oracle tests/property -q` |
-| [P3](phases/phase-3-report-and-cli.md) | Report & CLI (retention) | Report schema, renderers, Typer CLI, exit-code contract, Prometheus | `vhecfsck demo --scenario healthy; echo $?` → `0` |
-| [P4](phases/phase-4-projection-and-3d-slice.md) | Projection & 3D slice (showcase) | Deterministic PCA, scene payload, FastAPI serve, minimal Three.js SPA | `pytest tests/e2e -q && npm --prefix vhecfsck/web test` |
-| [P5](phases/phase-5-lancedb-adapter.md) | LanceDB adapter | Real engine, IVF introspection, deletion accounting, `lance#4164` reproduction | `pytest tests/integration -k lancedb -q` |
-| [P6](phases/phase-6-visualizer-depth.md) | Visualizer depth | LOD to 1M points, live progress streaming, interactive query probe | `npm --prefix vhecfsck/web run test:visual` |
-| [P7](phases/phase-7-qdrant-and-pgvector-adapters.md) | Qdrant & pgvector adapters | Two more engines, `qdrant#7147` and `pgvector#244` reproductions | `pytest tests/integration -q` (full matrix) |
-| [P8](phases/phase-8-calibration-and-hardening.md) | Calibration & hardening | Calibrated thresholds, baseline mode, perf budgets, read-only audit, mutation testing | `make verify-full` |
-| [P9](phases/phase-9-docs-release-and-launch.md) | Docs, release & launch | README GIF, docs, trusted publishing, `v0.1.0`, launch content | `uvx vhecfsck@0.1.0 demo` from a clean machine |
+| [P0](archive/phases/phase-0-foundation.md) | Foundation & guardrails | Repo, packaging, lint/type/test tooling, CI, `make verify`, layering enforcement, reserved names | `make verify && vhecfsck --version` |
+| [P1](archive/phases/phase-1-synthetic-and-adapter-protocol.md) | Synthetic corpus & adapter protocol | `IndexAdapter` protocol, synthetic adapter, pathology generator, shared contract suite | `pytest tests/contract tests/unit -q` |
+| [P2](archive/phases/phase-2-metrics-engine.md) | Metrics engine | Ground truth, all five metrics, verdict engine, oracles, property tests | `pytest tests/oracle tests/property -q` |
+| [P3](archive/phases/phase-3-report-and-cli.md) | Report & CLI (retention) | Report schema, renderers, Typer CLI, exit-code contract, Prometheus | `vhecfsck demo --scenario healthy; echo $?` → `0` |
+| [P4](archive/phases/phase-4-projection-and-3d-slice.md) | Projection & 3D slice (showcase) | Deterministic PCA, scene payload, FastAPI serve, minimal Three.js SPA | `pytest tests/e2e -q && npm --prefix vhecfsck/web test` |
+| [P5](archive/phases/phase-5-lancedb-adapter.md) | LanceDB adapter | Real engine, IVF introspection, deletion accounting, `lance#4164` reproduction | `pytest tests/integration -k lancedb -q` |
+| [P6](archive/phases/phase-6-visualizer-depth.md) | Visualizer depth | LOD to 1M points, live progress streaming, interactive query probe | `npm --prefix vhecfsck/web run test:visual` |
+| [P7](archive/phases/phase-7-qdrant-and-pgvector-adapters.md) | Qdrant & pgvector adapters | Two more engines, `qdrant#7147` and `pgvector#244` reproductions | `pytest tests/integration -q` (full matrix) |
+| [P8](archive/phases/phase-8-calibration-and-hardening.md) | Calibration & hardening | Calibrated thresholds, baseline mode, perf budgets, read-only audit, mutation testing | `make verify-full` |
+| [P9](archive/phases/phase-9-docs-release-and-launch.md) | Docs, release & launch | README GIF, docs, trusted publishing, `v0.1.0`, launch content | `uvx vhecfsck@0.1.0 demo` from a clean machine |
 | [P10](phases/phase-10-post-1.0-horizon.md) | Post-1.0 horizon | Deliberately unplanned: candidate directions only | — |
 
 ## 4. The MVP gate

@@ -1,6 +1,6 @@
 # P2 — Metrics Engine
 
-**Goal:** implement every metric in [`02-metrics-spec.md`](../02-metrics-spec.md), each one
+**Goal:** implement every metric in [`02-metrics-spec.md`](../../02-metrics-spec.md), each one
 proven correct against two independent references: a naive implementation, and a synthetic
 dataset whose true value is known by construction.
 
@@ -33,7 +33,7 @@ pytest tests/oracle tests/property tests/unit -q && make verify
   `remediation_hint`, `unavailable_reason: str | None`.
 - Constructor invariants: `state == UNAVAILABLE` requires `value is None` **and** a non-empty
   `unavailable_reason`; `state in {OK, WARN, FAIL}` requires `value is not None`. This is
-  where [CORRECTION 1](../02-metrics-spec.md) becomes structurally impossible to violate —
+  where [CORRECTION 1](../../02-metrics-spec.md) becomes structurally impossible to violate —
   you cannot construct an unavailable metric that carries a number.
 
 **Tests first**
@@ -84,13 +84,13 @@ permanent test asset, not scaffolding.
 - `naive_recall(gt_ids, returned_ids, ...)` — direct set intersection, per query, in Python.
 - `naive_nk(corpus, k)` — `O(S²)` neighbour counting with an explicit loop.
 - `naive_cv(sizes)` — plain formula.
-- Each has a docstring citing the section of [`02-metrics-spec.md`](../02-metrics-spec.md) it
+- Each has a docstring citing the section of [`02-metrics-spec.md`](../../02-metrics-spec.md) it
   implements.
 
 **Tests first (self-check)**
-- `naive_knn` reproduces Fixture A from [`§2.6`](../02-metrics-spec.md) exactly.
-- `naive_nk` reproduces Fixture B from [`§3.7`](../02-metrics-spec.md) exactly.
-- `naive_cv` reproduces Fixture C from [`§5.4`](../02-metrics-spec.md) exactly.
+- `naive_knn` reproduces Fixture A from [`§2.6`](../../02-metrics-spec.md) exactly.
+- `naive_nk` reproduces Fixture B from [`§3.7`](../../02-metrics-spec.md) exactly.
+- `naive_cv` reproduces Fixture C from [`§5.4`](../../02-metrics-spec.md) exactly.
 
 **Acceptance criteria**
 - [ ] Lives under `tests/`, never imported by production code (import-linter enforced).
@@ -105,8 +105,8 @@ permanent test asset, not scaffolding.
 **Depends on:** P2-03 · **Size:** L · **Touches:** `vhecfsck/core/ground_truth.py`, `tests/oracle/test_ground_truth.py`, `tests/perf/test_ground_truth_perf.py`
 
 **Goal:** exact k-NN at 1M × 768 within the memory budget, implementing
-[`02-metrics-spec.md §2.3`](../02-metrics-spec.md) and
-[ADR-0005](../adr/0005-ground-truth-precision-and-blocking.md).
+[`02-metrics-spec.md §2.3`](../../02-metrics-spec.md) and
+[ADR-0005](../../adr/0005-ground-truth-precision-and-blocking.md).
 
 **Contract**
 - `exact_knn(corpus_iter, queries, k, metric_space, *, working_set_mb, on_progress) -> KnnResult`
@@ -136,7 +136,7 @@ permanent test asset, not scaffolding.
 - `k > n` handled per edge case 1.
 - Near-identical vectors under `L2` never produce `nan` (the clamp test).
 - Perf (nightly): 1M × 768, `Q=200`, `k=10` within the budget recorded in
-  [`release-plan.md`](../release-plan.md), peak RSS under the declared ceiling.
+  [`release-plan.md`](../../release-plan.md), peak RSS under the declared ceiling.
 
 **Acceptance criteria**
 - [ ] Peak additional memory beyond the corpus is under `2 × working_set_mb`.
@@ -150,7 +150,7 @@ permanent test asset, not scaffolding.
 **Depends on:** P2-04 · **Size:** M · **Touches:** `vhecfsck/core/canary.py`, `tests/oracle/test_canary.py`, `tests/property/test_canary_props.py`
 
 **Contract**
-- Implements [`02-metrics-spec.md §2`](../02-metrics-spec.md) in full: `recall_id`,
+- Implements [`02-metrics-spec.md §2`](../../02-metrics-spec.md) in full: `recall_id`,
   `recall_dist` (tie-tolerant, `rtol = 1e-6`), bootstrap 95% interval, and every diagnostic
   in `detail`.
 - True distances for returned IDs are **recomputed from corpus vectors**, never read from the
@@ -161,7 +161,7 @@ permanent test asset, not scaffolding.
 
 **Tests first**
 - **Fixture A asserted exactly**: `recall_id == 0.5`, `recall_dist == 1.0`. This is the
-  regression test for [CORRECTION 2](../02-metrics-spec.md) and must never be deleted.
+  regression test for [CORRECTION 2](../../02-metrics-spec.md) and must never be deleted.
 - Exact-search adapter → recall exactly `1.0`.
 - Every edge case in §2.5 has a named test, including short returns, duplicate returns,
   dead-ID returns, and mid-audit ID disappearance.
@@ -184,9 +184,9 @@ permanent test asset, not scaffolding.
 **Depends on:** P2-04 · **Size:** L · **Touches:** `vhecfsck/core/hubness.py`, `tests/oracle/test_hubness.py`, `tests/property/test_hubness_props.py`
 
 **Contract**
-- Implements [`02-metrics-spec.md §3`](../02-metrics-spec.md) with the **corrected sampling
+- Implements [`02-metrics-spec.md §3`](../../02-metrics-spec.md) with the **corrected sampling
   regime**: an independent sample `S` of live IDs, all of them used as queries against the
-  sample, self excluded ([ADR-0006](../adr/0006-hubness-sampling-regime.md)).
+  sample, self excluded ([ADR-0006](../../adr/0006-hubness-sampling-regime.md)).
 - Never materialises the `S × S` matrix; reuses the blocked strategy from P2-04.
 - Emits `hub_share_top1pct` and `antihub_fraction` as two `MetricResult`s sharing one
   `sampling` block, plus the §3.5 diagnostics: `max_nk`, `p99_nk`, `median_nk`, bucketed
@@ -207,7 +207,7 @@ permanent test asset, not scaffolding.
 - Property: both metrics ∈ `[0, 1]`; invariant under row permutation; invariant under global
   rotation; `inject_hubs` monotonically increases `hub_share`; `inject_antihubs`
   monotonically increases `antihub_fraction`.
-- **Regression test for [CORRECTION 3](../02-metrics-spec.md)**: a healthy 50k-vector corpus
+- **Regression test for [CORRECTION 3](../../02-metrics-spec.md)**: a healthy 50k-vector corpus
   audited with `Q = 200` canary queries must **not** report an anti-hub fraction near `1.0`.
   This test exists specifically to fail if anyone ever re-couples hubness sampling to the
   canary query set.
@@ -223,7 +223,7 @@ permanent test asset, not scaffolding.
 **Depends on:** P2-01 · **Size:** S · **Touches:** `vhecfsck/core/fragmentation.py`, `tests/unit/test_fragmentation.py`
 
 **Contract**
-- Implements [`02-metrics-spec.md §4`](../02-metrics-spec.md). Pure computation over an
+- Implements [`02-metrics-spec.md §4`](../../02-metrics-spec.md). Pure computation over an
   `IndexCounts` plus an optional per-fragment breakdown; all engine-specific derivation lives
   in adapters.
 - Honours `exact` / `estimated` / `proxy` flags, capping `evidence_strength` accordingly.
@@ -234,7 +234,7 @@ permanent test asset, not scaffolding.
 **Tests first**
 - `apply_churn(0.2)` → DFI exactly `0.2`.
 - `report_deleted_counts = False` → `UNAVAILABLE`, never `0.0`. **This is the highest-value
-  test in the ticket** and directly encodes [CORRECTION 1](../02-metrics-spec.md).
+  test in the ticket** and directly encodes [CORRECTION 1](../../02-metrics-spec.md).
 - Every §4.4 edge case, including the `dead > total` clamp.
 - `entrypoint_tombstoned = True` forces `FAIL` even at DFI `0.01`.
 - Threshold boundaries `0.15` / `0.30` tested from both sides.
@@ -246,7 +246,7 @@ permanent test asset, not scaffolding.
 **Depends on:** P2-01 · **Size:** S · **Touches:** `vhecfsck/core/partitions.py`, `tests/unit/test_partitions.py`, `tests/property/test_partitions_props.py`
 
 **Contract**
-- Implements [`02-metrics-spec.md §5`](../02-metrics-spec.md); `ddof = 0` explicitly and
+- Implements [`02-metrics-spec.md §5`](../../02-metrics-spec.md); `ddof = 0` explicitly and
   documented at the call site.
 - Companion diagnostics: `max_over_mean`, `p99_over_mean`, `gini`,
   `empty_partition_fraction`, `n_partitions`, `top_partitions`.
@@ -273,7 +273,7 @@ permanent test asset, not scaffolding.
 - `evaluate(value, thresholds) -> MetricState` derived from `direction`, never per-metric
   branching.
 - `aggregate(results, *, strict_unavailable) -> Verdict` implementing
-  [`02-metrics-spec.md §6`](../02-metrics-spec.md), including the rule that a `LOW`-evidence
+  [`02-metrics-spec.md §6`](../../02-metrics-spec.md), including the rule that a `LOW`-evidence
   metric contributes at most `WARN`.
 - `verdict_to_exit_code(verdict) -> ExitCode`.
 
@@ -321,7 +321,7 @@ permanent test asset, not scaffolding.
 
 **Depends on:** P2-10 · **Size:** S · **Touches:** `tests/property/test_determinism.py`
 
-**Goal:** protect invariant 4 from [`00-vision-and-scope.md §7`](../00-vision-and-scope.md).
+**Goal:** protect invariant 4 from [`00-vision-and-scope.md §7`](../../00-vision-and-scope.md).
 
 **Contract**
 - Run each scenario twice in one process and once in a fresh subprocess; assert the

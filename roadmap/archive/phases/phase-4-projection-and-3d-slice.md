@@ -84,7 +84,7 @@ vhecfsck demo --serve --no-browser &   # then GET /api/report and /api/scene ret
 
 **Depends on:** P4-02 · **Size:** M · **Touches:** `vhecfsck/core/projection.py` (or `core/lod.py`), `tests/unit/test_lod.py`
 
-**Goal:** implement [ADR-0009](../adr/0009-scene-transport-and-lod.md). A million points sent
+**Goal:** implement [ADR-0009](../../adr/0009-scene-transport-and-lod.md). A million points sent
 as JSON is roughly 300 MB and will not render; naive random sampling to 200k would drop
 exactly the rare points the tool exists to show.
 
@@ -190,7 +190,7 @@ exactly the rare points the tool exists to show.
 
 **Contract**
 - Vite + TypeScript in `strict` mode, Vitest for units, Playwright for browser tests
-  ([ADR-0010](../adr/0010-frontend-build-and-bundling.md)).
+  ([ADR-0010](../../adr/0010-frontend-build-and-bundling.md)).
 - ESLint + Prettier, wired into `make verify` through a `web-lint` target.
 - No framework. This is one canvas and a small HUD; React would be more build surface than
   code.
@@ -292,14 +292,14 @@ exactly the rare points the tool exists to show.
 
 **Acceptance criteria**
 - [x] Custom `hatch_build.py` hook compiles front-end assets and includes `vhecfsck/web/dist/index.html` in wheel and sdist.
-- [ ] `pip install dist/*.whl` into a Node-free venv in CI release workflow (residual for [P9-05](../phases/phase-9-docs-release-and-launch.md)).
-- [ ] Wheel size under 10 MB (residual for [P9-05](../phases/phase-9-docs-release-and-launch.md)).
+- [ ] `pip install dist/*.whl` into a Node-free venv in CI release workflow (residual for [P9-05](phase-9-docs-release-and-launch.md)).
+- [ ] Wheel size under 10 MB (residual for [P9-05](phase-9-docs-release-and-launch.md)).
 
 ---
 
 ## Phase exit checklist — this is the MVP gate
 
-Run the full MVP checklist in [`03-phases-overview.md §4`](../03-phases-overview.md). In
+Run the full MVP checklist in [`03-phases-overview.md §4`](../../03-phases-overview.md). In
 addition:
 
 - [ ] The 3D view is driven entirely by report and scene data; the front end computes no
@@ -310,4 +310,4 @@ addition:
 - [ ] `uvx vhecfsck demo --serve` works end to end on a clean machine.
 - [ ] The report schema required **no** change to accommodate the visualizer. If it did, that
       is the finding this phase existed to produce — record it in
-      [ADR-0008](../adr/0008-report-schema-versioning.md).
+      [ADR-0008](../../adr/0008-report-schema-versioning.md).

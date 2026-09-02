@@ -2,11 +2,11 @@
 
 Auditoría de la matemática de `vhecfsck` contra la literatura publicada y contra la
 evidencia que el propio repo produce. **No se tocó una línea de código de métricas.** Los
-tickets viven en la sección MI de [`backlog.md`](backlog.md).
+tickets viven en la sección MI de [`backlog.md`](../../backlog.md).
 
 **Estado:** MI-01 y MI-02 entregados (`inject_hubs` concentra masa; `hubby` mide FAIL en
 hubness). MI-03, MI-04 y MI-06 ya estaban. **Siguiente: MI-07, después MI-05** — cola en
-[`next-ticket.md`](next-ticket.md). No reabrir MI-03/04/06.
+[`next-ticket.md`](../../next-ticket.md). No reabrir MI-03/04/06.
 
 ## Resumen
 
@@ -36,12 +36,12 @@ nada da `0.0882`; el escenario `hubby` tal como se envía da `0.0877`.
 los 81 vectores del top-1% ya absorben unos 7.000 slots de forma natural. Agregar unos
 pocos atractores no mueve una fracción que ya está dominada por el bulto de la muestra.
 
-**El agravante.** [`vhecfsck/synthetic/scenarios.py:284-294`](../vhecfsck/synthetic/scenarios.py)
+**El agravante.** [`vhecfsck/synthetic/scenarios.py:284-294`](../../../vhecfsck/synthetic/scenarios.py)
 asserta `METRIC_HUB_SHARE: "OK"` y `METRIC_ANTIHUB_FRACTION: "OK"` para el escenario
 documentado como *"hubness: cannibalising hubs + isolated anti-hubs in high-d space"*. El
 suite no está tolerando la no-detección: la está fijando como contrato.
 
-Esto viola el invariante de [`lessons-learned.md`](lessons-learned.md) §21 — *"Pathology
+Esto viola el invariante de [`lessons-learned-historical.md`](../lessons-learned-historical.md) §21 — *"Pathology
 operators must induce the claimed geometry; tests verify by brute force, not by trusting
 placement labels"*. La lección se escribió por el caso L2/top-10 y se cumple ahí; lo que
 nunca se verificó es que el operador moviera **la métrica gateada**.
@@ -54,7 +54,7 @@ nunca se verificó es que el operador moviera **la métrica gateada**.
 O sea: `compute_hubness` detecta hubness cuando la geometría es de verdad hubby. Lo que no
 existe es un generador que produzca esa geometría. MI-01 y MI-02 son el mismo ticket visto
 de los dos lados: hay que reescribir `inject_hubs`
-([`vhecfsck/synthetic/pathologies.py:214`](../vhecfsck/synthetic/pathologies.py)) para que
+([`vhecfsck/synthetic/pathologies.py:214`](../../../vhecfsck/synthetic/pathologies.py)) para que
 concentre masa de verdad, y recién entonces corregir la expectativa de `hubby`.
 
 **Orden obligatorio:** primero el operador, después la expectativa. Cambiar
@@ -74,7 +74,7 @@ después del append dejaba los hubs afuera. Drifted congela centroides de fit pa
 **Segunda instancia, encontrada al escribir MI-04.** No es solo hubness. `synthetic-drifted`
 —el escenario nombrado por `lance#4164`, appends dentro de celdas IVF existentes sin refit de
 centroides— reporta `partition_size_cv = 1.0342 OK`, y
-[`scenarios.py:199-203`](../vhecfsck/synthetic/scenarios.py) asserta `OK` para las cinco
+[`scenarios.py:199-203`](../../../vhecfsck/synthetic/scenarios.py) asserta `OK` para las cinco
 métricas. O sea: **tres de las cinco métricas no tienen un solo positivo patológico en toda
 la calibración de referencia**, porque ningún operador de patología las mueve. El test de
 MI-01 tiene que cubrir a los dos operadores, no solo a `inject_hubs`.
@@ -107,7 +107,7 @@ y "top-1% hub share" no aparece en ese cuerpo de trabajo.
 | 768 | 0.2520 | WARN | |
 
 Datos sanos rompen el umbral desde `d = 128`. Eso es exactamente lo que P8-02 descubrió y
-parchó con los perfiles por dimensión ([lección 52](lessons-learned.md#52)). El ADR quedó
+parchó con los perfiles por dimensión ([lección 52](../../lessons-learned.md#52)). El ADR quedó
 falsificado por el propio trabajo posterior del repo y **nunca se anotó como superado**.
 
 **Ticket.** Anotar ADR-0006 como parcialmente superado por ADR-0011 / P8-02, borrar la
@@ -128,7 +128,7 @@ que son: valores calibrados empíricamente en P8-02, no heredados.
 
 **Medido contra el repo.**
 
-[`docs/calibration/thresholds.md`](../docs/calibration/thresholds.md) líneas 70 y 89
+[`docs/calibration/thresholds.md`](../../../docs/calibration/thresholds.md) líneas 70 y 89
 publican, para `hub_share_top1pct` y `antihub_fraction`:
 
 > **FPR / FNR:** `0.0%` false positives on isotropic Gaussian controls under per-dimension
@@ -137,14 +137,14 @@ publican, para `hub_share_top1pct` y `antihub_fraction`:
 El número de FPR está respaldado por los controles gaussianos. **El FNR no está respaldado
 por nada**: no hay un solo positivo patológico de hubness en la calibración, y por MI-01
 tampoco lo habría aunque se corriera el escenario `hubby`. Publicar "FPR / FNR: 0.0%" en un
-renglón donde solo se midió el FPR es guardrail 9 de [`AGENTS.md`](../AGENTS.md) — *"Never
+renglón donde solo se midió el FPR es guardrail 9 de [`AGENTS.md`](../../../AGENTS.md) — *"Never
 write a number into documentation that nobody measured"*.
 
 Para contraste, las dos métricas que sí tienen los dos lados medidos lo dicen con las dos
 mitades separadas (`thresholds.md` líneas 25-26 y 34-35: rango sano **y** rango patológico
 con el dataset que lo produce).
 
-Además [`docs/calibration/results.csv`](../docs/calibration/results.csv) está generado
+Además [`docs/calibration/results.csv`](../../../docs/calibration/results.csv) está generado
 **antes** de los perfiles por dimensión, y lo muestra: fila 7 `gaussian-1536
 antihub_fraction FAIL 0.43755`, fila 22 `gaussian-768 antihub_fraction FAIL 0.4177`. Son
 controles sanos fallando, publicados como resultado de calibración de referencia.
@@ -158,7 +158,7 @@ salvo que el artefacto nuevo diga otra cosa.
 ## MI-05 — Falta `S_Nk`, la única medida de hubness que un paper reconocería
 
 El reporte ya expone `max_nk`, `p99_nk`, `median_nk` y el histograma
-([`vhecfsck/core/hubness.py:331-333`](../vhecfsck/core/hubness.py)). No expone la asimetría
+([`vhecfsck/core/hubness.py:331-333`](../../../vhecfsck/core/hubness.py)). No expone la asimetría
 de `N_k`, que es **la** definición publicada de hubness (Radovanović et al. 2010, §2).
 
 Se calcula en tres líneas sobre un array que ya está en memoria, no requiere una segunda
@@ -172,7 +172,7 @@ S_Nk = mean((N_k - mean(N_k))^3) / std(N_k)^3      # tercer momento estandarizad
 (sin umbral propio hasta calibrarlo), y citarlo en el spec. Vale la pena por sí solo:
 convierte un bloque de estadísticas ad-hoc en algo comparable con la literatura.
 Contrato operativo (Fixture B a mano, `ddof=0`, `S_Nk = 0.0` en B, cola):
-[`next-ticket.md`](next-ticket.md) § MI-05.
+[`next-ticket.md`](../../next-ticket.md) § MI-05.
 
 ## MI-06 — `recall_dist` está publicada; el spec la presenta como invención propia · **ENTREGADO**
 
@@ -198,7 +198,7 @@ herramienta en vez de exponerla: deja de ser "nosotros corregimos el spec" y pas
 Dos cosas más que conviene declarar en el mismo ticket:
 
 - **Citar Efron (1979)** para el bootstrap percentil del intervalo de confianza.
-- **Declarar la desviación de [`vhecfsck/core/canary.py:466`](../vhecfsck/core/canary.py)**:
+- **Declarar la desviación de [`vhecfsck/core/canary.py:466`](../../../vhecfsck/core/canary.py)**:
   el CI se expande para contener la media (`ci_lo = min(ci_lo, mean_dist)`). Está comentada
   en el código, pero no está ni en el spec ni en el JSON del reporte. Un CI que se expande
   para contener el estimador puntual ya no es un percentil bootstrap puro, y un lector
@@ -216,5 +216,5 @@ Enumerado explícitamente para que nadie lo "arregle" en una pasada futura:
 | `partition_size_cv` | CV poblacional con `ddof=0`; normativo, Fixture C verificada a mano |
 | Coeficiente de Gini | forma cerrada estándar, revisado término por término |
 | `dfi` | métrica acuñada por el repo **y declarada como tal** — eso es honesto, no un defecto |
-| Clamp de L2 antes del `sqrt` | correcto ([lección 28](lessons-learned.md#28)) |
+| Clamp de L2 antes del `sqrt` | correcto ([lección 28](../lessons-learned-historical.md)) |
 | Proyección PCA a 3D | correcta |
