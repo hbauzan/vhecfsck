@@ -584,6 +584,37 @@ derive metrics.
 
 ---
 
+### Lesson 61 (TH-05 Bit-exact float32 vectorisation)
+
+**Context:** The synthetic IVF k-means was 180.30s of a 284.59s suite. Replacing the row
+loop with array code is only safe if the output is byte-identical, because the golden
+report fixtures are downstream of every centroid. "Equivalent within tolerance" is not
+good enough, and the fast spellings are not the exact ones.
+
+**Solution:** Measured, per metric space and shape, which forms preserve the bits:
+
+| Form | Bit-exact | Why |
+| :--- | :--- | :--- |
+| `np.sqrt(np.sum(diff*diff, axis=2, dtype=np.float32))` | **yes** | same float32 reduction as the scalar path |
+| GEMM identity `\|q\|² + \|c\|² − 2qc` | **no** | max error 1.95e-3 — the obvious temptation |
+| `np.argmin` | **yes** | reproduces "first minimum wins" tie-break exactly |
+| `np.bincount` + `np.add.at` | **yes** | unbuffered accumulation in row order |
+| `vectors[assignment == c].sum(axis=0)` | **no** | numpy uses pairwise summation |
+
+Row chunking is arithmetic-neutral (each output element still reduces one vector/centroid
+pair), so the panel band size is a pure memory knob. The claim is pinned on raw bytes by
+`tests/oracle/test_ivf_build.py` against the loop preserved in
+`tests/oracle/reference_ivf.py`, and the rejected GEMM identity is named in the code so it
+is not reintroduced as an "optimisation".
+
+**Invariant:** When vectorising float32 numerics whose output feeds a golden fixture,
+prove byte equality against the implementation being replaced before trusting it — and
+prove it with `.tobytes()`, not a tolerance. Never substitute the GEMM distance identity
+for an explicit `sqrt(sum(diff*diff))`, and never replace sequential accumulation with a
+masked reduction.
+
+---
+
 ## 5. Protocolo de Mantenimiento de Lecciones Aprendidas
 
 Este archivo es caro de leer y fácil de arruinar. Si se lee por reflejo, se paga en cada sesión; si se escribe por reflejo, se llena de ruido y deja de servir para lo único que sirve: que la próxima IA arranque donde terminó la anterior.
