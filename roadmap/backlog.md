@@ -174,10 +174,47 @@ atomically.
 
 | ID | Title | Size | Depends on | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| TH-01 | BLAS GEMM (`q @ c.T`) vectorization for `exact_knn` and `compute_hubness` | M | P2-04, P2-06 | todo |
-| TH-02 | Force `coverage.py` C-extension tracer build verification in `.venv` | S | P0-03 | todo |
-| TH-03 | Audit unit test fixtures to enforce $N \le 100$ (`size="tiny"`) for non-perf tests | M | P0-03, P1-08 | todo |
+| TH-01 | BLAS GEMM (`q @ c.T`) vectorization for `exact_knn` and `compute_hubness` | M | P2-04, P2-06 | cancelled |
+| TH-02 | Force `coverage.py` C-extension tracer build verification in `.venv` | S | P0-03 | cancelled |
+| TH-03 | Audit unit test fixtures to enforce $N \le 100$ (`size="tiny"`) for non-perf tests | M | P0-03, P1-08 | cancelled |
 | TH-04 | Decouple/cache coverage in default `make verify` for sub-30s local dev gate | M | P0-04 | todo |
+| TH-05 | Vectorise the synthetic IVF k-means, bit-exact | M | P1-05 | done |
+| TH-06 | `_merge_query_topk` dominates `exact_knn` at large Q (1.88s of 2.53s) | M | P2-04 | todo |
+| TH-07 | Reuse the three deterministic IVF builds across tests | S | TH-05 | todo |
+| TH-08 | Evaluate `COVERAGE_CORE=sysmon` by raising the dev interpreter | S | TH-04 | todo |
+
+The three cancellations are findings, not deferrals — the plan file records why. TH-01
+targeted an `exact_knn` that already uses BLAS and a GEMM identity that is **not**
+bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never active
+(`CTracer available: YES`); TH-03 is forbidden by [`lessons-learned.md`](lessons-learned.md)
+§37 and by guardrail 1.
+
+## MI — Metric Integrity · [plan file](plan_integridad_matematica.md)
+
+Attribution and validation debt on the hubness front. No formula was found to be invented
+or misimplemented; the defects are unsourced claims and a pathology operator that does not
+move the metric it claims to induce. **All measured, none implemented.**
+
+| ID | Title | Size | Depends on | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| MI-01 | `inject_hubs` does not move `hub_share`; `hubby` asserts the non-detection | M | P1-04, P2-06 | todo |
+| MI-02 | Generate a real hub attractor and correct the `hubby` expectation | M | MI-01 | todo |
+| MI-03 | ADR-0006 attributes 0.25/0.40 to "the hubness literature"; refuted | S | P8-02 | todo |
+| MI-04 | `docs/calibration/` publishes an FNR with no pathological positive | S | MI-02 | todo |
+| MI-05 | Add `S_Nk`, the published skewness-of-`N_k` hubness measure | S | P2-06 | todo |
+| MI-06 | Cite ANN-Benchmarks for `recall_dist`; declare the canary CI expansion | S | P2-05 | todo |
+
+MI-02 must land before MI-04 **if MI-04 republishes a number**. Retracting an unmeasured
+one does not wait for anything.
+
+**MI-01 ships a regression test, not a lesson.** [`lessons-learned.md`](lessons-learned.md)
+§21 already requires a pathology operator to induce the geometry it claims, and
+`inject_hubs` satisfies it: the hubs are placed where the lesson says they should be. What
+broke is one level up — the *gated metric* does not move. Per §5.3, an invariant that
+breaks a second time has earned enforcement rather than another paragraph, so MI-01's
+acceptance criterion is a test asserting that each pathology operator moves the metric it
+is named for. That test is red today, which is exactly why it belongs to MI-01 and was not
+added ahead of it.
 
 ---
 

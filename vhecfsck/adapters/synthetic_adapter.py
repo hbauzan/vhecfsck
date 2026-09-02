@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal
+from typing import Literal, NamedTuple
 
 import numpy as np
 from numpy.random import default_rng
@@ -38,6 +38,14 @@ from vhecfsck.synthetic.pathologies import CorpusState, GroundTruthAnnotation
 
 SearchMode = Literal["exact", "ivf", "ivf_tombstoned"]
 
+
+class PrebuiltIvf(NamedTuple):
+    """A persisted IVF build, reused verbatim instead of refitting k-means."""
+
+    centroids: FloatMatrix
+    cell_of: IdArray
+
+
 # Documented collapse triple (acceptance): mean recall_id < 0.70 under
 # ivf_tombstoned with this (delete_fraction, ef_budget, nprobe) on the
 # seeded corpus used by test_documented_recall_collapse_triple.
@@ -48,6 +56,10 @@ RECALL_COLLAPSE_NPROBE: int = 1
 _ENGINE = "synthetic"
 _ENGINE_VERSION = "0.1.0"
 _KMEANS_ITERS = 12
+# Peak size of one broadcast distance panel block during the IVF build. Row
+# chunking is arithmetic-neutral, so this only trades memory for loop turns:
+# a 100k x 64-list x 32-dim panel is 819 MB unchunked, ~64 MB per band here.
+_PANEL_BUDGET_BYTES = 64 * 1024 * 1024
 
 
 class SyntheticAdapter:
@@ -64,10 +76,14 @@ class SyntheticAdapter:
         location: str = "synthetic://memory",
         persist_path: Path | str | None = None,
         capabilities: Capabilities | None = None,
+        prebuilt_ivf: PrebuiltIvf | None = None,
     ) -> None:
         if mode not in ("exact", "ivf", "ivf_tombstoned"):
             msg = f"unknown search mode: {mode!r}"
             raise UsageError(msg, hint="use exact, ivf, or ivf_tombstoned")
+        if prebuilt_ivf is not None and mode == "exact":
+            msg = "prebuilt_ivf is meaningless in exact mode"
+            raise UsageError(msg, hint="use mode=ivf or mode=ivf_tombstoned")
         self._closed = False
         self._mode: SearchMode = mode
         self._build_seed = int(build_seed)
@@ -100,12 +116,25 @@ class SyntheticAdapter:
                 msg = "n_lists must be >= 1 for IVF modes"
                 raise UsageError(msg)
             self._n_lists = n_lists_i
-            self._centroids, self._cell_of, self._lists = _fit_ivf(
-                self._vectors,
-                n_lists=n_lists_i,
-                seed=self._build_seed,
-                metric=self._metric,
-            )
+            if prebuilt_ivf is not None:
+                # The fit is deterministic, so refitting a persisted build would
+                # reproduce it byte for byte at full cost. Load it instead.
+                self._centroids = np.ascontiguousarray(
+                    prebuilt_ivf.centroids,
+                    dtype=np.float32,
+                )
+                self._cell_of = np.ascontiguousarray(
+                    prebuilt_ivf.cell_of,
+                    dtype=np.int64,
+                )
+                self._lists = _lists_from_assignment(self._cell_of, n_lists_i)
+            else:
+                self._centroids, self._cell_of, self._lists = _fit_ivf(
+                    self._vectors,
+                    n_lists=n_lists_i,
+                    seed=self._build_seed,
+                    metric=self._metric,
+                )
             kind = IndexKind.IVF
             report_partitions = True
 
@@ -162,26 +191,25 @@ class SyntheticAdapter:
             metric_space=MetricSpace(str(data["metric"][0])),
             annotation=annotation,
         )
-        adapter = cls(
+        # Prefer the persisted IVF build over a rebuild: it is bit-exact and the
+        # k-means it would repeat is the most expensive part of construction.
+        prebuilt = (
+            None
+            if mode == "exact"
+            else PrebuiltIvf(
+                centroids=np.ascontiguousarray(data["centroids"], dtype=np.float32),
+                cell_of=np.ascontiguousarray(data["cell_of"], dtype=np.int64),
+            )
+        )
+        return cls(
             state,
             mode=mode,  # type: ignore[arg-type]
             n_lists=int(data["n_lists"][0]) or None,
             build_seed=int(data["build_seed"][0]),
             index_name=str(data["index_name"][0]),
             location=str(data["location"][0]),
+            prebuilt_ivf=prebuilt,
         )
-        # Prefer persisted IVF assignment / centroids over a rebuild (bit-exact).
-        if mode != "exact":
-            adapter._centroids = np.ascontiguousarray(
-                data["centroids"],
-                dtype=np.float32,
-            )
-            adapter._cell_of = np.ascontiguousarray(data["cell_of"], dtype=np.int64)
-            adapter._lists = _lists_from_assignment(
-                adapter._cell_of,
-                adapter._n_lists,
-            )
-        return adapter
 
     def save_npz(self, path: Path | str) -> None:
         """Persist corpus + IVF build artifacts for reuse within a test session."""
@@ -487,34 +515,74 @@ def _fit_ivf(
         centroids = np.concatenate([centroids, pad], axis=0)
 
     assignment = np.zeros(n, dtype=np.int64)
+    chunk = _panel_chunk_rows(n_lists, d)
     for _ in range(_KMEANS_ITERS):
-        for i in range(n):
-            dists = _pairwise_distances(centroids, vectors[i], metric)
-            best = 0
-            best_d = float(dists[0])
-            for c in range(1, n_lists):
-                dc = float(dists[c])
-                if dc < best_d or (dc == best_d and c < best):
-                    best = c
-                    best_d = dc
-            assignment[i] = np.int64(best)
+        panel = _distance_panel(vectors, centroids, metric, chunk=chunk)
+        # First minimum wins, which is exactly ``argmin``: the scalar loop's
+        # ``dc == best_d and c < best`` branch is unreachable because ``c``
+        # ascends while ``best`` only ever holds a lower index.
+        assignment = np.asarray(panel.argmin(axis=1), dtype=np.int64)
         # Recompute centroids from assigned rows (including deleted — index build).
-        counts = np.zeros(n_lists, dtype=np.int64)
+        counts = np.bincount(assignment, minlength=n_lists).astype(np.int64)
         new_c = np.zeros((n_lists, d), dtype=np.float32)
-        for i in range(n):
-            c = int(assignment[i])
-            new_c[c] += vectors[i]
-            counts[c] += np.int64(1)
-        for c in range(n_lists):
-            if counts[c] > 0:
-                centroids[c] = new_c[c] / np.float32(counts[c])
-                if metric is MetricSpace.COSINE:
-                    nrm = float(np.sqrt(np.sum(centroids[c] * centroids[c])))
-                    if nrm > 0:
-                        centroids[c] = centroids[c] / np.float32(nrm)
+        # ``np.add.at`` accumulates unbuffered in row order, matching the scalar
+        # loop. A masked ``vectors[assignment == c].sum(axis=0)`` would use
+        # pairwise summation and shift the low bits of every centroid.
+        np.add.at(new_c, assignment, vectors)
+        filled = np.flatnonzero(counts > 0)
+        centroids[filled] = new_c[filled] / counts[filled, None].astype(np.float32)
+        if metric is MetricSpace.COSINE:
+            block = centroids[filled]
+            nrm = np.sqrt(np.sum(block * block, axis=1, dtype=np.float32))
+            positive = nrm > np.float32(0.0)
+            unit_rows = filled[positive]
+            centroids[unit_rows] = centroids[unit_rows] / nrm[positive][:, None]
 
     lists = _lists_from_assignment(assignment, n_lists)
     return np.ascontiguousarray(centroids, dtype=np.float32), assignment, lists
+
+
+def _panel_chunk_rows(n_lists: int, d: int) -> int:
+    """Rows per distance panel block, capped by ``_PANEL_BUDGET_BYTES``."""
+    per_row = max(1, int(n_lists) * int(d) * 4)
+    return max(1, _PANEL_BUDGET_BYTES // per_row)
+
+
+def _distance_panel(
+    vectors: NDArray[np.float32],
+    centroids: NDArray[np.float32],
+    metric: MetricSpace,
+    *,
+    chunk: int,
+) -> NDArray[np.float32]:
+    """``(n, n_lists)`` distances, bit-identical to :func:`_distance` per cell.
+
+    Broadcasting materialises a ``chunk * n_lists * d`` block, so rows are
+    processed in bands to bound peak memory. Splitting by rows leaves every
+    output element a float32 reduction over one vector/centroid pair, which is
+    why ``chunk`` cannot move a bit — pinned by ``tests/oracle/test_ivf_build``.
+
+    The GEMM identity ``|q|^2 + |c|^2 - 2qc`` is deliberately not used here: it
+    is faster still, but it disagrees with :func:`_distance` by up to 1.95e-3
+    and would invalidate every golden report fixture.
+    """
+    n = int(vectors.shape[0])
+    m = int(centroids.shape[0])
+    out = np.empty((n, m), dtype=np.float32)
+    step = max(1, int(chunk))
+    for start in range(0, n, step):
+        stop = min(start + step, n)
+        band = vectors[start:stop, None, :]
+        if metric is MetricSpace.L2:
+            diff = band - centroids[None, :, :]
+            out[start:stop] = np.sqrt(np.sum(diff * diff, axis=2, dtype=np.float32))
+            continue
+        prod = np.sum(band * centroids[None, :, :], axis=2, dtype=np.float32)
+        if metric is MetricSpace.COSINE:
+            out[start:stop] = np.float32(1.0) - prod
+        else:
+            out[start:stop] = -prod
+    return out
 
 
 def _lists_from_assignment(

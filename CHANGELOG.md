@@ -9,7 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improved
 
+- TH-05 Vectorised the synthetic IVF k-means build (`vhecfsck/adapters/synthetic_adapter.py`), which instrumentation showed to be 180.30s of the 284.59s default suite across 90 `_fit_ivf` calls. The row-chunked broadcast panel (`_distance_panel`), `np.argmin` assignment and `np.bincount` + `np.add.at` centroid update are **bit-exact** against the loop they replace, so no golden report fixture was regenerated. Pinned by a differential test (`tests/oracle/test_ivf_build.py`) asserting byte equality of `centroids`, `assignment` and every list against the loop reference preserved in `tests/oracle/reference_ivf.py`, over L2/COSINE/DOT, the `n < n_lists` centroid-padding branch and band-size invariance. The GEMM identity `|q|^2 + |c|^2 - 2qc` is explicitly rejected (1.95e-3 error) and the reason is recorded in the code. Measured on Apple Silicon / Python 3.11.15 / numpy 2.4.6: default suite 284.59s to 76.99s.
+- `SyntheticAdapter.from_npz` no longer pays a full k-means fit only to discard it: the persisted build is passed in through the new `prebuilt_ivf` argument instead of overwriting private attributes after construction.
 - Contributor console (`setup.sh`): updated option descriptions, added ANSI progress bar rendering, autocurative virtual environment synchronization (`uv sync --group dev --extra lancedb`), and full non-interactive verb support (`sync`, `verify`, `demo`, `serve`, `clean`, `dump`).
+
+### Documentation
+
+- Rewrote `roadmap/plan_optimizacion_test_harness.md` against instrumented evidence. TH-01, TH-02 and TH-03 are **cancelled**, not deferred: `exact_knn` already uses BLAS and the proposed GEMM identity is not bit-exact, the `coverage.py` C tracer was already active (`CTracer available: YES`), and shrinking fixtures to `size="tiny"` is forbidden by lesson 37 and guardrail 1. Added TH-06 (`_merge_query_topk` at large Q), TH-07 and TH-08.
+- Added `roadmap/plan_integridad_matematica.md` and the MI backlog section: `inject_hubs` measurably fails to move `hub_share` (0.0882 to 0.0864 as hubs go from 8 to 800) while `scenarios.py` asserts `OK` for both hubness metrics; ADR-0006's attribution of the 0.25/0.40 thresholds to "the hubness literature" is refuted against Radovanović et al. (JMLR 11:2487-2531, 2010); `docs/calibration/` publishes an FNR with no pathological positive behind it; `S_Nk` is missing; and `recall_dist` is the published ANN-Benchmarks definition (Aumüller et al., *Information Systems* 2019) rather than the repo's own correction. Findings only — no metric code was touched.
 
 ## [0.1.2] - 2026-09-01
 

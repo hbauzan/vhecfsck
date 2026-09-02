@@ -5,13 +5,17 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pytest
+from vhecfsck.adapters import synthetic_adapter
 from vhecfsck.adapters.base import IndexAdapter
 from vhecfsck.adapters.synthetic_adapter import (
     RECALL_COLLAPSE_DELETE_FRACTION,
     RECALL_COLLAPSE_EF_BUDGET,
     RECALL_COLLAPSE_NPROBE,
+    PrebuiltIvf,
     SyntheticAdapter,
 )
+from vhecfsck.errors import UsageError
 from vhecfsck.models import IndexKind, MetricSpace
 from vhecfsck.synthetic.generator import generate_corpus
 from vhecfsck.synthetic.pathologies import (
@@ -283,6 +287,44 @@ def test_npz_roundtrip(tmp_path: Path) -> None:
     a = adapter.search(q, 5, params={"nprobe": 2, "ef_search": 20})
     b = loaded.search(q, 5, params={"nprobe": 2, "ef_search": 20})
     assert a.ids.tobytes() == b.ids.tobytes()
+
+
+def test_npz_load_reuses_the_persisted_build_without_refitting(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Loading an index must not pay the k-means it is about to overwrite."""
+    path = tmp_path / "corpus.npz"
+    saved = SyntheticAdapter(
+        _state(n=120, seed=5),
+        mode="ivf",
+        n_lists=6,
+        build_seed=3,
+        persist_path=path,
+    )
+
+    def _explode(*_args, **_kwargs):
+        msg = "from_npz must not refit the IVF build"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(synthetic_adapter, "_fit_ivf", _explode)
+    loaded = SyntheticAdapter.from_npz(path)
+
+    assert loaded._centroids.tobytes() == saved._centroids.tobytes()
+    assert loaded._cell_of.tobytes() == saved._cell_of.tobytes()
+    assert len(loaded._lists) == len(saved._lists)
+    for got, want in zip(loaded._lists, saved._lists, strict=True):
+        assert got.tobytes() == want.tobytes()
+
+
+def test_prebuilt_ivf_is_rejected_in_exact_mode() -> None:
+    state = _state(n=40, seed=2)
+    prebuilt = PrebuiltIvf(
+        centroids=np.zeros((2, int(state.vectors.shape[1])), dtype=np.float32),
+        cell_of=np.zeros(int(state.ids.shape[0]), dtype=np.int64),
+    )
+    with pytest.raises(UsageError):
+        SyntheticAdapter(state, mode="exact", prebuilt_ivf=prebuilt)
 
 
 def test_close_is_idempotent_and_blocks_use() -> None:
