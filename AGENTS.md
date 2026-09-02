@@ -3,7 +3,7 @@
 Read this on every session. Detail lives in [`roadmap/`](roadmap/); this file is the
 non-negotiable subset.
 
-**Roadmap:** [`roadmap/agent-playbook.md`](roadmap/agent-playbook.md) ·
+**Roadmap:** [`roadmap/next-ticket.md`](roadmap/next-ticket.md) ·
 [`roadmap/02-metrics-spec.md`](roadmap/02-metrics-spec.md) ·
 [`roadmap/backlog.md`](roadmap/backlog.md)
 

@@ -1,0 +1,218 @@
+# Next ticket — dispatcher for agents
+
+**Read this before opening any other ticket.** One agent, one ticket, in the
+order below. Dependencies are not suggestions. When the ticket is done, mark it
+`done` here and in [`backlog.md`](backlog.md), then stop and wait for OK to merge.
+
+Phrase: `Usando dev-protocol, cerrá <ID>`. Protocol:
+[`.agents/skills/dev-protocol/SKILL.md`](../.agents/skills/dev-protocol/SKILL.md).
+Cold start: [`lessons-learned.md`](lessons-learned.md) §0, then this file.
+
+---
+
+## Freeze
+
+| | |
+| :--- | :--- |
+| Repo | `https://github.com/hbauzan/vhecfsck` (public) |
+| Base | `origin/main`. Must contain merge `3a3e609` (P9-13 + P9-14 + P9-11 + MI-01 + MI-02). If it does not, **stop and ask**. |
+| Product | read-only CLI auditor. Hero: `uvx vhecfsck demo` |
+| Gate | `make verify` **once** per ticket. Never `--no-verify`. |
+| Sync | `uv sync --group dev --group docs --extra lancedb`. **Never** `--all-extras`. |
+| Delivery | one branch, one conventional commit. No push/merge to `main` without explicit OK. |
+| Metric logic | only in `core/`. |
+| CHANGELOG `[Unreleased]` | product only: **MI-05** yes. **MI-07** and all TH/P9 remaining: no. |
+
+**Do not reopen:** TH-01, TH-02, TH-03, MI-03, MI-04, MI-06, P8-03.
+
+**Do not start** P9-09 or P9-10. They stay skipped (see queue).
+
+---
+
+## Queue
+
+Take the **first** row whose status is `todo`. If it is `blocked`, you may only
+do the work the ticket says is allowed while blocked; then stop. Never start two.
+
+| # | ID | Status | Why this slot |
+| ---: | :--- | :--- | :--- |
+| 1 | **MI-07** | `todo` ← **you are here** | MI-02 unblocked it. Regenerates `docs/calibration/` against current profiles and hubby FAIL. |
+| 2 | **MI-05** | `todo` | Independent of MI-07, but **after** it in this queue. `S_Nk` in hubness `detail`. |
+| 3 | **TH-06** | `todo` | `_merge_query_topk` at large Q. Bit-exact. No GEMM identity. |
+| 4 | **TH-07** | `todo` | Reuse PrebuiltIvf of healthy/tombstoned/drifted. Do not shrink N. |
+| 5 | **TH-04** | `todo` | Local coverage cache. Merge/CI `make verify` keeps both floors. |
+| 6 | **TH-08** | `todo` | **After TH-04.** Measure `COVERAGE_CORE=sysmon` on 3.12+. If it does not win, do not leave it. |
+| 7 | **P9-12** | `blocked` | Human must do GitHub env `pypi` + PyPI publisher **before** the YAML `environment:` line. |
+| — | P9-09 | `blocked` | Skip until owner says "listo para publicar" **and** a real Linux host exists. |
+| — | P9-10 | `todo` (skip) | Filler. CI already runs Linux × 3.11/3.12/3.13. Do not pick. |
+
+Contracts live in [`backlog.md`](backlog.md) (P9-12, P9-09, P9-10) and in the
+plan files plus the sections below (MI, TH).
+
+---
+
+## MI-07 — regenerate reference calibration
+
+**Depends on:** MI-02 (`done`). **Size:** M. **Touches:** output of
+`scripts/calibrate.py` under `docs/calibration/`, then prose in
+`docs/calibration/thresholds.md` and `docs/calibration/README.md` **from the CSV**.
+
+**Do this:**
+
+```bash
+make calibrate
+# equivalent:
+uv run python scripts/calibrate.py --profile reference --out docs/calibration
+```
+
+Needs network. Public archives land in `~/.cache/vhecfsck/calibration` (gist is
+~2.6 GB). Skipped corpora go to `skipped.csv` with a reason — never invent `0.0`.
+
+**Do not:**
+
+- Edit `docs/calibration/results.csv` or `reports/*.md` by hand.
+- Shrink `PROFILE_REFERENCE` (n, dims, S ∈ {1k,5k,20k,50k}, public ids).
+- Change thresholds in `vhecfsck/config.py`. This ticket republishes measurements,
+  it does not retune gates.
+- Touch CHANGELOG (not a product change).
+
+The harness writes CSV + `reports/*.md` + `hubness_sensitivity.md` + `datasets.md`.
+It does **not** write `thresholds.md`. After the run, update FPR/FNR prose in
+`thresholds.md` and the "Known gaps" section of `README.md` **from the new CSV**.
+If `synthetic-hubby` is FAIL on hubness, you may publish an FNR for those two
+metrics; if `synthetic-drifted` `partition_size_cv` is still below WARN, its FNR
+stays unmeasured. Measure; do not copy 0.9297 / 0.6450 from memory — those were
+the demo/`run_audit` numbers at size=small, confirm against this artefact.
+
+`run_audit` already applies `resolve_thresholds_for_dimension`. Healthy Gaussians
+must not appear as FAIL against the old static 0.20/0.25 floors.
+
+**Verify:** `make verify` once. Spot-check `synthetic-hubby` and one Gaussian row
+in `results.csv` against `thresholds.md`.
+
+---
+
+## MI-05 — `S_Nk` in hubness `detail`
+
+**Depends on:** P2-06 (`done`). Independent of MI-07; still **after** MI-07 in
+this queue. **Size:** S. **Touches:** `vhecfsck/core/hubness.py`,
+`roadmap/02-metrics-spec.md` §3.5, `tests/oracle/test_hubness.py`, CHANGELOG.
+
+**Formula** (Radovanović, Nanopoulos & Ivanović, JMLR 11:2487–2531, 2010, §2):
+
+```text
+S_Nk = mean((N_k - mean(N_k))^3) / std(N_k)^3
+```
+
+Population moments (`ddof=0`), same convention as `partition_size_cv`. Informative
+only: **no threshold, no verdict, no gating**. Logic in `core/` only.
+
+If `std(N_k) == 0`, the value is undefined. Do not write `0.0`. Omit the key or
+emit JSON `null` — never a substitute number (guardrail 3 / ADR-0004).
+
+**Fixture B, computed by hand, not guessed.** `N_k = [1, 2, 1, 0]`:
+
+- mean = 1
+- deviations = `[0, 1, 0, −1]`; cubes = `[0, 1, 0, −1]`; mean of cubes = 0
+- `std = sqrt(0.5)` (population)
+- **`S_Nk = 0.0` exactly**
+
+Assert that in `test_fixture_b_exact`. Cite the paper in `02-metrics-spec.md` §3.5
+next to the other diagnostics (`max_nk`, histogram, MAD outliers).
+
+CHANGELOG `[Unreleased]` → Added. Do not add a metric id or a threshold profile.
+
+---
+
+## TH-06 — vectorise `_merge_query_topk`
+
+**Depends on:** P2-04. **Plan:** [`plan_optimizacion_test_harness.md`](plan_optimizacion_test_harness.md).
+**Size:** M. **Touches:** `vhecfsck/core/ground_truth.py`.
+
+At large Q (hubness S=20_000) the score panel forces multiple blocks and
+`_merge_query_topk` is called ~120_000 times ≈ 1.88 s of 2.53 s. Vectorise that
+merge. **Bit-exact** against the current loop (ascending-id tie-break, `−1` /
+`+inf` padding). **Forbidden:** the GEMM distance identity `|q|²+|c|²−2qc`
+(max error 1.95e-3, lesson 61). `exact_knn` already uses BLAS in `_score_block`.
+
+Measure wall time before and after on a stated machine. Write the numbers; do
+not estimate. Do not shrink fixtures to `tiny`.
+
+---
+
+## TH-07 — reuse PrebuiltIvf across tests
+
+**Depends on:** TH-05 (`done`). **Size:** S.
+
+45 of 90 k-means calls were three identical deterministic builds
+(healthy / tombstoned / drifted). After TH-05 each build is ~0.05 s, so the
+ceiling is small; still do it. Cache `PrebuiltIvf` (or equivalent) for those
+three. Drifted already **freezes** fit-time centroids (MI-01) — do not refit on
+`open_scenario`. **Do not shrink N.**
+
+---
+
+## TH-04 — local coverage cache
+
+**Depends on:** P0-04. **Size:** M.
+
+`make verify` on merge/CI **keeps both floors** (80 overall, 90 `core/`) from
+one instrumented run. A local inner-loop cache is allowed. **Do not invent a
+second loose gate** (`make test` is already the uninstrumented inner loop).
+Do not drop coverage from the merge command.
+
+---
+
+## TH-08 — `COVERAGE_CORE=sysmon` (after TH-04)
+
+**Depends on:** TH-04. **Size:** S.
+
+Measure on Python **3.12+**. If it does not beat the current C tracer on this
+repo's suite, **do not leave the env var / docs / Makefile change in**. Do not
+raise `requires-python` without an ADR.
+
+---
+
+## P9-12 — while blocked
+
+YAML auth is already correct (`id-token: write`, no `password`). Order:
+
+1. **Human:** GitHub environment `pypi` with required reviewers = owner
+   **first**. If a workflow names a missing env, GitHub creates it with **no**
+   protection.
+2. **Human:** PyPI trusted publisher on the **existing** project. Workflow
+   filename `release.yml`, environment `pypi`.
+3. **Agent, only after 1+2:** add
+   `environment: {name: pypi, url: https://pypi.org/p/vhecfsck}` to
+   `verify-and-build` in `release.yml`. Nothing else in that file. Update
+   `docs/releasing.md` (remove "Current state"; §6 becomes fallback).
+
+No PyPI secret. No test tag. If 1+2 are not done, you may prepare the diff of
+(3) and **stop**. Do not merge it.
+
+---
+
+## Traps (this pass)
+
+- Hubness is **self-query on S**. The attractor must be **in** the sample.
+  `ids[:2000]` after append drops the hubs.
+- `open_scenario` must not refit IVF on drifted: freeze centroids + assignment
+  or `partitions()` sees a rebalanced index, not `lance#4164`.
+- `inject_hubs` append-at-centroid does not move `hub_share`. Need ≥1% mass on
+  a tight attractor, the rest diffuse, and **high d** (~64). d=16 does not move it.
+- FAIL + UNAVAILABLE = overall FAIL **only if evidence is not LOW**. `|S|<10000`
+  → LOW → WARN. Do not patch `verdict.py` to chase exit 2.
+- TH-01/02/03 `cancelled` ≠ MI-01/02 (those are `done`). Mixing them reopened
+  GEMM and tiny fixtures.
+- `hatch_build.py` early-returns if `dist/index.html` exists. Fresh wheel:
+  delete `dist/` and `make web-build`.
+- Goldens: `tool_version` in `tests/fixtures/golden/` = `pyproject.toml`.
+- Docs → roadmap: absolute GitHub URLs. Generated md: `uv run ruff format`.
+- `tests/unit/test_clean_orphans.py` fails in sandboxes that block `ps`. Not a
+  repo failure.
+- Pages leaf: `/releasing` 200, `/releasing/` 404. `use_directory_urls: false`.
+  Do not add a redirect plugin.
+- `setup-uv` v8+: pin a full release (`v10.0.1`), there is no floating `@v10`.
+
+Residual (not a ticket): P9-11 needs a `gh workflow run ci.yml` witness and
+`grep -i "node.js 20"` empty; `release.yml` dispatch **without** a tag.
