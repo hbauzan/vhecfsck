@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- Filed P9-14: show the current version and the changelog on GitHub Pages (version derived from `pyproject.toml` at docs-build time; do not hardcode it). Corrected P9-12's starting state: tag `v0.1.3` exists and points at `f68d3c3`; Trusted Publishing is still not registered, so the tag-triggered publish has still never succeeded.
+
 ## [0.1.3] - 2026-09-02
 
 ### Improved
