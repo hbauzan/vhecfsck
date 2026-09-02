@@ -148,7 +148,7 @@ aplica. El suite es secuencial por decisión, no por accidente.
 | TH-01 | ~~BLAS GEMM para `exact_knn` y `compute_hubness`~~ | — | — | `cancelled` |
 | TH-02 | ~~Forzar el C-tracer de `coverage.py`~~ | — | — | `cancelled` |
 | TH-03 | ~~Bajar fixtures a `size="tiny"`~~ | — | — | `cancelled` |
-| TH-04 | Cachear el coverage o desacoplarlo del gate local | M | P0-04 | `todo` |
+| TH-04 | Cachear el coverage o desacoplarlo del gate local | M | P0-04 | `done` |
 | TH-05 | Vectorizar el k-means IVF sintético (bit-exacto) | M | P1-05 | `done` |
 | TH-06 | `_merge_query_topk` domina `exact_knn` con Q grande | M | P2-04 | `done` |
 | TH-07 | Reusar los tres builds IVF deterministas entre tests | S | TH-05 | `done` |
@@ -176,6 +176,13 @@ arm64 / macOS 26.5.1 / Python 3.11.15 / numpy 2.4.6. Suite default `--no-cov`:
 → 3 / 0.164 s; tombstoned n=8000: 16 / 0.525 s → 3 / 0.093 s. Wall 78.50 s →
 76.60 s. Goldens sin tocar. El techo ~2 s del plan era correcto en orden de
 magnitud; drifted ya no fiteaba.
+
+**TH-04** cachea `.coverage` en local (`scripts/coverage_gate.py`). CI/merge
+siempre traza (un pytest, pisos 80/90). Hit local: solo `coverage report`.
+`make test` no se tocó. Medido Apple Silicon arm64 / macOS 26.5.1 / Python
+3.11.15 / coverage 7.16.0: suite instrumentada 96.95 s vs `--no-cov` 76.60 s
+(impuesto +20.35 s). Fingerprint 0.872 s; report 0.52 s + 0.14 s. El "gate
+local sub-30s" del backlog estaba stale: el suite es ~77 s (TH-03 cancelled).
 
 **Orden de ejecución** (no es paralelo): TH-06 → TH-07 → TH-04 → TH-08. Cola y contratos
 en [`next-ticket.md`](../../next-ticket.md). TH-01/02/03 siguen `cancelled`.

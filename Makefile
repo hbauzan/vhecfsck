@@ -52,9 +52,10 @@ test: clean-proc  ## inner-loop suite (no cov); not a verify prerequisite
 test-fast:  ## the fast suite without coverage instrumentation
 	uv run pytest -m "not ($(SLOW_MARKS))" --no-cov -q
 
-coverage: clean-proc  ## two floors from one run: whole tree (≥80), then core/ (≥90)
-	uv run pytest -m "not ($(SLOW_MARKS))" --cov=$(PKG) --cov-report=term-missing --cov-report=xml --cov-fail-under=$(COV_ALL) -q
-	uv run coverage report --include='$(CORE)/*' --fail-under=$(COV_CORE)
+coverage: clean-proc  ## two floors, one instrumented run; local .coverage cache (CI always traces)
+	COV_ALL=$(COV_ALL) COV_CORE=$(COV_CORE) PKG=$(PKG) CORE=$(CORE) \
+		SLOW_MARKS="$(SLOW_MARKS)" \
+		uv run python scripts/coverage_gate.py
 
 layers:  ## import-layering contracts (P0-08)
 	uv run lint-imports
@@ -104,6 +105,7 @@ calibrate:  ## P8-01 reference calibration (downloads public corpora on demand)
 
 clean:  ## remove caches and build artefacts
 	rm -rf .pytest_cache .ruff_cache .mypy_cache .coverage htmlcov dist build
+	rm -f .coverage.* .coverage-cache.json coverage.xml
 	find . -type d -name __pycache__ -prune -exec rm -rf {} +
 
 clean-proc:  ## kill orphaned pytest processes for this checkout
