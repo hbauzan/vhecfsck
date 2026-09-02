@@ -31,10 +31,16 @@ accessible palettes, visual regression).
 **P8-01 / P8-02 / P8-08 / P8-09 / P8-11** `done` en `main` (calibration harness, dimension-aware threshold profiles, fuzzing, error audit, security review).
 **Próximo critical path:** **P8-03** (baseline y delta mode).
 **HEAD de referencia al handoff:** `main` post P8-02 (commit `d8f03cb`).
-**Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PRIVATE**).
+**Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PUBLIC** desde el launch P9-07).
+Consecuencia práctica: los runners estándar de GitHub Actions son **gratis** acá — no
+consumen cuota. Lo que sí se cobra en un repo público son los *larger runners* y el
+almacenamiento de artifacts (500 MB compartidos con Packages).
 **Licencia / atribución:** Apache-2.0; credit = **hbauzan** (no “vhecfsck contributors”).
 **Gate único:** `make verify` (lint + format-check + typecheck + coverage + layers + readonly). `coverage` is the suite; `make test` is the inner loop.
-**CI:** `.github/workflows/ci.yml` + `nightly.yml`. Sync en CI = `uv sync --group dev` (**nunca** `--all-extras`).
+**CI:** `.github/workflows/ci.yml` corre `make verify` en Linux x Python 3.11/3.12/3.13.
+Sync en CI = `uv sync --group dev --group docs --extra lancedb` (**nunca** `--all-extras`,
+**nunca** `--extra qdrant` / `--extra postgres` — lecciones 50 y 59). `nightly.yml` y los
+jobs `integration` / `next-python` siguen apagados (P9-10).
 
 Stack en `main` (además de P0/P1):
 - `vhecfsck/core/{ground_truth,canary,hubness,fragmentation,partitions,verdict,sampling}.py`
@@ -46,7 +52,7 @@ Stack en `main` (además de P0/P1):
 
 Residual dueño (no lo “arregles” vos solo):
 - PyPI `vhecfsck` sigue libre (`404`); falta publicar placeholder con Trusted Publishing / token.
-- Visibilidad del repo: sigue private hasta OK explícito.
+- ~~Visibilidad del repo: sigue private hasta OK explícito.~~ Resuelto: público desde P9-07.
 - ADR-0012: la expansión de la `H` en copy público sigue abierta (no inventar gloss).
 - Wall/RSS budgets de `release-plan.md` §4: vacíos hasta **P8-04** — no inventar números.
 - Plan de alcance MVP LanceDB en P3: ver commit `4d7582e` / roadmap — no ensanches P3-09 sin leerlo.
