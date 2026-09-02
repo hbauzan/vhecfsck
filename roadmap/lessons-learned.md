@@ -26,21 +26,24 @@ reinicies: un §0 viejo que lo listaba como critical path está stale.
 [`archive/phases/phase-9-docs-release-and-launch.md`](archive/phases/phase-9-docs-release-and-launch.md).
 P9-12 `blocked` (humano: env GitHub `pypi` + publisher PyPI). P9-09 `blocked`
 (go-ahead + Linux real). P9-10 skip (CI Linux × 3.11/3.12/3.13 ya corre).
-**MI-01 / MI-02 / MI-07 `done`.** Hubness self-query + freeze IVF drifted +
-`inject_hubs` concentra ≥1% de masa (d=64). Reference calibration republished:
+**MI-01 / MI-02 / MI-05 / MI-07 `done`.** Hubness self-query + freeze IVF drifted +
+`inject_hubs` concentra ≥1% de masa (d=64). `S_Nk` in hubness `detail` (informative;
+JSON `null` when `std(N_k)=0`). Reference calibration republished:
 `synthetic-hubby` n=8020 `hub_share 0.9297 FAIL` / `antihub 0.6450 FAIL` /
 overall WARN (evidence LOW, `|S|<10000`). `synthetic-drifted`
 `partition_size_cv 0.9160 OK` — FNR still unmeasured. Healthy Gaussians are
 `OK` under per-dimension profiles. `sentence-minilm` skipped (no cache npy).
+**TH-06 / TH-07 / TH-04 `done`.** Batched exact_knn merge; in-process
+`PrebuiltIvf` reuse; local `.coverage` cache (CI still traces).
 **Horizon:** [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md)
 sigue en `roadmap/phases/` (no archivado).
 
 **Critical path activo:** [`next-ticket.md`](next-ticket.md) —
-MI-05 → TH-06 → TH-07 → TH-04 → TH-08 → P9-12.
-No tomes dos. No reabras TH-01/02/03, MI-03/04/06/07, P8-03.
+TH-08 → P9-12.
+No tomes dos. No reabras TH-01/02/03/04/05/06/07, MI-03/04/06/07, P8-03.
 
-**HEAD de referencia:** `main` after merge of `docs/mi-07-recalibrate` onto
-`ca9f333`. Confirm with `git log -1 origin/main`.
+**HEAD de referencia:** `main` after merge of `perf/th-04-coverage-cache`.
+Confirm with `git log -1 origin/main`.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PUBLIC** desde P9-07).
 Runners estándar de GitHub Actions son gratis en repo público.
 
@@ -343,6 +346,38 @@ UNAVAILABLE is overall FAIL only when evidence is not LOW (`|S|<10000` → WARN)
 must move the **gated** metric on the sample the metric actually sees. Do not refit IVF
 on a frozen drifted assignment. Do not patch `verdict.py` to chase exit 2 when evidence
 is LOW. Do not shrink P1-08 fixtures to `tiny` (also lesson 37).
+
+---
+
+### Lesson 66 (coverage.py parallel-data glob)
+
+**Context:** TH-04 first named the coverage-cache sidecar `.coverage.meta`.
+`coverage report` then warned `Couldn't use data file '.coverage.meta': file is
+not a database` because coverage.py treats `.coverage.*` as parallel data files
+and tries to combine them.
+
+**Invariant:** Never create a file matching `.coverage.*` except coverage.py's
+own data. The sidecar is `.coverage-cache.json` (gitignored). Pinned by
+`test_meta_filename_is_not_a_coverage_data_glob`.
+
+---
+
+### Lesson 67 (TH-04 cache is repeat-only; CI always traces)
+
+**Context:** The backlog "sub-30s local `make verify`" was written when pytest-cov
+was 488 s. After TH-05/06/07 the default suite is ~77 s without coverage and
+~97 s with it. A cache cannot make the *first* run sub-30 s without shrinking
+tests (TH-03 cancelled). TH-04 reuses `.coverage` only when the tree fingerprint
+matches. `GITHUB_ACTIONS` / `CI` / `COVERAGE_CACHE=0` always instrument. `make
+test` stays the uninstrumented inner loop; do not add `make verify-fast`.
+
+**Invariant:** Merge/CI `make verify` keeps both floors (80 / 90) from **one**
+instrumented pytest. Do not drop coverage from the merge command. Do not invent
+a second loose gate. Do not raise `requires-python` without an ADR (TH-08
+measures `COVERAGE_CORE=sysmon` on 3.12+; if it does not win, leave nothing
+behind). `open_scenario`'s `PrebuiltIvf` cache is **process-local** — CLI
+subprocesses still pay one k-means; do not add a disk IVF cache without
+invalidation.
 
 ---
 
