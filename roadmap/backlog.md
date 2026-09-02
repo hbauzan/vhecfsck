@@ -171,7 +171,7 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | blocked |
 | P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | todo |
 | P9-11 | Bump GitHub Actions off the deprecated Node 20 runtime | S | — | done |
-| P9-12 | Activate PyPI Trusted Publishing with a protected `pypi` environment | S | GitHub env `pypi` + PyPI publisher | blocked |
+| P9-12 | Activate PyPI Trusted Publishing with a protected `pypi` environment | S | GitHub env `pypi` + PyPI publisher | done |
 | P9-13 | `clean_orphans.py` kills the shell that invoked `make verify` | S | — | done |
 | P9-14 | Show the current version and the changelog on GitHub Pages | S | P9-02 | done |
 
@@ -276,8 +276,10 @@ Only the `uses:` version pins move.
 
 ### P9-12 — Activate PyPI Trusted Publishing with a protected `pypi` environment
 
-**Status: `blocked` on a human.** Do not start step 3 until steps 1 and 2 below
-are done. Dispatcher: [`next-ticket.md`](next-ticket.md).
+**Status: `done`.** GitHub environment `pypi` has required reviewers = owner.
+PyPI trusted publisher registered on the existing project (workflow
+`release.yml`, environment `pypi`). `verify-and-build` declares that
+environment. No PyPI secret. `docs/releasing.md` §6 is the manual fallback.
 
 **State this ticket starts from.** Tag `v0.1.3` exists and points at
 `f68d3c3`. It was pushed *after* a failed `uv publish` that used a placeholder
@@ -457,8 +459,9 @@ bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never a
 (`CTracer available: YES`); TH-03 is forbidden by [`lessons-learned.md`](lessons-learned.md)
 §37 and by guardrail 1.
 
-**Execution order** for the remaining TH tickets is in [`next-ticket.md`](next-ticket.md):
-P9-12. Do not reopen TH-01/02/03/04/05/06/07/08.
+**Execution order** for the remaining TH tickets is in [`next-ticket.md`](next-ticket.md).
+TH and MI queues are closed. Do not reopen TH-01/02/03/04/05/06/07/08. Do not
+start P9-09 or P9-10.
 
 ## MI — Metric Integrity · [plan file](archive/plans/plan_integridad_matematica.md)
 
@@ -524,7 +527,12 @@ Measured Apple Silicon arm64 / macOS 26.5.1 / Python 3.12.13 / numpy 2.5.2 /
 coverage 7.16.0: instrumented suite mean **110.627 s → 77.017 s** (warm
 100.142 s → 80.459 s). Overall 88.62–88.64%, `core/` 95%.
 
-**What is left** is [`next-ticket.md`](next-ticket.md): **P9-12** (blocked-on-human).
+**P9-12 shipped Trusted Publishing.** GitHub env `pypi` (reviewer = owner) +
+PyPI publisher (`release.yml`, environment `pypi`) + YAML `environment:` on
+`verify-and-build`. No PyPI secret. `docs/releasing.md` §6 is the manual fallback.
+
+**What is left** is [`next-ticket.md`](next-ticket.md): **P9-09** (blocked) and
+**P9-10** (skip). Board otherwise idle.
 
 ---
 
