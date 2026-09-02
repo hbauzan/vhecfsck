@@ -23,7 +23,7 @@ Cold start: [`lessons-learned.md`](lessons-learned.md) §0, then this file.
 | Metric logic | only in `core/`. |
 | CHANGELOG `[Unreleased]` | product only: **MI-05** done. Remaining TH/P9: no. |
 
-**Do not reopen:** TH-01, TH-02, TH-03, TH-05, TH-06, TH-07, MI-03, MI-04, MI-06, MI-07, P8-03.
+**Do not reopen:** TH-01, TH-02, TH-03, TH-04, TH-05, TH-06, TH-07, MI-03, MI-04, MI-06, MI-07, P8-03.
 
 **Do not start** P9-09 or P9-10. They stay skipped (see queue).
 
@@ -40,8 +40,8 @@ do the work the ticket says is allowed while blocked; then stop. Never start two
 | 2 | **MI-05** | `done` | `S_Nk` in hubness `detail` (informative; JSON `null` when `std(N_k)=0`). |
 | 3 | **TH-06** | `done` | Batched `_block_topk` + `_merge_queries_topk`. Bit-exact. No GEMM. |
 | 4 | **TH-07** | `done` | Cached PrebuiltIvf for healthy/tombstoned/drifted. Do not shrink N. |
-| 5 | **TH-04** | `todo` ← **you are here** | Local coverage cache. Merge/CI `make verify` keeps both floors. |
-| 6 | **TH-08** | `todo` | **After TH-04.** Measure `COVERAGE_CORE=sysmon` on 3.12+. If it does not win, do not leave it. |
+| 5 | **TH-04** | `done` | Local `.coverage` cache. CI/merge still one instrumented run, both floors. |
+| 6 | **TH-08** | `todo` ← **you are here** | **After TH-04.** Measure `COVERAGE_CORE=sysmon` on 3.12+. If it does not win, do not leave it. |
 | 7 | **P9-12** | `blocked` | Human must do GitHub env `pypi` + PyPI publisher **before** the YAML `environment:` line. |
 | — | P9-09 | `blocked` | Skip until owner says "listo para publicar" **and** a real Linux host exists. |
 | — | P9-10 | `todo` (skip) | Filler. CI already runs Linux × 3.11/3.12/3.13. Do not pick. |
@@ -135,14 +135,24 @@ Remaining small fits are the reuse-test cache clear plus CLI subprocesses
 
 ---
 
-## TH-04 — local coverage cache
+## TH-04 — local coverage cache (`done`)
 
 **Depends on:** P0-04. **Size:** M.
 
-`make verify` on merge/CI **keeps both floors** (80 overall, 90 `core/`) from
-one instrumented run. A local inner-loop cache is allowed. **Do not invent a
-second loose gate** (`make test` is already the uninstrumented inner loop).
-Do not drop coverage from the merge command.
+`scripts/coverage_gate.py` is the `make coverage` body. Merge/CI
+(`GITHUB_ACTIONS` / `CI`) always runs **one** instrumented pytest and both
+floors (80 overall, 90 `core/`). Locally, an unchanged tree reuses `.coverage`
+and only reports. `make test` is still the uninstrumented inner loop. No second
+gate. `COVERAGE_CACHE=0` forces a trace. Did not drop coverage from `make verify`.
+Did not lower floors. C tracer unchanged (TH-02 cancelled).
+
+Measured Apple Silicon arm64 / macOS 26.5.1 / Python 3.11.15 / numpy 2.4.6 /
+coverage 7.16.0 (`CTracer available: YES`). Default suite `--no-cov` 76.60 s vs
+instrumented pytest-cov 96.95 s (**+20.35 s tax**). `coverage report` overall
+0.52 s + core 0.14 s. Tree fingerprint 0.872 s. Repeat `make coverage` after
+a green verify: **0.91 s** cache hit. The backlog "sub-30s local
+gate" was stale: the suite itself is ~77 s (TH-03 cancelled). The cache makes a
+repeat local `make coverage` skip pytest, not a faster first run.
 
 ---
 
