@@ -21,9 +21,9 @@ Cold start: [`lessons-learned.md`](lessons-learned.md) §0, then this file.
 | Sync | `uv sync --group dev --group docs --extra lancedb`. **Never** `--all-extras`. |
 | Delivery | one branch, one conventional commit. No push/merge to `main` without explicit OK. |
 | Metric logic | only in `core/`. |
-| CHANGELOG `[Unreleased]` | product only: **MI-05** yes. **MI-07** and all TH/P9 remaining: no. |
+| CHANGELOG `[Unreleased]` | product only: **MI-05** yes. Remaining TH/P9: no. |
 
-**Do not reopen:** TH-01, TH-02, TH-03, MI-03, MI-04, MI-06, P8-03.
+**Do not reopen:** TH-01, TH-02, TH-03, MI-03, MI-04, MI-06, MI-07, P8-03.
 
 **Do not start** P9-09 or P9-10. They stay skipped (see queue).
 
@@ -36,8 +36,8 @@ do the work the ticket says is allowed while blocked; then stop. Never start two
 
 | # | ID | Status | Why this slot |
 | ---: | :--- | :--- | :--- |
-| 1 | **MI-07** | `todo` ← **you are here** | MI-02 unblocked it. Regenerates `docs/calibration/` against current profiles and hubby FAIL. |
-| 2 | **MI-05** | `todo` | Independent of MI-07, but **after** it in this queue. `S_Nk` in hubness `detail`. |
+| 1 | **MI-07** | `done` | Regenerated `docs/calibration/` against current profiles. Hubby FAIL published; drifted `partition_size_cv` still below WARN. |
+| 2 | **MI-05** | `todo` ← **you are here** | Independent of MI-07; next after it. `S_Nk` in hubness `detail`. |
 | 3 | **TH-06** | `todo` | `_merge_query_topk` at large Q. Bit-exact. No GEMM identity. |
 | 4 | **TH-07** | `todo` | Reuse PrebuiltIvf of healthy/tombstoned/drifted. Do not shrink N. |
 | 5 | **TH-04** | `todo` | Local coverage cache. Merge/CI `make verify` keeps both floors. |
@@ -53,51 +53,21 @@ do not start `P0-01`.
 
 ---
 
-## MI-07 — regenerate reference calibration
+## MI-07 — regenerate reference calibration (`done`)
 
-**Depends on:** MI-02 (`done`). **Size:** M. **Touches:** output of
-`scripts/calibrate.py` under `docs/calibration/`, then prose in
-`docs/calibration/thresholds.md` and `docs/calibration/README.md` **from the CSV**.
-
-**Do this:**
-
-```bash
-make calibrate
-# equivalent:
-uv run python scripts/calibrate.py --profile reference --out docs/calibration
-```
-
-Needs network. Public archives land in `~/.cache/vhecfsck/calibration` (gist is
-~2.6 GB). Skipped corpora go to `skipped.csv` with a reason — never invent `0.0`.
-
-**Do not:**
-
-- Edit `docs/calibration/results.csv` or `reports/*.md` by hand.
-- Shrink `PROFILE_REFERENCE` (n, dims, S ∈ {1k,5k,20k,50k}, public ids).
-- Change thresholds in `vhecfsck/config.py`. This ticket republishes measurements,
-  it does not retune gates.
-- Touch CHANGELOG (not a product change).
-
-The harness writes CSV + `reports/*.md` + `hubness_sensitivity.md` + `datasets.md`.
-It does **not** write `thresholds.md`. After the run, update FPR/FNR prose in
-`thresholds.md` and the "Known gaps" section of `README.md` **from the new CSV**.
-If `synthetic-hubby` is FAIL on hubness, you may publish an FNR for those two
-metrics; if `synthetic-drifted` `partition_size_cv` is still below WARN, its FNR
-stays unmeasured. Measure; do not copy 0.9297 / 0.6450 from memory — those were
-the demo/`run_audit` numbers at size=small, confirm against this artefact.
-
-`run_audit` already applies `resolve_thresholds_for_dimension`. Healthy Gaussians
-must not appear as FAIL against the old static 0.20/0.25 floors.
-
-**Verify:** `make verify` once. Spot-check `synthetic-hubby` and one Gaussian row
-in `results.csv` against `thresholds.md`.
+Ran `make calibrate` (`--profile reference`). Harness wrote CSV + `reports/` +
+sensitivity + `datasets.md`. `sentence-minilm` skipped (`npy` not in cache).
+FPR/FNR prose in `thresholds.md` / README "Known gaps" updated from that CSV.
+`synthetic-hubby`: `hub_share 0.9297 FAIL` / `antihub 0.6450 FAIL`, overall WARN
+(LOW evidence). `synthetic-drifted` `partition_size_cv 0.9160 OK` — FNR still
+unmeasured. Healthy Gaussians are `OK` under per-dimension profiles. Thresholds
+in `config.py` were not changed.
 
 ---
 
 ## MI-05 — `S_Nk` in hubness `detail`
 
-**Depends on:** P2-06 (`done`). Independent of MI-07; still **after** MI-07 in
-this queue. **Size:** S. **Touches:** `vhecfsck/core/hubness.py`,
+**Depends on:** P2-06 (`done`). MI-07 is `done`; this is next. **Size:** S. **Touches:** `vhecfsck/core/hubness.py`,
 `roadmap/02-metrics-spec.md` §3.5, `tests/oracle/test_hubness.py`, CHANGELOG.
 
 **Formula** (Radovanović, Nanopoulos & Ivanović, JMLR 11:2487–2531, 2010, §2):
