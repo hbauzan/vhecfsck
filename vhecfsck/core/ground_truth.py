@@ -99,6 +99,70 @@ def _score_block(
     return dist
 
 
+_PAD_ID = np.iinfo(np.int64).max
+
+
+def _merge_queries_topk(
+    best_ids: NDArray[np.int64],
+    best_dist: NDArray[np.float32],
+    cand_ids: NDArray[np.int64],
+    cand_dist: NDArray[np.float32],
+    k: int,
+) -> None:
+    """In-place merge of running top-k with block candidates, all queries.
+
+    Bit-exact with the per-query Python loop: sort by ``(distance, id)``,
+    skip duplicate ids, pad with ``-1`` / ``+inf``. Does not rescore — the
+    GEMM identity ``|q|^2+|c|^2-2qc`` is forbidden here (lesson 61).
+    """
+    n_q = int(best_ids.shape[0])
+    if n_q == 0 or k < 1:
+        return
+    ids = np.concatenate(
+        [np.asarray(best_ids, dtype=np.int64), np.asarray(cand_ids, dtype=np.int64)],
+        axis=1,
+    )
+    dist = np.concatenate(
+        [
+            np.asarray(best_dist, dtype=np.float32),
+            np.asarray(cand_dist, dtype=np.float32),
+        ],
+        axis=1,
+    )
+    n_slots = int(ids.shape[1])
+    valid = ids >= 0
+    work_ids = np.where(valid, ids, _PAD_ID)
+    work_dist = np.where(valid, dist, np.float32(np.inf))
+    rec = np.empty(ids.shape, dtype=[("d", np.float32), ("i", np.int64)])
+    rec["d"] = work_dist
+    rec["i"] = work_ids
+    rec.sort(axis=1, order=("d", "i"))
+    sorted_ids = rec["i"]
+    sorted_dist = rec["d"]
+    out_ids = np.full((n_q, k), -1, dtype=np.int64)
+    out_dist = np.full((n_q, k), np.float32(np.inf), dtype=np.float32)
+    filled = np.zeros(n_q, dtype=np.intp)
+    for col in range(n_slots):
+        vid = sorted_ids[:, col]
+        vdist = sorted_dist[:, col]
+        take_mask = (filled < k) & (vid != _PAD_ID)
+        if not np.any(take_mask):
+            continue
+        already = (out_ids == vid[:, None]).any(axis=1)
+        take_mask &= ~already
+        rows = np.flatnonzero(take_mask)
+        if rows.size == 0:
+            continue
+        dest = filled[rows]
+        out_ids[rows, dest] = vid[rows]
+        out_dist[rows, dest] = vdist[rows]
+        filled[rows] += 1
+        if int(filled.min()) >= k:
+            break
+    best_ids[:, :] = out_ids
+    best_dist[:, :] = out_dist
+
+
 def _merge_query_topk(
     best_ids: NDArray[np.int64],
     best_dist: NDArray[np.float32],
@@ -107,39 +171,44 @@ def _merge_query_topk(
     k: int,
 ) -> None:
     """In-place merge of one query's running top-k with a block's candidates."""
-    # Collect valid entries from both sides into a small Python list — the
-    # merged set is at most 2k, so clarity wins over micro-optimisation.
-    merged: list[tuple[float, int]] = []
-    for j in range(k):
-        bid = int(best_ids[j])
-        if bid >= 0:
-            merged.append((float(best_dist[j]), bid))
-    n_cand = int(cand_ids.shape[0])
-    for j in range(n_cand):
-        cid = int(cand_ids[j])
-        if cid >= 0:
-            merged.append((float(cand_dist[j]), cid))
-    merged.sort(key=lambda t: (t[0], t[1]))
-    # Deduplicate by id (same vector cannot appear twice across blocks).
-    seen: list[int] = []
-    unique: list[tuple[float, int]] = []
-    for dist, vid in merged:
-        already = False
-        for s in seen:
-            if s == vid:
-                already = True
-                break
-        if already:
-            continue
-        seen.append(vid)
-        unique.append((dist, vid))
-        if len(unique) >= k:
-            break
-    best_ids[:] = -1
-    best_dist[:] = np.float32(np.inf)
-    for j, (dist, vid) in enumerate(unique):
-        best_ids[j] = vid
-        best_dist[j] = np.float32(dist)
+    _merge_queries_topk(
+        np.asarray(best_ids).reshape(1, -1),
+        np.asarray(best_dist).reshape(1, -1),
+        np.asarray(cand_ids).reshape(1, -1),
+        np.asarray(cand_dist).reshape(1, -1),
+        k,
+    )
+
+
+def _block_topk(
+    scores: NDArray[np.float32],
+    id_row: NDArray[np.int64],
+    k: int,
+) -> tuple[NDArray[np.int64], NDArray[np.float32]]:
+    """Top-k within one block for every query; ties by ascending id.
+
+    Bit-exact with per-row ``argpartition`` + Python sort. Does not rescore.
+    """
+    n_q = int(scores.shape[0])
+    n_block = int(scores.shape[1]) if scores.ndim == 2 else 0
+    take = min(k, n_block)
+    if take == 0:
+        return (
+            np.full((n_q, 0), -1, dtype=np.int64),
+            np.full((n_q, 0), np.float32(np.inf), dtype=np.float32),
+        )
+    rec = np.empty((n_q, take), dtype=[("d", np.float32), ("i", np.int64)])
+    if take == n_block:
+        rec["d"] = scores
+        rec["i"] = id_row[None, :]
+    else:
+        part = np.argpartition(scores, take - 1, axis=1)[:, :take]
+        rec["d"] = np.take_along_axis(scores, part, axis=1)
+        rec["i"] = id_row[part]
+    rec.sort(axis=1, order=("d", "i"))
+    out_ids: NDArray[np.int64] = np.asarray(rec["i"], dtype=np.int64)
+    out_dist: NDArray[np.float32] = np.asarray(rec["d"], dtype=np.float32)
+    return out_ids, out_dist
 
 
 def _block_topk_indices(
@@ -148,25 +217,8 @@ def _block_topk_indices(
     k: int,
 ) -> tuple[NDArray[np.int64], NDArray[np.float32]]:
     """Top-k within one block for a single query; ties by ascending id."""
-    b = int(scores_row.shape[0])
-    take = min(k, b)
-    if take == 0:
-        return (
-            np.full(0, -1, dtype=np.int64),
-            np.full(0, np.float32(np.inf), dtype=np.float32),
-        )
-    if take == b:
-        order = list(range(b))
-    else:
-        part = np.argpartition(scores_row, take - 1)[:take]
-        order = [int(i) for i in part]
-    order.sort(key=lambda i: (float(scores_row[i]), int(id_row[i])))
-    out_ids = np.empty(take, dtype=np.int64)
-    out_dist = np.empty(take, dtype=np.float32)
-    for j, i in enumerate(order):
-        out_ids[j] = id_row[i]
-        out_dist[j] = scores_row[i]
-    return out_ids, out_dist
+    ids, dist = _block_topk(np.asarray(scores_row).reshape(1, -1), id_row, k)
+    return ids[0], dist[0]
 
 
 def _iter_reblocked(
@@ -268,9 +320,8 @@ def exact_knn(
             truncated = True
             break
         scores = _score_block(q, vecs_block, metric_space, query_norm2)
-        for qi in range(n_queries):
-            cand_ids, cand_dist = _block_topk_indices(scores[qi], ids_block, k)
-            _merge_query_topk(best_ids[qi], best_dist[qi], cand_ids, cand_dist, k)
+        cand_ids, cand_dist = _block_topk(scores, ids_block, k)
+        _merge_queries_topk(best_ids, best_dist, cand_ids, cand_dist, k)
         rows_done += int(ids_block.shape[0])
         if on_progress is not None and n_total is not None and n_total > 0:
             on_progress(min(1.0, float(rows_done) / float(n_total)))

@@ -447,7 +447,7 @@ news feed, or release notes beyond what `CHANGELOG.md` already contains.
 | TH-03 | Audit unit test fixtures to enforce $N \le 100$ (`size="tiny"`) for non-perf tests | M | P0-03, P1-08 | cancelled |
 | TH-04 | Decouple/cache coverage in default `make verify` for sub-30s local dev gate | M | P0-04 | todo |
 | TH-05 | Vectorise the synthetic IVF k-means, bit-exact | M | P1-05 | done |
-| TH-06 | `_merge_query_topk` dominates `exact_knn` at large Q (1.88s of 2.53s) | M | P2-04 | todo |
+| TH-06 | `_merge_query_topk` dominates `exact_knn` at large Q (1.88s of 2.53s) | M | P2-04 | done |
 | TH-07 | Reuse the three deterministic IVF builds across tests | S | TH-05 | todo |
 | TH-08 | Evaluate `COVERAGE_CORE=sysmon` by raising the dev interpreter | S | TH-04 | todo |
 
@@ -510,7 +510,12 @@ unmeasured. Healthy Gaussians are `OK` under per-dimension profiles.
 informative only (no threshold, no verdict). Fixture B hand-computed `S_Nk = 0.0`.
 `std(N_k) == 0` emits JSON `null`. Do not reopen MI-03/04/06/07.
 
-**What is left** is [`next-ticket.md`](next-ticket.md): **TH-06**.
+**TH-06 shipped batched `_block_topk` + `_merge_queries_topk`.** Bit-exact against
+the loop in `tests/oracle/reference_merge.py`. Measured Apple Silicon arm64 /
+Python 3.11.15 / numpy 2.4.6, Q=N=20_000 D=32 k=10: `exact_knn` median
+4.210 s → 3.360 s. No GEMM identity. Do not shrink N.
+
+**What is left** is [`next-ticket.md`](next-ticket.md): **TH-07**.
 
 ---
 

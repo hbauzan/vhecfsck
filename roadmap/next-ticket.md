@@ -38,8 +38,8 @@ do the work the ticket says is allowed while blocked; then stop. Never start two
 | ---: | :--- | :--- | :--- |
 | 1 | **MI-07** | `done` | Regenerated `docs/calibration/` against current profiles. Hubby FAIL published; drifted `partition_size_cv` still below WARN. |
 | 2 | **MI-05** | `done` | `S_Nk` in hubness `detail` (informative; JSON `null` when `std(N_k)=0`). |
-| 3 | **TH-06** | `todo` ← **you are here** | `_merge_query_topk` at large Q. Bit-exact. No GEMM identity. |
-| 4 | **TH-07** | `todo` | Reuse PrebuiltIvf of healthy/tombstoned/drifted. Do not shrink N. |
+| 3 | **TH-06** | `done` | Batched `_block_topk` + `_merge_queries_topk`. Bit-exact. No GEMM. |
+| 4 | **TH-07** | `todo` ← **you are here** | Reuse PrebuiltIvf of healthy/tombstoned/drifted. Do not shrink N. |
 | 5 | **TH-04** | `todo` | Local coverage cache. Merge/CI `make verify` keeps both floors. |
 | 6 | **TH-08** | `todo` | **After TH-04.** Measure `COVERAGE_CORE=sysmon` on 3.12+. If it does not win, do not leave it. |
 | 7 | **P9-12** | `blocked` | Human must do GitHub env `pypi` + PyPI publisher **before** the YAML `environment:` line. |
@@ -96,19 +96,24 @@ CHANGELOG `[Unreleased]` → Added. Do not add a metric id or a threshold profil
 
 ---
 
-## TH-06 — vectorise `_merge_query_topk`
+## TH-06 — vectorise `_merge_query_topk` (`done`)
 
 **Depends on:** P2-04. **Plan:** [`plan_optimizacion_test_harness.md`](archive/plans/plan_optimizacion_test_harness.md).
 **Size:** M. **Touches:** `vhecfsck/core/ground_truth.py`.
 
-At large Q (hubness S=20_000) the score panel forces multiple blocks and
-`_merge_query_topk` is called ~120_000 times ≈ 1.88 s of 2.53 s. Vectorise that
-merge. **Bit-exact** against the current loop (ascending-id tie-break, `−1` /
-`+inf` padding). **Forbidden:** the GEMM distance identity `|q|²+|c|²−2qc`
-(max error 1.95e-3, lesson 61). `exact_knn` already uses BLAS in `_score_block`.
+Replaced the per-query Python loop with batched `_block_topk` +
+`_merge_queries_topk`. Bit-exact against the loop preserved in
+`tests/oracle/reference_merge.py` (`.tobytes()`, ascending-id tie-break,
+`-1` / `+inf` padding). `_score_block` untouched — no GEMM identity.
 
-Measure wall time before and after on a stated machine. Write the numbers; do
-not estimate. Do not shrink fixtures to `tiny`.
+Measured on Apple Silicon arm64 / macOS 26.5.1 / Python 3.11.15 / numpy 2.4.6,
+Q=N=20_000, D=32, k=10, `working_set_mb=256` (6 blocks). Median of 3
+`exact_knn` runs: **4.210 s → 3.360 s**. Instrumented split (one run): merge
+0.732 s (120_000 calls) → 0.164 s (6 calls); block top-k 3.069 s (120_000
+calls) → 2.641 s (6 calls). The 1.88 s / 2.53 s figure in the original
+instrumentation was stale on this machine; merge was 0.732 s of 4.596 s.
+
+Do not shrink fixtures to `tiny`.
 
 ---
 
