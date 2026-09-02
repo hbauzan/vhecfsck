@@ -23,7 +23,7 @@ Cold start: [`lessons-learned.md`](lessons-learned.md) §0, then this file.
 | Metric logic | only in `core/`. |
 | CHANGELOG `[Unreleased]` | product only: **MI-05** done. Remaining TH/P9: no. |
 
-**Do not reopen:** TH-01, TH-02, TH-03, TH-04, TH-05, TH-06, TH-07, MI-03, MI-04, MI-06, MI-07, P8-03.
+**Do not reopen:** TH-01, TH-02, TH-03, TH-04, TH-05, TH-06, TH-07, TH-08, MI-03, MI-04, MI-06, MI-07, P8-03.
 
 **Do not start** P9-09 or P9-10. They stay skipped (see queue).
 
@@ -41,8 +41,8 @@ do the work the ticket says is allowed while blocked; then stop. Never start two
 | 3 | **TH-06** | `done` | Batched `_block_topk` + `_merge_queries_topk`. Bit-exact. No GEMM. |
 | 4 | **TH-07** | `done` | Cached PrebuiltIvf for healthy/tombstoned/drifted. Do not shrink N. |
 | 5 | **TH-04** | `done` | Local `.coverage` cache. CI/merge still one instrumented run, both floors. |
-| 6 | **TH-08** | `todo` ← **you are here** | **After TH-04.** Measure `COVERAGE_CORE=sysmon` on 3.12+. If it does not win, do not leave it. |
-| 7 | **P9-12** | `blocked` | Human must do GitHub env `pypi` + PyPI publisher **before** the YAML `environment:` line. |
+| 6 | **TH-08** | `done` | `COVERAGE_CORE=sysmon` on 3.12+ in the gate. 3.11 keeps the C tracer. |
+| 7 | **P9-12** | `blocked` ← **you are here** | Human must do GitHub env `pypi` + PyPI publisher **before** the YAML `environment:` line. |
 | — | P9-09 | `blocked` | Skip until owner says "listo para publicar" **and** a real Linux host exists. |
 | — | P9-10 | `todo` (skip) | Filler. CI already runs Linux × 3.11/3.12/3.13. Do not pick. |
 
@@ -156,13 +156,29 @@ repeat local `make coverage` skip pytest, not a faster first run.
 
 ---
 
-## TH-08 — `COVERAGE_CORE=sysmon` (after TH-04)
+## TH-08 — `COVERAGE_CORE=sysmon` (`done`)
 
 **Depends on:** TH-04. **Size:** S.
 
-Measure on Python **3.12+**. If it does not beat the current C tracer on this
-repo's suite, **do not leave the env var / docs / Makefile change in**. Do not
-raise `requires-python` without an ADR.
+On Python 3.12+ the instrumented child in `scripts/coverage_gate.py` sets
+`COVERAGE_CORE=sysmon` unless that variable is already set (`COVERAGE_CORE=ctrace`
+is the escape hatch). Python 3.11 is unchanged (C tracer). Did not raise
+`requires-python`. Did not lower floors 80/90. CI/merge still always traces.
+`make test` is still `--no-cov`.
+
+Measured Apple Silicon arm64 / macOS 26.5.1 / Python 3.12.13 / numpy 2.5.2 /
+coverage 7.16.0 (`CTracer available: YES`; `SysMonitor` usable with `branch =
+false`). Instrumented default suite, two interleaved runs, `COVERAGE_CACHE=0`:
+
+| core | run 1 | run 2 |
+| :--- | ---: | ---: |
+| C tracer | 121.112 s | 100.142 s |
+| sysmon | 73.575 s | 80.459 s |
+
+Mean **110.627 s → 77.017 s**. Warm pair 100.142 s → 80.459 s. Worst sysmon
+(80.459 s) still beat best C tracer (100.142 s). Overall 88.62% (sysmon run 2:
+88.64%); `core/` 95%. Same 2 mypy failures on that 3.12 venv in both cores
+(numpy 2.5.2 stubs) — not a tracer effect; out of scope.
 
 ---
 

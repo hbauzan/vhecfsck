@@ -52,7 +52,7 @@ test: clean-proc  ## inner-loop suite (no cov); not a verify prerequisite
 test-fast:  ## the fast suite without coverage instrumentation
 	uv run pytest -m "not ($(SLOW_MARKS))" --no-cov -q
 
-coverage: clean-proc  ## two floors, one instrumented run; local .coverage cache (CI always traces)
+coverage: clean-proc  ## two floors, one instrumented run; local .coverage cache (CI always traces; 3.12+ sysmon)
 	COV_ALL=$(COV_ALL) COV_CORE=$(COV_CORE) PKG=$(PKG) CORE=$(CORE) \
 		SLOW_MARKS="$(SLOW_MARKS)" \
 		uv run python scripts/coverage_gate.py

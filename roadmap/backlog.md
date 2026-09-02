@@ -449,7 +449,7 @@ news feed, or release notes beyond what `CHANGELOG.md` already contains.
 | TH-05 | Vectorise the synthetic IVF k-means, bit-exact | M | P1-05 | done |
 | TH-06 | `_merge_query_topk` dominates `exact_knn` at large Q (1.88s of 2.53s) | M | P2-04 | done |
 | TH-07 | Reuse the three deterministic IVF builds across tests | S | TH-05 | done |
-| TH-08 | Evaluate `COVERAGE_CORE=sysmon` by raising the dev interpreter | S | TH-04 | todo |
+| TH-08 | Evaluate `COVERAGE_CORE=sysmon` by raising the dev interpreter | S | TH-04 | done |
 
 The three cancellations are findings, not deferrals — the plan file records why. TH-01
 targeted an `exact_knn` that already uses BLAS and a GEMM identity that is **not**
@@ -458,7 +458,7 @@ bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never a
 §37 and by guardrail 1.
 
 **Execution order** for the remaining TH tickets is in [`next-ticket.md`](next-ticket.md):
-TH-08. Do not start TH-08 before TH-04 (done). Do not reopen TH-01/02/03/04/05/06/07.
+P9-12. Do not reopen TH-01/02/03/04/05/06/07/08.
 
 ## MI — Metric Integrity · [plan file](archive/plans/plan_integridad_matematica.md)
 
@@ -518,7 +518,13 @@ reports only. `make test` unchanged. Measured Apple Silicon arm64 / macOS
 0.872 s + report 0.52 s + 0.14 s, not a sub-30s first-run gate (stale; suite
 is ~77 s).
 
-**What is left** is [`next-ticket.md`](next-ticket.md): **TH-08**.
+**TH-08 shipped `COVERAGE_CORE=sysmon` on 3.12+** in `scripts/coverage_gate.py`.
+3.11 keeps the C tracer. `requires-python` unchanged. Floors 80/90 unchanged.
+Measured Apple Silicon arm64 / macOS 26.5.1 / Python 3.12.13 / numpy 2.5.2 /
+coverage 7.16.0: instrumented suite mean **110.627 s → 77.017 s** (warm
+100.142 s → 80.459 s). Overall 88.62–88.64%, `core/` 95%.
+
+**What is left** is [`next-ticket.md`](next-ticket.md): **P9-12** (blocked-on-human).
 
 ---
 
