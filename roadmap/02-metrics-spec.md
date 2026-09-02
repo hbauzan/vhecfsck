@@ -301,6 +301,18 @@ of roughly 160 MB at `S_b = 2,000`.
 ### 3.5 Additional diagnostics (reported, not gated)
 
 - `max_nk`, `p99_nk`, `median_nk`, and the full `N_k` histogram (bucketed for transport).
+- `S_Nk`: skewness of `N_k` (standardised third moment, population `ddof=0`), the published
+  hubness measure of Radovanović, Nanopoulos & Ivanović, *Hubs in Space: Popular Nearest
+  Neighbors in High-Dimensional Data*, JMLR 11:2487–2531 (2010), §2
+  ([jmlr.org](https://www.jmlr.org/papers/v11/radovanovic10a.html)):
+
+  ```text
+  S_Nk = mean((N_k - mean(N_k))^3) / std(N_k)^3
+  ```
+
+  Informative only — no threshold, no verdict, no gating. If `std(N_k) = 0` the value is
+  undefined: emit JSON `null` (never a substitute `0.0`). A computed `0.0` is defined zero
+  skewness, distinct from the undefined case.
 - `hub_outlier_count`: vectors with `N_k > median(N_k) + 5 · MAD(N_k)`, where
   `MAD = median(|N_k - median(N_k)|)`. MAD is used instead of standard deviation precisely
   because the distribution is expected to be skewed. The constant `5` is a documented
@@ -335,6 +347,10 @@ assert N_k == [1, 2, 1, 0]
 assert sum(N_k) == 4                        # == S * k_hub, invariant
 assert antihub_fraction  == 0.25            # id3 is never anyone's neighbour
 assert hub_share_top1pct == 0.5             # ceil(0.01*4) == 1 vector, id1, with 2 of 4 slots
+# S_Nk, population ddof=0, computed by hand:
+#   mean = 1; deviations = [0, 1, 0, −1]; cubes = [0, 1, 0, −1]; mean of cubes = 0
+#   std = sqrt(0.5); S_Nk = 0 / std^3 = 0.0 exactly (defined zero skewness)
+assert S_Nk == 0.0
 ```
 
 Property tests (`tests/property/`): both metrics in `[0, 1]`; invariance under row
