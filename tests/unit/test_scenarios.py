@@ -8,7 +8,7 @@ import pytest
 from vhecfsck.adapters import synthetic_adapter
 from vhecfsck.adapters.base import IndexAdapter
 from vhecfsck.adapters.registry import open_target
-from vhecfsck.adapters.scenarios import open_scenario
+from vhecfsck.adapters.scenarios import _clear_prebuilt_ivf_cache, open_scenario
 from vhecfsck.errors import ExitCode, UsageError
 from vhecfsck.synthetic.scenarios import (
     SCENARIO_NAMES,
@@ -93,6 +93,8 @@ def test_drifted_adapter_partitions_match_induced_skew() -> None:
 def test_open_scenario_drifted_does_not_refit_ivf(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    _clear_prebuilt_ivf_cache()
+
     def _explode(*_args: object, **_kwargs: object) -> object:
         msg = "drifted must freeze IVF assignment, not refit k-means"
         raise AssertionError(msg)
@@ -105,6 +107,74 @@ def test_open_scenario_drifted_does_not_refit_ivf(
         assert int(parts.sizes.sum()) == opened.adapter.counts().live
     finally:
         opened.adapter.close()
+
+
+@pytest.mark.parametrize("name", ["healthy", "tombstoned"])
+def test_open_scenario_reuses_prebuilt_ivf_across_calls(
+    name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TH-07: identical deterministic IVF builds are fitted once per process."""
+    _clear_prebuilt_ivf_cache()
+    orig = synthetic_adapter._fit_ivf
+    calls = {"n": 0}
+
+    def _counted(*args: object, **kwargs: object) -> object:
+        calls["n"] += 1
+        return orig(*args, **kwargs)
+
+    monkeypatch.setattr(synthetic_adapter, "_fit_ivf", _counted)
+
+    first = open_scenario(name, size="small")
+    try:
+        assert calls["n"] == 1
+        cents = first.adapter._centroids.copy()
+        cells = first.adapter._cell_of.copy()
+        first.adapter._centroids[0, 0] = 123.0
+    finally:
+        first.adapter.close()
+
+    second = open_scenario(name, size="small")
+    try:
+        assert calls["n"] == 1, "second open must reuse PrebuiltIvf, not refit"
+        assert second.adapter._centroids.tobytes() == cents.tobytes()
+        assert second.adapter._cell_of.tobytes() == cells.tobytes()
+    finally:
+        second.adapter.close()
+
+
+def test_open_scenario_caches_drifted_freeze_without_refit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """TH-07: drifted cache is the MI-01 freeze, never a k-means refit."""
+    _clear_prebuilt_ivf_cache()
+
+    def _explode(*_args: object, **_kwargs: object) -> object:
+        msg = "drifted must freeze IVF assignment, not refit k-means"
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(synthetic_adapter, "_fit_ivf", _explode)
+
+    first = open_scenario("drifted", size="small")
+    try:
+        cells = first.adapter._cell_of.copy()
+        parts = first.adapter.partitions()
+        assert parts is not None
+        sizes = tuple(int(x) for x in parts.sizes)
+        induced = first.spec.state.annotation.partition_sizes
+        assert induced is not None
+        assert sizes == induced
+    finally:
+        first.adapter.close()
+
+    second = open_scenario("drifted", size="small")
+    try:
+        assert second.adapter._cell_of.tobytes() == cells.tobytes()
+        parts = second.adapter.partitions()
+        assert parts is not None
+        assert tuple(int(x) for x in parts.sizes) == sizes
+    finally:
+        second.adapter.close()
 
 
 def test_capability_limited_hides_deleted_counts() -> None:
