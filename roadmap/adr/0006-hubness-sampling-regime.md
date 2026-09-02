@@ -1,8 +1,17 @@
 # ADR-0006 — Hubness metrics use a self-queried subsample
 
-**Status:** Accepted
+**Status:** Accepted; **the threshold rationale below is superseded by ADR-0011 / P8-02**
 **Affects:** P2, P8
 **Corrects:** source specification defect 1 — the most serious defect found in review
+
+> **Correction (MI-03).** The sampling-regime decision — the actual subject of this ADR —
+> stands unchanged. Its *justification for keeping the 0.25 / 0.40 thresholds* does not.
+> This ADR claimed those values were "recognisable values from the hubness literature";
+> that attribution is wrong and is struck below. P8-02 subsequently measured that healthy
+> isotropic Gaussians exceed the static thresholds from $d = 128$ upward and replaced them
+> with per-dimension profiles ([ADR-0011](0011-thresholds-and-baseline-mode.md),
+> [`docs/calibration/thresholds.md`](../../docs/calibration/thresholds.md)). The thresholds
+> in force today are empirically calibrated, not inherited.
 
 ## Context
 
@@ -21,11 +30,22 @@ appear in any result. On a 1M-vector corpus, the anti-hub fraction is therefore 
 index. Even on a 20,000-vector corpus the floor is `0.90`. The metric would fire on every
 target it was ever pointed at, and the first thing any user would do is disable it.
 
-The thresholds themselves reveal where the definition drifted. Warn `0.25` / fail `0.40` are
-recognisable values from the hubness literature, where `N_k` is computed with **every point in
-the dataset acting as a query** — the regime in which typical high-dimensional embedding corpora
-show anti-hub fractions in the 0.1–0.4 range. The thresholds are from one regime; the definition
-is from another. The thresholds are the part worth keeping.
+The thresholds themselves reveal where the definition drifted. Warn `0.25` / fail `0.40` only
+make sense in a regime where `N_k` is computed with **every point in the dataset acting as a
+query**, not over `Q = 200` probes. The thresholds are from one regime; the definition is from
+another.
+
+> ~~Warn `0.25` / fail `0.40` are recognisable values from the hubness literature.~~
+> **Struck (MI-03): the attribution is false.** The founding hubness reference —
+> Radovanović, Nanopoulos & Ivanović, *Hubs in Space: Popular Nearest Neighbors in
+> High-Dimensional Data*, JMLR 11:2487–2531 (2010) — measures hubness as the **skewness of
+> `N_k`** (the standardised third moment, `S_Nk`) and defines anti-hubs as points with
+> `N_k = 0`. It publishes neither of these thresholds, and "top-1% hub share" does not
+> appear in that body of work. The values were inherited from the source specification with
+> no traceable provenance. P8-02 replaced them with measured ones; that is what they rest
+> on now.
+
+The **regime** correction is the part worth keeping. The threshold values were not.
 
 There is also a conceptual reason the two must be separated. Canary recall asks *"is the engine
 returning what brute force says it should?"* — a question about the index, best answered with
