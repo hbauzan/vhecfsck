@@ -457,7 +457,7 @@ news feed, or release notes beyond what `CHANGELOG.md` already contains.
 | TH-06 | `_merge_query_topk` dominates `exact_knn` at large Q (1.88s of 2.53s) | M | P2-04 | done |
 | TH-07 | Reuse the three deterministic IVF builds across tests | S | TH-05 | done |
 | TH-08 | Evaluate `COVERAGE_CORE=sysmon` by raising the dev interpreter | S | TH-04 | done |
-| TH-09 | Mypy × numpy 2.5.2 stubs on Python 3.12 | M | TH-08 finding | todo |
+| TH-09 | Mypy × numpy 2.5.2 stubs on Python 3.12 | M | TH-08 finding | done |
 
 The three cancellations are findings, not deferrals — the plan file records why. TH-01
 targeted an `exact_knn` that already uses BLAS and a GEMM identity that is **not**
@@ -466,8 +466,8 @@ bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never a
 §37 and by guardrail 1.
 
 **Execution order** for remaining tickets is in [`next-ticket.md`](next-ticket.md).
-Do not reopen TH-01/02/03/04/05/06/07/08. Do not start P9-10 (`cancelled`).
-P9-09 is second (real Linux host). TH-09 is first.
+Do not reopen TH-01/02/03/04/05/06/07/08/09. Do not start P9-10 (`cancelled`).
+P9-09 is first (real Linux host).
 
 ## MI — Metric Integrity · [plan file](archive/plans/plan_integridad_matematica.md)
 
@@ -532,8 +532,10 @@ is ~77 s).
 Measured Apple Silicon arm64 / macOS 26.5.1 / Python 3.12.13 / numpy 2.5.2 /
 coverage 7.16.0: instrumented suite mean **110.627 s → 77.017 s** (warm
 100.142 s → 80.459 s). Overall 88.62–88.64%, `core/` 95%. Same session observed
-two mypy-test failures on that 3.12 venv (numpy 2.5.2 stubs) — that is **TH-09**,
-not a tracer bug. Contract: [`next-ticket.md`](next-ticket.md) § TH-09.
+two mypy-test failures on that 3.12 venv (numpy 2.5.2 stubs) — that was
+**TH-09**, not a tracer bug. Closed: omit `[tool.mypy] python_version` so
+mypy follows the interpreter. Contract: [`next-ticket.md`](next-ticket.md)
+§ TH-09.
 
 **P9-09** (Linux `setup.sh`) is `todo` with a full contract in
 [`next-ticket.md`](next-ticket.md). No product version bump. Needs a real Linux
@@ -543,8 +545,8 @@ host. **P9-10** is `cancelled`.
 PyPI publisher (`release.yml`, environment `pypi`) + YAML `environment:` on
 `verify-and-build`. No PyPI secret. `docs/releasing.md` §6 is the manual fallback.
 
-**What is left** is [`next-ticket.md`](next-ticket.md): **TH-09** (todo, first)
-then **P9-09** (todo, real Linux host). **P9-10** is `cancelled`.
+**What is left** is [`next-ticket.md`](next-ticket.md): **P9-09** (todo,
+real Linux host). **P9-10** is `cancelled`. TH-09 is `done`.
 
 ---
 

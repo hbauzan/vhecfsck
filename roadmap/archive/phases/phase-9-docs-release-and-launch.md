@@ -224,7 +224,7 @@ pipeline, or it gets run once and forgotten.
 **Depends on:** P0-15 · **Size:** S · **Touches:** `setup.sh`, `tests/e2e/test_setup_sh.py`
 
 **Status: `todo`.** Canonical contract:
-[`next-ticket.md`](../../next-ticket.md) § P9-09 (queue slot 9, after TH-09).
+[`next-ticket.md`](../../next-ticket.md) § P9-09 (first remaining ticket; TH-09 `done`).
 Owner go-ahead is implicit (`0.1.3` is published). Remaining hard gate: a **real
 Linux host** (Ubuntu or Fedora, bash). Do not port from Darwin memory. Do not
 bump `project.version` — `setup.sh` is not in the wheel.

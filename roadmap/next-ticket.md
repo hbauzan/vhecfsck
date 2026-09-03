@@ -23,9 +23,9 @@ Cold start: [`lessons-learned.md`](lessons-learned.md) §0, then this file.
 | Metric logic | only in `core/`. |
 | CHANGELOG `[Unreleased]` | product only: **MI-05** done. Remaining TH/P9: no. |
 
-**Do not reopen:** TH-01, TH-02, TH-03, TH-04, TH-05, TH-06, TH-07, TH-08, MI-03, MI-04, MI-06, MI-07, P8-03, P9-10, P9-11, P9-12. ADR-0012 public copy is closed (H = Hector, wordplay — not Health).
+**Do not reopen:** TH-01, TH-02, TH-03, TH-04, TH-05, TH-06, TH-07, TH-08, TH-09, MI-03, MI-04, MI-06, MI-07, P8-03, P9-10, P9-11, P9-12. ADR-0012 public copy is closed (H = Hector, wordplay — not Health).
 
-**Do not start** P9-10 (`cancelled`). Do not start P9-09 unless you have a **real Linux host** (not Docker-on-Mac as the only witness). TH-09 is first. P10 stays unplanned.
+**Do not start** P9-10 (`cancelled`). Do not start P9-09 unless you have a **real Linux host** (not Docker-on-Mac as the only witness). P9-09 is first. P10 stays unplanned.
 
 ---
 
@@ -43,8 +43,8 @@ do the work the ticket says is allowed while blocked; then stop. Never start two
 | 5 | **TH-04** | `done` | Local `.coverage` cache. CI/merge still one instrumented run, both floors. |
 | 6 | **TH-08** | `done` | `COVERAGE_CORE=sysmon` on 3.12+ in the gate. 3.11 keeps the C tracer. |
 | 7 | **P9-12** | `done` | Trusted Publishing live: GitHub env `pypi` + PyPI publisher + YAML `environment:`. |
-| 8 | **TH-09** | `todo` ← **first** | Mypy × numpy 2.5.2 stubs on Python 3.12. Reproduce, then fix. Do not weaken the two mypy tests. |
-| 9 | **P9-09** | `todo` | Linux port of `setup.sh`. Needs a real Linux host. No product version bump. |
+| 8 | **TH-09** | `done` | Dropped `[tool.mypy] python_version = "3.11"` so mypy follows the interpreter. numpy 2.5.2 PEP 695 stubs parse on 3.12. |
+| 9 | **P9-09** | `todo` ← **first** | Linux port of `setup.sh`. Needs a real Linux host. No product version bump. |
 | — | P9-10 | `cancelled` | Filler from the private-repo era. Hosted CI already runs Linux × 3.11/3.12/3.13. |
 
 Contracts live in [`backlog.md`](backlog.md), in
@@ -54,71 +54,44 @@ are archived; do not start `P0-01`.
 
 ---
 
-## TH-09 — mypy × numpy 2.5.2 stubs on Python 3.12 (`todo`)
+## TH-09 — mypy × numpy 2.5.2 stubs on Python 3.12 (`done`)
 
-**Depends on:** TH-08 finding (out of scope then). **Size:** M.
-**Touches:** `tests/unit/test_lint_typing_config.py`, possibly `[tool.mypy]`,
-possibly a numpy / stub pin — **ADR if any dependency changes**.
+**Depends on:** TH-08 finding. **Size:** M.
+**Touches:** `[tool.mypy]`, `tests/unit/test_lint_typing_config.py`. No
+dependency pin. No ADR.
 
-**First ticket.** Do not start P9-09 in the same session.
+**Done.** Do not reopen. Do not re-pin `python_version = "3.11"`.
 
-**Symptom (TH-08, not re-measured here).** On Apple Silicon arm64 / macOS 26.5.1 /
-Python 3.12.13 / numpy 2.5.2 / coverage 7.16.0, the two subprocess mypy tests
-failed. Same under C tracer and sysmon — not a tracer effect. The tests:
+Reproduced on Apple Silicon arm64 / macOS 26.5.1 / Python 3.12.13 /
+numpy 2.5.2 / mypy 2.3.1, isolated venv (`UV_PROJECT_ENVIRONMENT`,
+`uv sync --python 3.12 --group dev --group docs --extra lancedb`). Gate
+`.venv` stayed 3.11.15 / numpy 2.4.6. Exact mypy stdout (exit 2):
 
-- `test_mypy_reports_zero_errors`
-- `test_mypy_rejects_untyped_function_in_core`
+```text
+.venv-th09-312/lib/python3.12/site-packages/numpy/__init__.pyi:737: error: Type
+statement is only supported in Python 3.12 and greater  [syntax]
+    type _Falsy = L[False, 0] | bool_[L[False]]
+Found 1 error in 1 file (errors prevented further checking)
+```
 
-in `tests/unit/test_lint_typing_config.py`. They shell out to
-`python -m mypy vhecfsck` and `python -m mypy vhecfsck/core`.
+`--python-version 3.11` → same error, exit 2. `--python-version 3.12` →
+`Success: no issues found in 53 source files`, exit 0. 3.11
+`uv run mypy vhecfsck` was already 0 (numpy 2.4.6 has no PEP 695 aliases).
 
-**Lock fact:** `uv.lock` installs numpy **2.4.6** when
-`python_full_version < '3.12'` and numpy **2.5.2** when `>= '3.12'`. The Darwin
-default gate venv is 3.11 (numpy 2.4.6) and is green.
+CI Linux 3.12 [run 33699170199](https://github.com/hbauzan/vhecfsck/actions/runs/33699170199)
+was a **false green for this bug**: that job installed `numpy==2.4.6`, not
+2.5.2. `uv.lock` still resolves 2.5.2 when `python_full_version >= '3.12'`
+(numpy 2.5.2 `Requires-Python >=3.12`; 2.4.6 `>=3.11`).
 
-**CI fact:** Linux `ci.yml` `make verify` on 3.12 is green on `origin/main`
-`407ca4c`, including workflow_dispatch
-[run 33699170199](https://github.com/hbauzan/vhecfsck/actions/runs/33699170199).
-Do not assume the failure is universal. First job is **reproduce**.
+**Fix:** omit `[tool.mypy] python_version` so mypy follows the running
+interpreter. 3.11 keeps the ADR-0002 language floor; 3.12 can parse the
+stubs. `--strict` on `core`/`models`/`adapters` unchanged. No
+`ignore_missing_imports` on numpy. No `requires-python` bump. Pinned by
+`test_mypy_python_version_follows_running_interpreter`. The two original
+mypy tests pass on 3.11 and 3.12.
 
-**Do this, in order**
-
-1. Do **not** replace the 3.11 `.venv` that runs the Darwin gate. Use an isolated
-   3.12 env (`UV_PROJECT_ENVIRONMENT` or a throwaway directory). Sync:
-   `uv sync --group dev --group docs --extra lancedb`. Never `--all-extras`.
-   Never `--extra qdrant` / `--extra postgres`.
-2. Run only those two tests. Capture **full** mypy stdout/stderr. Put the exact
-   errors in the delivery report. Do not guess. Do not invent a count.
-3. Compare with `uv run mypy vhecfsck` on 3.11 (expect 0) and with CI 3.12 (green).
-4. Investigate: numpy 2.5.2 stubs vs pinned mypy vs `[tool.mypy] python_version = "3.11"`
-   vs Darwin vs Linux. Inspect the pinned versions (guardrail 10).
-5. Fix the **cause**. Acceptable: mypy config that stays `--strict` on
-   `core`/`models`/`adapters`; a typed wrapper; a version pin **with an ADR**; a
-   stubs resolution that `uv lock` records.
-
-**Forbidden**
-
-- Weaken, skip, `xfail`, or delete those two tests.
-- `# type: ignore` without a reason comment.
-- `ignore_missing_imports` on `numpy` as a convenience (numpy ships stubs).
-- Raise `requires-python` without an ADR.
-- Set `core = sysmon` in `pyproject.toml`.
-- Lower floors 80/90. Nest pytest-cov. Shrink N (TH-03 cancelled).
-- CHANGELOG `[Unreleased]` (not product). Do not bump `project.version`.
-
-**If it does not reproduce** on a clean 3.12 lock sync: close the ticket as an
-environment artefact (same class as lesson 62 / `ps` in a sandbox), with the
-command lines and exit codes as evidence. Do not "fix" a green gate.
-
-**Acceptance**
-
-- [ ] Reproduction log (or non-reproduction log) in the delivery report.
-- [ ] If reproduced: both mypy tests pass on 3.11 **and** 3.12 with the lock.
-- [ ] `make verify` green **once** on the agent's Darwin 3.11 gate venv.
-- [ ] Dependency move → ADR in the same ticket.
-
-**Out of scope:** P9-09, P10, thresholds, `verdict.py`, `ground_truth.py`,
-`docs/calibration/`, `vhecfsck/config.py`.
+**Out of scope then and now:** P9-09, P10, thresholds, `verdict.py`,
+`ground_truth.py`, `docs/calibration/`, `vhecfsck/config.py`.
 
 ---
 
@@ -132,8 +105,8 @@ P0-15's Darwin-only clause in
 is historical — do not rewrite it as if Linux was always allowed; this ticket
 supersedes it going forward.
 
-**Second in the queue.** Take it only when TH-09 is `done`. Canonical contract
-is this section (the archived P9 phase file points here).
+**First in the queue.** TH-09 is `done`. Canonical contract is this section
+(the archived P9 phase file points here).
 
 **Hard start condition.** You must have a **real Linux host** (Ubuntu or Fedora,
 bash). WSL2 counts if `uname -s` is `Linux`. **Docker-on-macOS is not the
@@ -408,6 +381,9 @@ test tag.
   failed job unless the smoke step allows 0–3 (lesson 68).
 - Public name: H is **Hector** (wordplay), not Health. Do not invent a different
   expansion (ADR-0012 closed).
+- Do not re-pin `[tool.mypy] python_version` to 3.11. numpy 2.5.2 stubs use
+  PEP 695 `type` aliases. CI Linux 3.12 on run 33699170199 installed
+  numpy 2.4.6 (false green for this bug); a Darwin lock sync on 3.12 gets 2.5.2.
 
 P9-11 Node-20 residual is **done** (run 33699170199; grep empty). P9-10 is
-`cancelled`. Next: TH-09, then P9-09.
+`cancelled`. TH-09 is `done`. Next: P9-09 (real Linux host).

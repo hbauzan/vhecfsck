@@ -203,7 +203,12 @@ indent-style = "space"
 line-ending = "lf"
 
 [tool.mypy]
-python_version = "3.11"
+# Do not pin python_version to 3.11. numpy 2.5.2 (uv.lock, Python >=3.12)
+# ships PEP 695 `type` aliases in __init__.pyi; mypy then aborts with
+# "Type statement is only supported in Python 3.12 and greater" before
+# checking vhecfsck. Omit the key so the running interpreter is the target:
+# 3.11 keeps the ADR-0002 language floor, 3.12 can parse the stubs.
+# Do not set ignore_missing_imports on numpy (it ships stubs).
 files = ["vhecfsck"]
 pretty = true
 show_error_codes = true
