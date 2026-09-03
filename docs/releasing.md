@@ -57,7 +57,7 @@ The job is bound to the GitHub environment `pypi` and **waits for owner approval
 before any step (including build) runs.
 
 1. **Build Step**: Checks out code, sets up Python 3.11/`uv`, and executes `uv build`.
-2. **Clean Smoke Test**: Installs the newly built wheel in an isolated temporary environment and executes `vhecfsck demo`.
+2. **Clean Smoke Test**: Installs the newly built wheel in an isolated temporary environment and executes `vhecfsck demo`. The default demo is tombstoned **FAIL** (exit 2); the job treats exits 0–3 as a runnable wheel and fails on usage (4) or internal (70).
 3. **PyPI Publishing**: Publishes wheel and sdist to PyPI via OIDC authentication.
 4. **GitHub Release**: Creates a new GitHub Release with attached `.whl` and `.tar.gz` artifacts.
 

@@ -36,7 +36,16 @@ jobs:
       - name: Smoke test built wheel in clean environment
         run: |
           WHEEL=$(ls dist/*.whl | head -n 1)
+          set +e
           uvx --from "$WHEEL" vhecfsck demo
+          ec=$?
+          set -e
+          # Default demo is tombstoned → FAIL (2). 0–3 are completed verdicts.
+          # 4 = usage, 70 = internal; those fail the job.
+          case "$ec" in
+            0|1|2|3) echo "smoke ok: demo exit $ec" ;;
+            *) echo "smoke failed: demo exit $ec" >&2; exit "$ec" ;;
+          esac
 
       - name: Publish package distributions to PyPI
         if: startsWith(github.ref, 'refs/tags/v')
