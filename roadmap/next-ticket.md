@@ -215,6 +215,9 @@ test tag.
 - Pages leaf: `/releasing` 200, `/releasing/` 404. `use_directory_urls: false`.
   Do not add a redirect plugin.
 - `setup-uv` v8+: pin a full release (`v10.0.1`), there is no floating `@v10`.
+- Default `vhecfsck demo` exits **2** (FAIL). GHA `bash -e` treats that as a
+  failed job unless the smoke step allows 0–3 (lesson 68).
 
-Residual (not a ticket): P9-11 needs a `gh workflow run ci.yml` witness and
-`grep -i "node.js 20"` empty; `release.yml` dispatch **without** a tag.
+Residual (not a ticket): P9-11 still needs a `gh workflow run ci.yml` witness
+with `grep -i "node.js 20"` empty. `release.yml` dispatch without a tag is
+**done** (run 33698069648; publish skipped).

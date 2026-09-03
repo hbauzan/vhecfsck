@@ -43,9 +43,9 @@ sigue en `roadmap/phases/` (no archivado).
 **Critical path activo:** [`next-ticket.md`](next-ticket.md) —
 cola de implementación vacía (P9-09 blocked, P9-10 skip).
 No tomes dos. No reabras TH-01/02/03/04/05/06/07/08, MI-03/04/06/07, P8-03, P9-12.
-No arranques P9-09 ni P9-10.
+No arranques P9-09 ni P9-10. No inventes un ticket porque la cola esté vacía.
 
-**HEAD de referencia:** `main` after merge of `ci/p9-12-pypi-environment`.
+**HEAD de referencia:** `main` @ `9316d7f` (merge `fix/release-smoke-demo-exit`).
 Confirm with `git log -1 origin/main`.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PUBLIC** desde P9-07).
 Runners estándar de GitHub Actions son gratis en repo público.
@@ -57,15 +57,16 @@ Runners estándar de GitHub Actions son gratis en repo público.
 3.11/3.12/3.13. Sync = `uv sync --group dev --group docs --extra lancedb`
 (**nunca** `--all-extras`, **nunca** `--extra qdrant` / `--extra postgres` —
 lecciones 50 y 59). Residual P9-11: falta un `gh workflow run ci.yml` testigo
-(`grep -i "node.js 20"` vacío) y un dispatch de `release.yml` **sin** tag.
+(`grep -i "node.js 20"` vacío). El dispatch de `release.yml` **sin** tag ya
+corrió verde: [run 33698069648](https://github.com/hbauzan/vhecfsck/actions/runs/33698069648)
+(smoke ok, Publish y GitHub Release skipped).
 
 **Producto:** auditor CLI read-only. Hero: `uvx vhecfsck demo`.
 `setup.sh` es consola de contribuidor macOS, no el producto.
 
 Residual dueño (no lo “arregles” vos solo):
 - PyPI `0.1.3` está publicado; Trusted Publishing (P9-12) está activo. No secret
-  PyPI. No tag de prueba. Testigo residual: `gh workflow run release.yml` **sin**
-  tag (tiene que pausar por aprobación del env `pypi`).
+  PyPI. No tag de prueba. No cortes `v0.1.3` de nuevo (PyPI no re-sube).
 - ADR-0012: la expansión de la `H` en copy público sigue abierta.
 
 Las lecciones de `vhectorlab` **no** se copian.
@@ -383,6 +384,28 @@ Python 3.11 keeps the C tracer. Escape hatch: `COVERAGE_CORE=ctrace`. Do not
 set `core = sysmon` in `pyproject.toml` (3.11 would warn and fall back).
 `open_scenario`'s `PrebuiltIvf` cache is **process-local** — CLI subprocesses
 still pay one k-means; do not add a disk IVF cache without invalidation.
+
+---
+
+### Lesson 68 (hero demo FAIL is a successful wheel smoke)
+
+**Context:** Default `vhecfsck demo` is tombstoned (`pgvector#244`), verdict FAIL,
+exit 2 — pinned by `test_cli_demo_default_exits_fail`. P9-12's first
+`release.yml` dispatch (no tag) built the wheel, ran `uvx --from $WHEEL vhecfsck
+demo`, and GitHub Actions `bash -e` failed the job on that 2. The wheel was
+fine. Fix: smoke accepts completed verdicts 0–3; usage 4 and internal 70 fail
+the job (`test_release_smoke_accepts_demo_fail_exit`). Witness:
+[run 33698069648](https://github.com/hbauzan/vhecfsck/actions/runs/33698069648)
+green; Publish and GitHub Release **skipped**.
+
+**Invariant:** Do not change `demo` to exit 0 to make CI green (also lesson 3).
+Release/publish smoke must allow 0–3. Publish and GitHub Release stay behind
+`if: startsWith(github.ref, 'refs/tags/v')`. Never cut a test tag. Never add
+`environment:` to a workflow before the GitHub env exists **with required
+reviewers** — a missing env is auto-created with no protection. PyPI trusted
+publisher on an **existing** project (not pending): Owner `hbauzan`,
+Repository `vhecfsck`, Workflow **filename** `release.yml`, Environment `pypi`.
+Mismatch on either side → generic OIDC auth error.
 
 ---
 
