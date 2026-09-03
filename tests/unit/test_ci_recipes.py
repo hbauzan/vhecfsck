@@ -82,3 +82,19 @@ def test_release_workflow_uses_protected_pypi_environment() -> None:
         if str(step.get("uses", "")).startswith("pypa/gh-action-pypi-publish")
     )
     assert "password" not in publish.get("with", {})
+
+
+def test_release_smoke_accepts_demo_fail_exit() -> None:
+    """Default ``vhecfsck demo`` is tombstoned FAIL (exit 2). GHA ``bash -e``
+    must not treat that as a broken wheel."""
+    workflow_file = ROOT / ".github" / "workflows" / "release.yml"
+    data = yaml.safe_load(workflow_file.read_text(encoding="utf-8"))
+    smoke = next(
+        step
+        for step in data["jobs"]["verify-and-build"]["steps"]
+        if str(step.get("name", "")).startswith("Smoke")
+    )
+    script = smoke["run"]
+    assert "vhecfsck demo" in script
+    assert "set +e" in script
+    assert "0|1|2|3" in script
