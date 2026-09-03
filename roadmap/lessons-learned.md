@@ -36,16 +36,15 @@ JSON `null` when `std(N_k)=0`). Reference calibration republished:
 overall WARN (evidence LOW, `|S|<10000`). `synthetic-drifted`
 `partition_size_cv 0.9160 OK` — FNR still unmeasured. Healthy Gaussians are
 `OK` under per-dimension profiles. `sentence-minilm` skipped (no cache npy).
-**TH-06 / TH-07 / TH-04 / TH-08 `done`.** Batched exact_knn merge; in-process
+**TH-06 / TH-07 / TH-04 / TH-08 / TH-09 `done`.** Batched exact_knn merge; in-process
 `PrebuiltIvf` reuse; local `.coverage` cache (CI still traces); `COVERAGE_CORE=sysmon`
-on 3.12+ (3.11 keeps the C tracer).
-**TH-09 `todo`.** Mypy × numpy 2.5.2 stubs on Python 3.12: reproducir, después arreglar.
-No debilitar los dos tests de mypy.
+on 3.12+ (3.11 keeps the C tracer). Mypy follows the running interpreter (no
+`python_version = "3.11"` pin): numpy 2.5.2 PEP 695 stubs parse on 3.12.
 **Horizon:** [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md)
 sigue en `roadmap/phases/` (no archivado).
 
-**Critical path activo:** [`next-ticket.md`](next-ticket.md) — **TH-09** primero,
-después **P9-09**. No tomes dos. No reabras TH-01/02/03/04/05/06/07/08, MI-03/04/06/07,
+**Critical path activo:** [`next-ticket.md`](next-ticket.md) — **P9-09** primero
+(host Linux real). No tomes dos. No reabras TH-01/02/03/04/05/06/07/08/09, MI-03/04/06/07,
 P8-03, P9-10, P9-11, P9-12. No inventes un ticket extra. P10 no se planifica.
 ADR-0012 cerrado: la `H` es **Hector** (juego de nombre), no Health.
 

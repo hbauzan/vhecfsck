@@ -195,6 +195,5 @@ instrumentado de `scripts/coverage_gate.py` setea `sysmon` en 3.12+ salvo que
 `requires-python`.
 
 **Orden de ejecución** (no es paralelo): TH-06 → TH-07 → TH-04 → TH-08. Cola y contratos
-en [`next-ticket.md`](../../next-ticket.md). TH-01/02/03 siguen `cancelled`. TH-04/06/07/08
-están `done`. **TH-09** (mypy × numpy 2.5.2 en 3.12) es el único TH abierto — reproducir
-antes de parchear; no debilitar los tests.
+en [`next-ticket.md`](../../next-ticket.md). TH-01/02/03 siguen `cancelled`. TH-04/06/07/08/09
+están `done`.
