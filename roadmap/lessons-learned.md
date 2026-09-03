@@ -22,11 +22,13 @@ Cola de implementación: [`next-ticket.md`](next-ticket.md). Un ticket, en orden
 [`archive/phases/`](archive/phases/). No los reabras.
 **P8 completo** en `main` (P8-01…P8-11, incluido **P8-03** baseline/delta). No lo
 reinicies: un §0 viejo que lo listaba como critical path está stale.
-**P9** cerrado salvo P9-09/P9-10: P9-01…P9-08 y P9-11/12/13/14 `done`. Fase archivada en
+**P9** cerrado salvo **P9-09** (`todo`, segundo; Linux host real). P9-01…P9-08 y
+P9-11/12/13/14 `done`. **P9-10 `cancelled`.** P9-11 residual cerrado: testigo
+[run 33699170199](https://github.com/hbauzan/vhecfsck/actions/runs/33699170199)
+(`grep -i "node.js 20"` vacío). Fase archivada en
 [`archive/phases/phase-9-docs-release-and-launch.md`](archive/phases/phase-9-docs-release-and-launch.md).
 P9-12 `done` (Trusted Publishing: env GitHub `pypi` + publisher PyPI + YAML
-`environment:`). P9-09 `blocked` (go-ahead + Linux real). P9-10 skip (CI Linux ×
-3.11/3.12/3.13 ya corre).
+`environment:`).
 **MI-01 / MI-02 / MI-05 / MI-07 `done`.** Hubness self-query + freeze IVF drifted +
 `inject_hubs` concentra ≥1% de masa (d=64). `S_Nk` in hubness `detail` (informative;
 JSON `null` when `std(N_k)=0`). Reference calibration republished:
@@ -37,15 +39,17 @@ overall WARN (evidence LOW, `|S|<10000`). `synthetic-drifted`
 **TH-06 / TH-07 / TH-04 / TH-08 `done`.** Batched exact_knn merge; in-process
 `PrebuiltIvf` reuse; local `.coverage` cache (CI still traces); `COVERAGE_CORE=sysmon`
 on 3.12+ (3.11 keeps the C tracer).
+**TH-09 `todo`.** Mypy × numpy 2.5.2 stubs on Python 3.12: reproducir, después arreglar.
+No debilitar los dos tests de mypy.
 **Horizon:** [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md)
 sigue en `roadmap/phases/` (no archivado).
 
-**Critical path activo:** [`next-ticket.md`](next-ticket.md) —
-cola de implementación vacía (P9-09 blocked, P9-10 skip).
-No tomes dos. No reabras TH-01/02/03/04/05/06/07/08, MI-03/04/06/07, P8-03, P9-12.
-No arranques P9-09 ni P9-10. No inventes un ticket porque la cola esté vacía.
+**Critical path activo:** [`next-ticket.md`](next-ticket.md) — **TH-09** primero,
+después **P9-09**. No tomes dos. No reabras TH-01/02/03/04/05/06/07/08, MI-03/04/06/07,
+P8-03, P9-10, P9-11, P9-12. No inventes un ticket extra. P10 no se planifica.
+ADR-0012 cerrado: la `H` es **Hector** (juego de nombre), no Health.
 
-**HEAD de referencia:** `main` @ `9316d7f` (merge `fix/release-smoke-demo-exit`).
+**HEAD de referencia:** `origin/main` @ `407ca4c` (merge `docs/handoff-p9-12-th-08-smoke`).
 Confirm with `git log -1 origin/main`.
 **Remote:** `origin` → `https://github.com/hbauzan/vhecfsck` (**PUBLIC** desde P9-07).
 Runners estándar de GitHub Actions son gratis en repo público.
@@ -56,7 +60,8 @@ Runners estándar de GitHub Actions son gratis en repo público.
 **CI:** `.github/workflows/ci.yml` corre `make verify` en Linux × Python
 3.11/3.12/3.13. Sync = `uv sync --group dev --group docs --extra lancedb`
 (**nunca** `--all-extras`, **nunca** `--extra qdrant` / `--extra postgres` —
-lecciones 50 y 59). Residual P9-11: falta un `gh workflow run ci.yml` testigo
+lecciones 50 y 59). P9-11 Node-20 residual: testigo
+[run 33699170199](https://github.com/hbauzan/vhecfsck/actions/runs/33699170199)
 (`grep -i "node.js 20"` vacío). El dispatch de `release.yml` **sin** tag ya
 corrió verde: [run 33698069648](https://github.com/hbauzan/vhecfsck/actions/runs/33698069648)
 (smoke ok, Publish y GitHub Release skipped).
@@ -67,7 +72,7 @@ corrió verde: [run 33698069648](https://github.com/hbauzan/vhecfsck/actions/run
 Residual dueño (no lo “arregles” vos solo):
 - PyPI `0.1.3` está publicado; Trusted Publishing (P9-12) está activo. No secret
   PyPI. No tag de prueba. No cortes `v0.1.3` de nuevo (PyPI no re-sube).
-- ADR-0012: la expansión de la `H` en copy público sigue abierta.
+- ADR-0012 cerrado: `H` = Hector (wordplay). No publiques Health ni otra expansión.
 
 Las lecciones de `vhectorlab` **no** se copian.
 
@@ -90,7 +95,7 @@ every remaining ticket hits are restated in full after the table.
 | 6 | Do not grow `setup.sh` to host visualizer or deploy concerns. Follow the phase tickets. | [vhectorlab assets map to tickets, not to setup](archive/lessons-learned-historical.md) |
 | 7 | Do not reintroduce nonexistent ruff override tables. Keep product trees clean; do not “fix” roadmap prose or skill templates to satisfy format-check. | [Ruff has no path `lint.overrides` — scope ANN+D with per-file-ignores](archive/lessons-learned-historical.md) |
 | 8 | Leave every ticket with `make verify` green **once**. No shadow gate. No “green except …”. Do not list `test` and `coverage` as sibling prerequisites — that runs the suite twice. | [`make verify` is the only gate — do not invent a parallel one](archive/lessons-learned-historical.md) |
-| 9 | Attribution = `hbauzan`. Visibility and PyPI publish are owner-gated. Do not invent the `H` expansion in ADR-0012. | [Copyright credit is `hbauzan`; GitHub stays private; PyPI claim is owner-gated](archive/lessons-learned-historical.md) |
+| 9 | Attribution = `hbauzan`. Visibility and PyPI publish are owner-gated. H in public copy = Hector (wordplay); do not invent Health or any other expansion. | [Copyright credit is `hbauzan`; GitHub stays private; PyPI claim is owner-gated](archive/lessons-learned-historical.md) |
 | 10 | No concurrent writers on the same branch or on shared paperwork files. | [One ticket = one branch = one commit; never parallelize overlapping trees](archive/lessons-learned-historical.md) |
 | 11 | No probe files in the tree at commit time. No knowingly-red merges to `main`. | [Never merge a red gate; clean probe leftovers before commit](archive/lessons-learned-historical.md) |
 | 12 | Do not loosen the denylist of write attrs. Do not return to naive substring SQL matching. | [Read-only SQL guard matches statement shapes, not prose](archive/lessons-learned-historical.md) |

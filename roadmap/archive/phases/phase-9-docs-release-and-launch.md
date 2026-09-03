@@ -221,63 +221,34 @@ pipeline, or it gets run once and forgotten.
 
 ## P9-09 — Linux port of `setup.sh`
 
-**Depends on:** P0-15, owner "ready to publish" · **Size:** S · **Touches:** `setup.sh`, `tests/e2e/test_setup_sh.py`
+**Depends on:** P0-15 · **Size:** S · **Touches:** `setup.sh`, `tests/e2e/test_setup_sh.py`
 
-**Status: `blocked`.** Do not start this ticket until the owner says the project is ready to publish and the
-script has been run on a real Linux machine. A "should work" port from memory is out of
-scope. macOS is the only supported console until then. Dispatcher: [`next-ticket.md`](../../next-ticket.md).
+**Status: `todo`.** Canonical contract:
+[`next-ticket.md`](../../next-ticket.md) § P9-09 (queue slot 9, after TH-09).
+Owner go-ahead is implicit (`0.1.3` is published). Remaining hard gate: a **real
+Linux host** (Ubuntu or Fedora, bash). Do not port from Darwin memory. Do not
+bump `project.version` — `setup.sh` is not in the wheel.
 
-**Contract**
-- Remove the Darwin-only hard stop after a measured Linux run (Ubuntu or Fedora, bash).
-- Keep the same menu, exit codes, and Hitchhiker copy. Do not add a daemon, Vite, or a
-  hosted-demo publish path.
-- `uv` install on Linux uses the official installer, still `[y/N]` on a TTY.
-- Tests: the `SETUP_SH_UNAME=Linux` case flips from exit `3` to the same behaviour as
-  Darwin. Add a fixture that records the distro and bash version actually used. Do not
-  invent a matrix.
-
-**Acceptance criteria**
-- [ ] `./setup.sh help` and `./setup.sh sync` succeed on the recorded Linux host.
-- [ ] `uv run pytest tests/e2e/test_setup_sh.py` is green on that host and on macOS.
+**Contract (summary — obey next-ticket, not this paragraph)**
+- Accept `Darwin` and `Linux`; other `uname` still exits `3`.
+- Keep Bash 3.2-safe, same menu/labels/exit codes. No Docker verb (P9-10 cancelled).
+- Official `uv` installer only. Gate sync line:
+  `uv sync --group dev --group docs --extra lancedb`.
+- Flip `test_linux_is_inconclusive_until_publish_port` to exit 0. Record the host
+  distro/bash in a fixture. `demo` still exits 2.
 
 ---
 
-## P9-10 — Local Linux `make verify` in Docker (TBD)
+## P9-10 — Local Linux `make verify` in Docker (`cancelled`)
 
-**Depends on:** P9-08 · **Size:** S · **Touches:** `setup.sh` (optional verb), a Docker
-compose/script, `.github/workflows/ci.yml` (commented recipe)
+**Depends on:** P9-08 · **Size:** S
 
-**Do not start this ticket while any higher-priority work is open.** GitHub-hosted
-CI already runs `make verify` on `ubuntu-latest` × Python 3.11 / 3.12 / 3.13.
-This ticket is leftover filler from when Actions were disabled on the private
-repo. Skip it. Status stays `todo` until the owner says the board is otherwise
-idle. Dispatcher: [`next-ticket.md`](../../next-ticket.md).
-
-**What it replaces.** The commented recipes in `.github/workflows/ci.yml` and
-`nightly.yml`: Ubuntu × Python 3.11 / 3.12 / 3.13, advisory 3.14, and
-`make verify-full` / engine-SDK drift. Same commands: `uv sync --group dev` then
-`make verify` (or `make verify-full`). Never `--all-extras`.
-
-**What it does not replace.** macOS / Accelerate BLAS. That remains `make verify` on
-the Darwin laptop. Docker on a Mac runs Linux; it does not reproduce the old
-`macos-latest` job.
-
-**Contract (when started)**
-- A documented, copy-pasteable local path: Docker images (`python:3.11`, `3.12`,
-  `3.13`, advisory `3.14`) run the commented CI recipes.
-- Optional: a `setup.sh` verb on Darwin that shells out to that path. If Docker is
-  missing, exit `3` (inconclusive) — never fake healthy. Do not add a GitHub
-  `push` / `schedule` trigger.
-- Multiple Pythons on the host via `uv python install` are allowed as a cheaper
-  subset; they do **not** count as the Linux witness. Docker (or a real Linux
-  host) is what buys glibc.
-
-**Acceptance criteria**
-- [ ] Owner confirmed no higher-priority ticket is open.
-- [ ] Linux containers run `make verify` for 3.11 / 3.12 / 3.13; 3.14 is advisory.
-- [ ] Docker missing → inconclusive, not a red gate on the default `make verify`.
-- [ ] Hosted GitHub Actions stay as they are (`ci.yml` on push is already live). This
-      ticket must not add a second `push` / `schedule` workflow.
+**Status: `cancelled`.** Leftover filler from when Actions were billed on a
+private repo. Hosted `ci.yml` already runs `make verify` on `ubuntu-latest` ×
+Python 3.11 / 3.12 / 3.13. Do not implement. Do not add a `setup.sh` Docker verb.
+Do not add a second `push` / `schedule` workflow. Commented recipes in `ci.yml`
+stay as copy-paste for a future ticket if someone wants hosted engine
+integration — that is not this ID.
 
 ---
 
@@ -290,7 +261,7 @@ the Darwin laptop. Docker on a Mac runs Linux; it does not reproduce the old
 - [ ] CI recipes tested; composite action published.
 - [ ] Every README claim traceable to a measurement.
 - [ ] Post-launch triage window observed and its findings recorded.
-- [ ] Linux `setup.sh` port (`P9-09`) only if the owner has given a publish go-ahead
-      and the script was run on a real Linux host.
-- [ ] Local Linux Docker witness (`P9-10`) only if the board is otherwise idle
-      (TBD; not a launch blocker).
+- [ ] Linux `setup.sh` port (`P9-09`) — post-launch; needs a real Linux host; no
+      product version bump. Contract in `next-ticket.md`.
+- [x] Local Linux Docker witness (`P9-10`) — **cancelled**. Hosted CI covers Linux
+      `make verify`.

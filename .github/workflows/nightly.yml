@@ -1,18 +1,20 @@
 # =============================================================================
-# DISABLED PERMANENTLY — do not uncomment to "fix CI".
+# DISABLED — do not uncomment to "fix CI".
 # -----------------------------------------------------------------------------
-# GitHub-hosted runners are billed on this private repo. These workflows were
-# turned off on 2026-08-30 so Actions minutes stay at zero.
+# This file used to be the Ubuntu nightly matrix. It was turned off on
+# 2026-08-30 when the repo was private and runners were billed.
 #
-# `make verify-full` and engine-SDK drift stay local / on demand. There is no
-# scheduled runner. The Linux container path for the same recipes is P9-10
-# (post-launch TBD; skip while higher-priority tickets are open). Optional
-# hook: a setup.sh verb, only if Docker is present; exit 3 if it is not.
+# The repo is public now. `ci.yml` already runs `make verify` on
+# ubuntu-latest × Python 3.11/3.12/3.13 on push. P9-10 (local Docker
+# `make verify`) is **cancelled** and is not a reason to restore this file.
 #
-# The original workflow is preserved as comments (recipe for P9-10).
-# The stub below (`workflow_dispatch` + `if: false`) exists only because GitHub
-# flags a workflows/*.yml file with no `on:` as invalid. It never runs on
-# schedule. Do not restore the cron.
+# `make verify-full` and engine-SDK drift stay local / on demand. Restoring a
+# scheduled nightly is a new ticket, not P9-10. Do not restore the cron from
+# memory.
+#
+# The original workflow is preserved as comments (copy-paste). The stub below
+# (`workflow_dispatch` + `if: false`) exists only because GitHub flags a
+# workflows/*.yml file with no `on:` as invalid. It never runs on schedule.
 # =============================================================================
 #
 # name: nightly

@@ -339,9 +339,9 @@ skip while higher-priority work is open).
 - Create the GitHub repository `vhecfsck`, public, and reserve the matching PyPI name by
   publishing a `0.0.0` placeholder via TestPyPI-validated Trusted Publishing
   ([`release-plan.md`](../../release-plan.md)).
-- Record the canonical spelling decision in [ADR-0012](../../adr/0012-naming.md), including the
-  open question about what the `H` stands for in public-facing copy — that needs an owner
-  decision before the README is written, not after.
+- Record the canonical spelling decision in [ADR-0012](../../adr/0012-naming.md).
+  The public-copy question (what the `H` is) was open at P0-13; **resolved
+  2026-09-02**: Hector (wordplay), not Health.
 - Fill in `pyproject.toml` URLs: homepage, repository, issues, changelog.
 
 **Acceptance criteria**
