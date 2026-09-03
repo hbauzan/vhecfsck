@@ -12,7 +12,7 @@ atomically.
 **Status values:** `todo` · `in-progress` · `blocked` · `done` · `cancelled`.
 
 **Start here:** [`next-ticket.md`](next-ticket.md). One ticket, in that order.
-P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
+P0–P8 and most of P9 are `done`. P9-10 is `cancelled`. Do not start at `P0-01`.
 
 ---
 
@@ -168,8 +168,8 @@ P0–P8 and the rest of P9 are `done` or skipped. Do not start at `P0-01`.
 | P9-06 | Pre-launch review pass | M | P9-01, P9-02, P9-03 | done |
 | P9-07 | Launch | M | P9-04, P9-05, P9-06 | done |
 | P9-08 | Post-launch triage window | M | P9-07 | done |
-| P9-09 | Linux port of `setup.sh` | S | P0-15, owner publish go-ahead | blocked |
-| P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | todo |
+| P9-09 | Linux port of `setup.sh` | S | P0-15, real Linux host | todo |
+| P9-10 | Local Linux `make verify` in Docker (TBD) | S | P9-08, board otherwise idle | cancelled |
 | P9-11 | Bump GitHub Actions off the deprecated Node 20 runtime | S | — | done |
 | P9-12 | Activate PyPI Trusted Publishing with a protected `pypi` environment | S | GitHub env `pypi` + PyPI publisher | done |
 | P9-13 | `clean_orphans.py` kills the shell that invoked `make verify` | S | — | done |
@@ -273,6 +273,11 @@ they say otherwise.
 
 **Out of scope.** Do not change triggers, matrices, runner labels, or job structure.
 Only the `uses:` version pins move.
+
+**Witness (closed).** `gh workflow run ci.yml` on `407ca4c`:
+[run 33699170199](https://github.com/hbauzan/vhecfsck/actions/runs/33699170199)
+success. `gh run view 33699170199 --log | grep -i "node.js 20"` empty.
+`release.yml` no-tag dispatch already done (run 33698069648). Do not reopen.
 
 ### P9-12 — Activate PyPI Trusted Publishing with a protected `pypi` environment
 
@@ -452,6 +457,7 @@ news feed, or release notes beyond what `CHANGELOG.md` already contains.
 | TH-06 | `_merge_query_topk` dominates `exact_knn` at large Q (1.88s of 2.53s) | M | P2-04 | done |
 | TH-07 | Reuse the three deterministic IVF builds across tests | S | TH-05 | done |
 | TH-08 | Evaluate `COVERAGE_CORE=sysmon` by raising the dev interpreter | S | TH-04 | done |
+| TH-09 | Mypy × numpy 2.5.2 stubs on Python 3.12 | M | TH-08 finding | todo |
 
 The three cancellations are findings, not deferrals — the plan file records why. TH-01
 targeted an `exact_knn` that already uses BLAS and a GEMM identity that is **not**
@@ -459,9 +465,9 @@ bit-exact (1.95e-3 error); TH-02 targeted a `PyTracer` fallback that was never a
 (`CTracer available: YES`); TH-03 is forbidden by [`lessons-learned.md`](lessons-learned.md)
 §37 and by guardrail 1.
 
-**Execution order** for the remaining TH tickets is in [`next-ticket.md`](next-ticket.md).
-TH and MI queues are closed. Do not reopen TH-01/02/03/04/05/06/07/08. Do not
-start P9-09 or P9-10.
+**Execution order** for remaining tickets is in [`next-ticket.md`](next-ticket.md).
+Do not reopen TH-01/02/03/04/05/06/07/08. Do not start P9-10 (`cancelled`).
+P9-09 is second (real Linux host). TH-09 is first.
 
 ## MI — Metric Integrity · [plan file](archive/plans/plan_integridad_matematica.md)
 
@@ -525,14 +531,20 @@ is ~77 s).
 3.11 keeps the C tracer. `requires-python` unchanged. Floors 80/90 unchanged.
 Measured Apple Silicon arm64 / macOS 26.5.1 / Python 3.12.13 / numpy 2.5.2 /
 coverage 7.16.0: instrumented suite mean **110.627 s → 77.017 s** (warm
-100.142 s → 80.459 s). Overall 88.62–88.64%, `core/` 95%.
+100.142 s → 80.459 s). Overall 88.62–88.64%, `core/` 95%. Same session observed
+two mypy-test failures on that 3.12 venv (numpy 2.5.2 stubs) — that is **TH-09**,
+not a tracer bug. Contract: [`next-ticket.md`](next-ticket.md) § TH-09.
+
+**P9-09** (Linux `setup.sh`) is `todo` with a full contract in
+[`next-ticket.md`](next-ticket.md). No product version bump. Needs a real Linux
+host. **P9-10** is `cancelled`.
 
 **P9-12 shipped Trusted Publishing.** GitHub env `pypi` (reviewer = owner) +
 PyPI publisher (`release.yml`, environment `pypi`) + YAML `environment:` on
 `verify-and-build`. No PyPI secret. `docs/releasing.md` §6 is the manual fallback.
 
-**What is left** is [`next-ticket.md`](next-ticket.md): **P9-09** (blocked) and
-**P9-10** (skip). Board otherwise idle.
+**What is left** is [`next-ticket.md`](next-ticket.md): **TH-09** (todo, first)
+then **P9-09** (todo, real Linux host). **P9-10** is `cancelled`.
 
 ---
 

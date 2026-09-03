@@ -2,6 +2,8 @@
 
 Read-only, empirical, offline auditor for vector indexes that detects silent recall decay and index pathologies before they reach production.
 
+The name is a personalized play on Unix `fsck`: a vector-index checker, with an **H** from the author's name, Hector. Identifiers stay lowercase `vhecfsck`.
+
 ![vhecfsck demo](https://raw.githubusercontent.com/hbauzan/vhecfsck/main/docs/assets/vhecfsck-demo.gif)
 
 ## Quickstart

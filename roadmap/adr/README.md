@@ -33,7 +33,7 @@ revisited because its stated conditions changed.
 | [0009](0009-scene-transport-and-lod.md) | Binary scene transport, class-stratified LOD | Accepted | P4 |
 | [0010](0010-frontend-build-and-bundling.md) | Vite + TypeScript, built in CI, bundled in the wheel | Accepted | P4 |
 | [0011](0011-thresholds-and-baseline-mode.md) | Configurable thresholds plus baseline/delta gating | Accepted | P0, P8 |
-| [0012](0012-naming.md) | Canonical name `vhecfsck` | Accepted (one open question) | All |
+| [0012](0012-naming.md) | Canonical name `vhecfsck` | Accepted (H = Hector, wordplay) | All |
 | [0013](0013-adapter-protocol.md) | Structural Protocol with honest capabilities | Accepted | P1, P5, P7 |
 | [0014](0014-synthetic-adapter-first.md) | Synthetic adapter before any real engine | Accepted | P1 |
 | [0015](0015-axe-core-playwright.md) | @axe-core/playwright for Visualizer Accessibility E2E Testing | Accepted | P4, P6, P9 |
