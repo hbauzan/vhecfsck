@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 # Contributor console for vhecfsck.
 # Product surface is the CLI (`uvx vhecfsck`). This panel is for a git checkout.
-# macOS only until the publish-readiness Linux port (P9-09).
+# macOS only until the Linux port (P9-09). See roadmap/next-ticket.md.
 # Not a daemon supervisor: no background services, no pid files, no log dir.
-# TBD P9-10 (post-launch, skip if anything else is open): optional verb to run
-# make verify in Linux Docker (the old GitHub Ubuntu matrix). Not implemented.
 
 set -o pipefail
 

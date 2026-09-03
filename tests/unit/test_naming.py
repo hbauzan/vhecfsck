@@ -34,3 +34,12 @@ def test_no_banned_spellings_in_package_tree() -> None:
             if _BANNED.search(line):
                 hits.append(f"{path.relative_to(ROOT)}:{i}:{line.strip()}")
     assert not hits, "banned spellings:\n" + "\n".join(hits)
+
+
+def test_public_copy_states_h_is_hector() -> None:
+    """ADR-0012: H is Hector (wordplay), not an invented acronym."""
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    home = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
+    for label, text in (("README.md", readme), ("docs/index.md", home)):
+        assert "Hector" in text, f"{label} must name Hector"
+        assert "fsck" in text, f"{label} must keep the fsck analogy"

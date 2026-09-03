@@ -27,9 +27,11 @@ Lesson 5 forbids `uv sync --all-extras` in setup and CI.
 - Startup is health-gated via testcontainers wait strategies (`HttpWaitStrategy`
   on Qdrant `/readyz`, `ExecWaitStrategy` `pg_isready` for Postgres). Host ports
   are ephemeral (`with_exposed_ports`), not fixed binds.
-- Hosted CI is currently disabled. The commented recipe in
-  `.github/workflows/ci.yml` is the P9-10 copy-paste: pull the pinned images,
-  cache by hash of `containers.py`, `uv sync --group dev --extra qdrant --extra postgres`.
+- Hosted `ci.yml` is live on the public repo (Linux × 3.11/3.12/3.13). The commented
+  `integration:` recipe in `.github/workflows/ci.yml` remains copy-paste: pull the
+  pinned images, cache by hash of `containers.py`,
+  `uv sync --group dev --extra qdrant --extra postgres`. P9-10 (local Docker
+  `make verify`) is `cancelled` and is not this recipe.
 
 ## Consequences
 
@@ -64,5 +66,5 @@ seeding lives in `tests/integration/seeding.py`.
 - `testcontainers` 5.x changes wait-strategy or port-mapping semantics.
 - The pinned Qdrant / pgvector tags disappear, or `qdrant-client` 2.x forces
   a server bump.
-- Hosted CI returns (P9-10) and the commented image-cache recipe needs a
-  measured wall-time budget.
+- Hosted engine-integration job is enabled and the commented image-cache recipe
+  needs a measured wall-time budget.

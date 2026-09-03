@@ -194,22 +194,26 @@ real evidence.
 
 ## 5. CI structure
 
-**Hosted GitHub Actions are disabled permanently** (2026-08-30). Private-repo runner
-minutes cost money; `ci.yml` and `nightly.yml` keep the old recipes as comments plus an
-inert `workflow_dispatch` stub that never runs on push or schedule.
+**Hosted GitHub Actions are live** on the public repo. `.github/workflows/ci.yml`
+runs `make verify` on `ubuntu-latest` × Python 3.11 / 3.12 / 3.13 on `push` to
+`main`, pull requests, and `workflow_dispatch`. Sync is
+`uv sync --group dev --group docs --extra lancedb` (never `--all-extras`).
 
-**The gate is local:** `make verify` on the Darwin laptop. That *is* the old
-macOS × 3.12 / Accelerate job.
+**The Darwin gate is still local:** `make verify` on the development laptop.
+That *is* the macOS / Accelerate job. Do not add a `macos-latest` matrix leg
+to re-measure it.
 
-**Linux × Python 3.11 / 3.12 / 3.13** (advisory 3.14) and **nightly** (`make verify-full`,
-SDK drift) have no remote witness until [P9-10](archive/phases/phase-9-docs-release-and-launch.md)
-— post-launch TBD: the same recipes in Docker, optionally a `setup.sh` verb. Skip P9-10
-while anything else is open. Docker does not reproduce macOS BLAS.
+**P9-10 is `cancelled`.** A local Docker `make verify` matrix is not a ticket.
+Hosted Linux already covers 3.11/3.12/3.13. The commented recipes in `ci.yml`
+(integration images, advisory 3.14) stay as copy-paste; enabling them is a
+future ticket with its own ID, not P9-10. Docker-on-Mac does not reproduce
+macOS BLAS.
 
 **Additionally, when those suites exist:** integration against containerised Qdrant and
 PostgreSQL (P7-01: `testcontainers`, pinned tags, health-gated startup; local skip is
 actionable, `CI=true` fails a skip), the LanceDB file-based suite, and visual regression
-in a pinned container — still local / on demand, not GitHub-hosted.
+in a pinned container — still local / on demand unless a dedicated ticket enables the
+commented `integration:` job.
 
 **On release tag (P9-05):** full verification, build, publish to TestPyPI, install from
 TestPyPI into a clean container and run the demo, then publish to PyPI. That smoke step
