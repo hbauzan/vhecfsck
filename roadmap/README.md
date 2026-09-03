@@ -52,7 +52,7 @@ These are settled inputs, not open questions. They constrain every phase.
 
 | Parameter | Decision |
 | :--- | :--- |
-| Canonical name | `vhecfsck` (lowercase) — package, CLI binary, repo, PyPI project |
+| Canonical name | `vhecfsck` (lowercase) — package, CLI binary, repo, PyPI project. The **H** is from the author's name, Hector: a personalized play on Unix `fsck`, not an acronym ([ADR-0012](adr/0012-naming.md)). |
 | First adapter | Synthetic in-memory NumPy adapter, **before** any real engine |
 | Build order | Thin end-to-end vertical slice (audit → JSON report → 3D scene) first, then depth on each branch |
 | Scale target | Up to ~1M vectors × 768D on a single node, blocked BLAS in RAM |
@@ -100,6 +100,6 @@ Each correction has an owning ADR so the reasoning survives.
 ## Status
 
 P0–P9 execution is complete except the residual queue in
-[`next-ticket.md`](next-ticket.md) (P9-09 blocked, P9-10 skip). Product on
-`main` is the read-only CLI auditor; hero command `uvx vhecfsck demo`. P10 stays
-unplanned in [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md).
+[`next-ticket.md`](next-ticket.md) (TH-09 first, then P9-09; P9-10 cancelled).
+Product on `main` is the read-only CLI auditor; hero command `uvx vhecfsck demo`.
+P10 stays unplanned in [`phases/phase-10-post-1.0-horizon.md`](phases/phase-10-post-1.0-horizon.md).

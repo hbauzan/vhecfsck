@@ -76,7 +76,9 @@ jobs:
           retention-days: 7
 
 # -----------------------------------------------------------------------------
-# Deliberately still off — these are P9-10 recipes, not forgotten code.
+# Deliberately still off — copy-paste, not a forgotten ticket.
+# P9-10 (local Docker `make verify`) is cancelled: this workflow already runs
+# Linux × 3.11/3.12/3.13. Enabling `integration` or `next-python` is a new ID.
 #
 # `integration` needs Docker plus the qdrant and postgres extras and pulls two
 # pinned engine images per run. It is free to run but slow and failure-prone,

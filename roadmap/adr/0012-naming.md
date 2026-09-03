@@ -1,18 +1,22 @@
 # ADR-0012 — Canonical name `vhecfsck`
 
-**Status:** Accepted, with one open question for the owner; namespace reservation in progress
+**Status:** Accepted. Public-copy question resolved 2026-09-02 (H = Hector, wordplay).
 **Affects:** everything user-facing
 
 ## Reservation status (P0-13)
 
-| Surface | Status |
+Recorded at P0-13 execution (do not pretend these were always true):
+
+| Surface | Status at P0-13 |
 | :--- | :--- |
-| GitHub `hbauzan/vhecfsck` | Reserved. Remains **PRIVATE** until the owner explicitly flips visibility. |
-| PyPI `vhecfsck` | Name still free (`404` from `pypi.org/pypi/vhecfsck/json` at execution). Publishing a `0.0.0` placeholder requires Trusted Publishing / an API token — **not present in this environment**; owner must run the claim. |
+| GitHub `hbauzan/vhecfsck` | Reserved. Remained **PRIVATE** until the owner flipped visibility. |
+| PyPI `vhecfsck` | Name still free (`404` from `pypi.org/pypi/vhecfsck/json` at execution). |
 | `pyproject.toml` URLs | Homepage / Repository / Issues / Changelog filled pointing at the GitHub repo. |
 
-**Do not** change GitHub visibility or publish to PyPI from an agent session without an
-explicit owner go-ahead (credentials + visibility are owner-gated).
+**Amendment (2026-09-02).** GitHub is **public** (P9-07). PyPI `vhecfsck` **0.1.3** is
+published. Trusted Publishing is live (P9-12: env `pypi`, workflow filename `release.yml`).
+Do not add a PyPI secret. Do not cut `v0.1.3` again (PyPI will not re-accept that version).
+Tags and publishes remain owner-gated (lesson 68).
 
 ## Context
 
@@ -45,29 +49,17 @@ No alias, no `vecfsck` shim, no shorter alternative binary. One name, spelled on
 `P9-06` greps the repository for stray `vecfsck` occurrences, since the source specification uses
 the old spelling throughout and transcription errors are near-certain.
 
-## Open question for the owner
+## Public copy (resolved 2026-09-02)
 
-**What does the `H` stand for in public-facing copy?**
+**What the `H` is:** the author's given name, **Hector**. The name is a personalized play on
+Unix `fsck` (a vector-index checker), not an acronym.
 
-This is not a technical blocker — the identifier is settled — but it blocks the README, and it
-cannot be resolved by inference. Nothing in the source material explains the added letter, and
-inventing an expansion would be a fabrication baked into the project's front door.
+Owner decision (hbauzan, 2026-09-02). Do **not** publish "Vector Health check",
+"Vector HE-alth Check", or any other expansion invented to fill the letter. Those readings
+were speculation in the original draft of this ADR; they are not the gloss.
 
-The plausible readings, for the owner to choose from or override:
-
-| Reading | Expansion | Pronunciation |
-| :--- | :--- | :--- |
-| Health | **V**ector **H**ealth ch**EC**k + `fsck` | "vee-aitch-e-see-fisk" or "vector health check" |
-| Health, alternative gloss | **V**ector **HE**alth **C**heck + `fsck` | "vee-heck-fisk" |
-| No expansion | Just a name, deliberately unexplained | as spelled |
-
-"Health" fits the product thesis precisely — the tool is a health diagnostic, and the
-`smartctl` analogy in the vision document reinforces it. It is the recommended reading, but the
-owner should confirm rather than have it assumed.
-
-**Resolve before `P9-01` (README).** Until then, documentation refers to the tool only as
-`vhecfsck` with no expansion, which is a valid interim state. Record the answer as an amendment
-to this ADR.
+Public-facing copy (README, docs home) states that fact in one sentence. Technical identifiers
+stay lowercase `vhecfsck`. No alias binary. `VHECFSCK` remains acceptable in headings only.
 
 ## Consequences
 
@@ -91,4 +83,5 @@ to this ADR.
 
 ## Revisit if
 
-Never for the identifier. The public expansion of `H` is amended here once the owner decides.
+Never for the identifier. Never for the public gloss of `H` — that is closed. Do not reopen
+it to pick Health or to invent a different expansion.
