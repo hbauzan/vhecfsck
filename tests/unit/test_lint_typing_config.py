@@ -94,6 +94,19 @@ def test_mypy_enables_required_strictness_flags() -> None:
     assert mypy.get("warn_unused_ignores") is True
 
 
+def test_mypy_python_version_follows_running_interpreter() -> None:
+    """numpy 2.5.2 (uv.lock, python_full_version >= 3.12) uses PEP 695 `type` aliases.
+
+    Pinning ``python_version = "3.11"`` makes mypy abort on
+    ``numpy/__init__.pyi`` ("Type statement is only supported in Python 3.12
+    and greater") before checking vhecfsck. Omit the key so the running
+    interpreter is the target: 3.11 keeps the ADR-0002 language floor, 3.12
+    can parse the stubs. Do not set ``ignore_missing_imports`` on numpy.
+    """
+    mypy = _load_pyproject()["tool"]["mypy"]
+    assert "python_version" not in mypy
+
+
 def test_mypy_strict_override_covers_core_models_adapters() -> None:
     overrides = _load_pyproject()["tool"]["mypy"]["overrides"]
     strict_modules: set[str] = set()
