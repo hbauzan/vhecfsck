@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # setup-uv stopped publishing @vN major tags at v8 (immutable full tags only).
-      - uses: astral-sh/setup-uv@v10.0.1
+      - uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: true
       - name: Install Python
@@ -93,7 +93,7 @@ jobs:
 #     runs-on: ubuntu-latest
 #     steps:
 #       - uses: actions/checkout@v7
-#       - uses: astral-sh/setup-uv@v10.0.1
+#       - uses: astral-sh/setup-uv@v10.2.0
 #         with:
 #           enable-cache: true
 #       - uses: actions/cache@v6
@@ -123,7 +123,7 @@ jobs:
 #     continue-on-error: true
 #     steps:
 #       - uses: actions/checkout@v7
-#       - uses: astral-sh/setup-uv@v10.0.1
+#       - uses: astral-sh/setup-uv@v10.2.0
 #         with:
 #           enable-cache: true
 #       - run: uv python install 3.14
